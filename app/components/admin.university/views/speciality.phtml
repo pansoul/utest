@@ -10,8 +10,15 @@ $arTitles = array(
 );
 ?>
 
+<? 
+if ($arResult['errors'] == ERROR_ELEMENT_NOT_FOUND) {
+    echo UForm::error('Специальность не найдена');
+    return; 
+} 
+?>
+
 <div class="setting-panel">    
-    <?=UForm::btnNew('Создать новую специальность', USite::getModurl().'/'.$this->params , 'newspeciality')?>
+    <?=UForm::btnNew('Создать новую специальность', USite::getUrl().'/'.$this->params , 'newspeciality')?>
 </div>
 
 <? if (empty($arResult['data'])) { 

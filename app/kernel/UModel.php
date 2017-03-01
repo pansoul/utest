@@ -30,7 +30,7 @@ class UModel {
                 'line' => $caller['line']
             );
             ob_start();        
-            var_dump($args);  
+            echo "<pre>"; var_dump($args); echo "</pre>";
             $this->debugInfo['do_action_args']['value'] = ob_get_clean();            
         }        
         

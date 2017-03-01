@@ -42,6 +42,8 @@ define('TABLE_STUDENT_TEST_TIME', 'u_student_test_time');
 define('TABLE_TEST', 'u_test');
 define('TABLE_TEST_ANSWER', 'u_test_answer');
 define('TABLE_TEST_QUESTION', 'u_test_question');
+
+define('ERROR_ELEMENT_NOT_FOUND', 404);
  
 /**
  * Возвращаемый массив настроек для работы приложения

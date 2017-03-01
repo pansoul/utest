@@ -20,23 +20,24 @@ class USiteController {
     protected $componentName;
     
     /**
-     * Действующий акшн для компонента
+     * Найденный акшн компонента
      * @var string 
      */
     protected $action;  
     
     /**
-     * Массив параметров для загружаемого акшна. 
-     * Массив используется при ручном вызове компонентов
+     * Массив параметров для вызываемого акшна. 
+     * Заполняется при ручном вызове компонена.
      * @var array
      */
     protected $actionArgs = array();
     
     /**
-     * Действующие параметры для компонента
+     * Текущая строка параметров компонента.
+     * Заполняется при вызове компонента из url.
      * @var string 
      */
-    protected $params;
+    protected $paramsRow;
     
     /**
      * Модель текущего загруженного компонента
@@ -55,17 +56,17 @@ class USiteController {
             'value' => null
         ),
         'vars' => array(
-            'name' => 'Переменные акшена',
+            'name' => 'Переменные акшена (vars)',
+            'value' => null
+        ),
+        'do_action' => array(
+            'name' => 'Стек вызываемых методов',
             'value' => null
         ),
         'template' => array(
             'name' => 'Стек вызываемых шаблонов',
             'value' => null
-        ),        
-        'do_action' => array(
-            'name' => 'Стек вызываемых методов',
-            'value' => null
-        ),
+        ),                
         'do_action_args' => array(
             'name' => 'Параметры, переданные запускаемому методу',
             'value' => null
@@ -116,7 +117,7 @@ class USiteController {
      *          Если акшен не найден, поиск осуществляется через регулярные выражения 
      *          с раскрытием переменных. Переменные указываются в угловых скобках
      *          <имя_переменной>, имя переменной должно соответствовать правилу [-_a-zA-Z0-9]+.<br/>
-     *          Если правило раскрытия переменной не указано в VarsRule, то переменная раскрывается 
+     *          Если правило раскрытия переменной не указано в varsRule, то переменная раскрывается 
      *          по правилу [^\/]+.<br/>
      *          В конечно итоге раскрытая строка параметров, описанная в значении акшена,
      *          подставляется в регулярное выражение /^раскрытая_строка$/<br/>
@@ -136,7 +137,7 @@ class USiteController {
      *          </pre>
      *      </li>
      *      <li>
-     *          VarsRule - список кастомных правил раскрытия переменных, определенных в строке параметров<br/>
+     *          varsRule - список кастомных правил раскрытия переменных, определенных в строке параметров<br/>
      *          По умолчанию array()
      *          
      *          Ключом должно быть имя переменной, определённой в строке парметров в actionsPath.
@@ -145,7 +146,7 @@ class USiteController {
      *          пример:<br/>
      *          <pre>
      *          ...
-     *          'VarsRule' => array(
+     *          'varsRule' => array(
      *              'type' => '[a-zA-Z]',
      *              'id' => '[0-9]'
      *              ...
@@ -175,11 +176,11 @@ class USiteController {
      * @param string $componentName - может быть либо частью строки url, либо точным названием запрашиваемого компонета     
      * @param string $action - имя экшена, что будет запущен при вызове компонента
      * @param array $actionArgs - массив переданных параметров для $action
-     * @param array $params
+     * @param array $paramsRow - строка параметров
      * @param array $routeMap
      * @return void
      */
-    private function __construct($componentName = null, $action = null, $actionArgs = array(), $params = null, $routeMap = array())
+    private function __construct($componentName = null, $action = null, $actionArgs = array(), $paramsRow = null, $routeMap = array())
     {
         USite::setModname($componentName);        
         USite::setModurl('/' . str_replace('.', '/', $componentName));                                
@@ -187,7 +188,7 @@ class USiteController {
         $this->componentName = $componentName;        
         $this->action = $action;
         $this->actionArgs = $actionArgs;
-        $this->params = $params ? '/' . $params : null;        
+        $this->paramsRow = $paramsRow ? '/' . $paramsRow : null;        
         $this->routeMap = array_merge(self::$routeMapDefault, $this->routeMap, $routeMap);                        
         $this->routeMap['actionsPath'] = array_map('trim', $this->routeMap['actionsPath']);        
     }
@@ -224,7 +225,7 @@ class USiteController {
             if (!empty($args)) {                
                 $componentPiece = explode('/', $args, 2);                                
                 $componentName .= '.' . $componentPiece[0];                   
-                $params = $componentPiece[1];                
+                $paramsRow = $componentPiece[1];                
             }
         }
         
@@ -257,7 +258,7 @@ class USiteController {
             return UForm::warning("Класс модели компонента '$componentName' не найден");        
         }
         
-        $component = new $componentController($componentName, $action, $actionArgs, $params, $routeMap);                
+        $component = new $componentController($componentName, $action, $actionArgs, $paramsRow, $routeMap);                
         $component->init($componentModel);  
         if (UBase::getConfig('debug > component_debug') && $componentName != 'component_debug') {
             $component->putModContent(USiteController::loadComponent('component_debug', true, array($component->debugInfo)), false);
@@ -302,11 +303,11 @@ class USiteController {
         $this->model = new $componentModel();                        
         
         // Если строка параметров пуста, то запускаем главный акшен
-        if ($this->action === true || (!$this->params && !$this->action)) {            
+        if ($this->action === true || (!$this->paramsRow && !$this->action)) {            
             $this->action = $this->routeMap['actionMain'];               
         } 
         // Пытаемся найти акшен по точному совпадению
-        elseif ($action = array_search($this->params, $this->routeMap['actionsPath'])) {
+        elseif ($action = array_search($this->paramsRow, $this->routeMap['actionsPath'])) {
             $this->action = $action;
         }
         // Если акшен не найден, то пробуем его найти, проверяя
@@ -330,7 +331,7 @@ class USiteController {
                         );                          
                     }  
                     
-                    if (preg_match("/^{$rule}$/", $this->params, $vars)) {                        
+                    if (preg_match("/^{$rule}$/", $this->paramsRow, $vars)) {                        
                         unset($vars[0]);
                         $vars = array_values($vars);                        
                         foreach ($vars as $k => $v)
@@ -341,7 +342,7 @@ class USiteController {
                         break 1;
                     }
                 } 
-                elseif (preg_match("/^{$rule}$/", $this->params)) {
+                elseif (preg_match("/^{$rule}$/", $this->paramsRow)) {
                     $this->action = $action;
                     break;
                 }
@@ -357,8 +358,8 @@ class USiteController {
         
         if (UBase::getConfig('debug > component_debug')) {
             $this->debugInfo['call']['value'] = "[{$this->componentName}] &rarr; [{$this->action}]";
-            ob_start();        
-            var_dump($this->model->vars);  
+            ob_start();    
+            echo "<pre>"; var_dump($this->model->vars); echo "</pre>";
             $this->debugInfo['vars']['value'] = ob_get_clean();             
             $this->model->debugInfo =& $this->debugInfo;
         }                            
@@ -377,7 +378,7 @@ class USiteController {
         if (!$this->action) {
             $content = UForm::error("Action для данного адреса не найден");            
             $this->putModContent($content);
-            $this->putModContent($this->params, false);
+            $this->putModContent($this->paramsRow, false);
             $this->putModContent(UForm::error($arDebugRules), false);
             return;
         }        

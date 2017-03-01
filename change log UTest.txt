@@ -7,10 +7,11 @@ admin.prepods - ?
 admin.profile - ?
 admin.students - ?
 admin.setting - ?
+admin.university - ?
 
-component_debug - ?
+component_debug - OK
 
-index - ?
+index - OK
 
 prepod - ?
 prepod.materials - ?

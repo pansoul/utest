@@ -6,13 +6,13 @@ $v = $arResult['data'];
 ?>
 
 <? 
-if ($arResult['vars']['id'] && empty($v['id']) || empty($arResult)) { 
+if ($arResult['errors'] == ERROR_ELEMENT_NOT_FOUND) {
     echo UForm::error('Факультет не найден');
-    return;     
+    return; 
 } 
 ?>
 
-<? 
+<?
 if (!empty($arResult['errors'])) {
     echo UForm::error($arResult['errors'], true);
 } 

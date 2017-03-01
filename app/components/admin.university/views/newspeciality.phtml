@@ -6,9 +6,9 @@ $v = $arResult['data']['form'];
 ?>
 
 <? 
-if ($arResult['vars']['id'] && empty($v['id']) || empty($arResult)) { 
+if ($arResult['errors'] == ERROR_ELEMENT_NOT_FOUND) {
     echo UForm::error('Специальность не найдена');
-    return;     
+    return; 
 } 
 ?>
 

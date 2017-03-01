@@ -17,9 +17,9 @@ class AdminUniversityModel extends UModel {
     } 
     
     public function newFacultyAction($v = array())
-    {        
-        $this->errors = array();
+    {   
         if ($this->request->_POST['a']) {
+            $this->errors = array();
             $v = $this->request->_POST;
             if (!$v['title']) {
                 $this->errors[] = 'Заполните название факультета';
@@ -50,10 +50,12 @@ class AdminUniversityModel extends UModel {
             USite::redirect(USite::getUrl());
         }
         $parent = R::findOne(TABLE_UNIVER_FACULTY, '`alias` = ?', array($this->vars['faculty_code']));
-        $res = R::find(TABLE_UNIVER_SPECIALITY, 'faculty_id = ? ORDER BY title', array($parent->id));       
+        $res = R::find(TABLE_UNIVER_SPECIALITY, 'faculty_id = ? ORDER BY title', array($parent->id));               
         if ($parent) {
             UAppBuilder::addBreadcrumb ($parent['title'], USite::getUrl());
-        }        
+        } else {
+            $this->errors = ERROR_ELEMENT_NOT_FOUND;
+        }       
         return $this->returnResult($res);
     }
     
@@ -72,10 +74,10 @@ class AdminUniversityModel extends UModel {
             if ($r) {
                 UAppBuilder::addBreadcrumb($r['title'], USite::getModurl().'/'.$r['alias']);
             }
-        }
+        }        
         
-        $this->errors = array();
         if ($this->request->_POST['a']) {            
+            $this->errors = array();
             $v = $this->request->_POST;
             $arRequired = array(
                 'title' => 'Заполните название специальности',
@@ -118,13 +120,19 @@ class AdminUniversityModel extends UModel {
     
     public function editFacultyAction($id)
     {
-        $v = R::load(TABLE_UNIVER_FACULTY, null);
+        $v = R::load(TABLE_UNIVER_FACULTY, $id);        
+        if (!$v['id']) {
+            $this->errors = ERROR_ELEMENT_NOT_FOUND;
+        }
         return $this->newFacultyAction($v);
     }
     
     public function editSpecialityAction($id)
     {
         $v = R::load(TABLE_UNIVER_SPECIALITY, $id);
+        if (!$v['id']) {
+            $this->errors = ERROR_ELEMENT_NOT_FOUND;
+        }
         return $this->newSpecialityAction($v);
     }
     

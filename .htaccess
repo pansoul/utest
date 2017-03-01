@@ -8,6 +8,9 @@ AddDefaultCharset utf-8
    CharsetSourceEnc utf-8
 </IfModule>
 
+RewriteCond %{REQUEST_URI} //
+RewriteRule .* /$0 [R=301,L]
+
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)/$ /$1 [L,R=301]
 

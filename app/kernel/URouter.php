@@ -5,8 +5,8 @@ class URouter {
     public function __construct()
     {           
         // Сформируем корректный и унифицированный алиас для дальнейшей работы
-        $url = explode('?', $_SERVER['REQUEST_URI'], 2);                        
-        $url = explode('/', strtolower($url[0]));             
+        $url = explode('?', $_SERVER['REQUEST_URI'], 2);                                
+        $url = explode('/', strtolower($url[0]));                     
         $url = array_filter($url);                              
         USite::setUrl('/' . implode('/', $url));  
     }
