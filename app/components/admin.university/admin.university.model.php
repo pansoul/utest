@@ -66,30 +66,22 @@ class AdminUniversityModel extends UModel {
         if ($r) {
             $v['faculty_id'] = $r['id'];
             UAppBuilder::addBreadcrumb($r['title'], USite::getModurl().'/'.$r['alias']);
-        }
-        
-        if ($this->vars['id']) {
-            $_r = R::load(TABLE_UNIVER_SPECIALITY, $this->vars['id']);
-            $r = R::load(TABLE_UNIVER_FACULTY, $_r['faculty_id']);
-            if ($r) {
-                UAppBuilder::addBreadcrumb($r['title'], USite::getModurl().'/'.$r['alias']);
-            }
         }        
         
-        if ($this->request->_POST['a']) {            
+        if ($this->request->_POST['a']) {                        
             $this->errors = array();
-            $v = $this->request->_POST;
-            $arRequired = array(
+            $v = $this->request->_POST;            
+            $required = array(
                 'title' => 'Заполните название специальности',
                 'code' => 'Укажите код специальности'
             );
-            foreach ($arRequired as $key => $message)
+            foreach ($required as $k => $message)
             {
                 if (empty($v[$k])) {
                     $this->errors[] = $message;
                 }
             }            
-            if (empty($this->errors)) {
+            if (empty($this->errors)) {                
                 if ($v['id']) {
                     $dataRow = R::load(TABLE_UNIVER_SPECIALITY, $v['id']);
                     $r = R::load(TABLE_UNIVER_FACULTY, $dataRow['faculty_id']);

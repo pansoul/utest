@@ -4,17 +4,13 @@ class AdminPrepodsController extends USiteController {
 
     protected $routeMap = array(
         'setTitle' => 'Преподаватели',
-        'actionDefault' => 'prepod',
-        'paramsPath' => array(            
-            'edit' => '/<id>',
-            'delete' => '/<id>'
+        'actionMain' => 'prepod',        
+        'actionsPath' => array(                        
+            'edit' => '/edit/<id>',
+            'delete' => '/delete/<id>',            
         ),
-        'params' => array(            
-            'id' => array(
-                'mask' => '',
-                'rule' => '[0-9]',
-                'default' => 0
-            )
+        'varsRule' => array(
+            'id' => '[0-9]',
         )
     );
 

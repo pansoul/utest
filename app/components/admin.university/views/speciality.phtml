@@ -12,7 +12,7 @@ $arTitles = array(
 
 <? 
 if ($arResult['errors'] == ERROR_ELEMENT_NOT_FOUND) {
-    echo UForm::error('Специальность не найдена');
+    echo UForm::error('Факультет не найден');
     return; 
 } 
 ?>
@@ -42,7 +42,10 @@ if ($arResult['errors'] == ERROR_ELEMENT_NOT_FOUND) {
                 <td><?=$v['id']?></td>
                 <td><?=$v['title']?></td>
                 <td><?=$v['code']?></td>
-                <td class="last-column"><?=UForm::btnEdit(USite::getModurl().'/editspeciality/', $v['id'])?><?=UForm::btnDelete(USite::getModurl().'/delete/', 'speciality/'.$v['id'])?></td>
+                <td class="last-column">
+                    <?=UForm::btnEdit(USite::getUrl().'/editspeciality/', $v['id'])?>
+                    <?=UForm::btnDelete(USite::getModurl().'/delete/', 'speciality/'.$v['id'])?>
+                </td>
             </tr>
         <?endforeach?>
     </table>

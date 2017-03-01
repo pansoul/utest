@@ -10,6 +10,7 @@ class AdminUniversityController extends USiteController {
             'editFaculty' => '/editfaculty/<id>',
             'speciality' => '/<faculty_code>',
             'newSpeciality' => '/<faculty_code>/newspeciality',
+            'editSpeciality' => '/<faculty_code>/editspeciality/<id>',
             'delete' => '/delete/<type>/<id>',
         ),
         'varsRule' => array(
@@ -47,6 +48,7 @@ class AdminUniversityController extends USiteController {
                 break;
             
             default:
+                $result = $this->model->doAction($this->action);
                 $html = $this->loadView($this->action, $result);
                 break;
         }        

@@ -38,7 +38,10 @@ if (empty($arResult['data'])) {
                 <td class="checkbox-column"><?=UForm::checkbox("i[item_{$v['id']}]", $v['id'], 'check-one')?></td>
                 <td><?=$v['id']?></td>
                 <td><a href="<?=USite::getModurl()?>/<?=$v['alias']?>"><?=$v['title']?></a></td>
-                <td class="last-column"><?=UForm::btnEdit(USite::getModurl().'/editfaculty/', $v['id'])?><?=UForm::btnDelete(USite::getModurl().'/delete/', 'faculty/'.$v['id'])?></td>
+                <td class="last-column">
+                    <?=UForm::btnEdit(USite::getModurl().'/editfaculty/', $v['id'])?>
+                    <?=UForm::btnDelete(USite::getModurl().'/delete/', 'faculty/'.$v['id'])?>
+                </td>
             </tr>
         <?endforeach?>
     </table>

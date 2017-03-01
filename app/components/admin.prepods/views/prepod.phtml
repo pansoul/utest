@@ -16,7 +16,7 @@ $arPost = $this->model->getArPost();
 ?>
 
 <?
-if (is_array($newDataUsers)) {
+if (!empty($newDataUsers)) {
     UAppBuilder::addBreadcrumb('Генерация новых паролей', USite::getUrl());
     echo USiteController::loadComponent('utility', 'pastable', array($newDataUsers));
     return;
