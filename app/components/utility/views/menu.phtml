@@ -1,0 +1,16 @@
+<nav id="main-menu">
+    <ul class="noliststyle">
+        <? foreach ($arResult['data'] as $item) :
+            $class = USite::getModurl() == $item['url'] ? "class='active'" : ''?>
+
+        <li <?=$class?>>
+            <a data-trigger="hover" rel="tooltip" data-placement="right" title="<?=$item['tooltip']?>" data-toggle="tooltip" data-html="true" id="ico-<?=$item['name']?>" href="<?= $item['url'] ?>">
+                <div class="main-menu-ico ico-<?=$item['name']?>"></div>
+                <div class="main-menu-title"><?= $item['title'] ?></div>
+                <div class="main-menu-hover"></div>
+            </a>
+        </li>
+
+        <? endforeach; ?>
+    </ul>
+</nav>

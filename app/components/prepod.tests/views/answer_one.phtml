@@ -1,0 +1,76 @@
+<?
+$arTitles = array(
+    'Название варианта ответа',
+    'Верный ответ',
+    'Управление'
+);
+
+$v = $arResult['data']['form_question'];
+$a = $arResult['data']['form_answer'];
+$r = $arResult['data']['form_right'];
+?>
+
+<?
+// запрос на создание нового варианта ответа
+if($arResult['request']->_GET['new'] == 'Y') :
+    $count = microtime(true); ?>
+
+    <tr>
+        <td><?= UForm::input('text', "answer[a_{$count}][title]", '', 'form-control answer-text') ?></td>
+        <td><label><?=UForm::radio("right_answer", "a_{$count}", 'answer-radio')?> отметить</label></td>
+        <td class="last-column"><?=UForm::btnDelete('#')?></td>
+    </tr>
+
+<? else: ?>
+
+    <table class="table table-hover answer-table">
+        <thead>
+            <tr>
+                <?foreach($arTitles as $title):?>
+                    <th><?=$title?></th>
+                <?endforeach?>
+            </tr>
+        </thead>
+        <tbody>
+            
+            <?
+            // Вывод существующих вопросов
+            if($a) {
+                foreach($a as $k => $item)
+                {
+                    static $isFirst = true;
+                    if (count($a) > 1 && empty($item['title'])) {
+                        continue;
+                    }
+            ?>
+            
+                    <tr>
+                        <td><?=UForm::input('text', "answer[{$k}][title]", $item['title'] , 'form-control answer-text')?></td>
+                        <td><label><?=UForm::radio("right_answer", $k, 'answer-radio', false, $arResult['request']->_POST['a'] ? ($k==$r) : $item['right_answer'])?> отметить</label></td>
+                        <td class="last-column">
+                            <?=UForm::input('hidden', "answer[{$k}][id]", $item['id'])?>
+                            <?=$isFirst ? '' : UForm::btnDelete('#', '', array('data-ids' => $item['id'] ? "{$v['test_id']}/{$v['id']}/{$item['id']}" : ''))?>
+                        </td>
+                    </tr> 
+            
+            <?
+                    $isFirst = false;
+                }            
+            }  
+            // Первый показ формы при создании
+            else {
+            ?>
+            
+                <tr>
+                    <td><?=UForm::input('text', 'answer[a_1][title]', '' , 'form-control answer-text')?></td>
+                    <td><label><?=UForm::radio('right_answer', 'a_1', 'answer-radio')?> отметить</label></td>
+                    <td class="last-column"></td>
+                </tr>
+                    
+            <? } ?>
+            
+        </tbody>
+    </table>
+    <?=UForm::button('создать новый вариант ответа', 'btn btn-add-answer')?>
+
+<? endif; ?>

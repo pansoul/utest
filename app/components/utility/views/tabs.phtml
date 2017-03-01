@@ -1,0 +1,6 @@
+<ul class="nav nav-tabs">
+<?foreach ($arResult['data']['tabs'] as $k => $v):
+    $class = $k == $arResult['data']['selected'] ? 'class="active"' : '';?>    
+    <li <?=$class?>><a href="<?=$v['href']?>"><?=$v['name']?></a></li>
+<? endforeach; ?>
+</ul>

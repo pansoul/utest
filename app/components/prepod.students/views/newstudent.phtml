@@ -1,0 +1,73 @@
+<?
+UAppBuilder::setH('Редактирование студента');
+UAppBuilder::addBreadcrumb (UAppBuilder::getH(), USite::getUrl());
+
+$newDataUser = $arResult['data']['user'];
+$v = $arResult['data']['form'];
+?>
+
+<? 
+if ($arResult['vars']['id'] && empty($v['id']) || empty($arResult)) { 
+    echo UForm::error('Пользователь не найден');
+    return;     
+} 
+?>
+
+<?
+if (is_array($newDataUser)) {
+    echo USiteController::loadComponent('utility', 'pastable', array($newDataUser));
+    return;
+}
+?>
+
+<div class="bs-callout bs-callout-warning">    
+    После успешного изменения пароля студенту на данной странице выведутся его данные для входа в систему.<br/>
+    Данные будут представлены в табличной форме и содержать: <b>фамилию</b> студента, <b>логин</b> и <b>пароль</b>.<br/>
+    Для возврата к списку студентов, воспользуйтесь главным меню или навигационной цепочкой.    
+</div>
+
+<? 
+if (!empty($arResult['errors'])) {
+    echo UForm::error($arResult['errors'], true);
+} 
+?>
+
+<form class="form-horizontal" method="post" action="">
+    <div class="form-group">
+        <label class="col-lg-2 control-label"><?=$arResult['vars']['id'] ? 'Новый пароль:' : 'Пароль:'.UForm::isRequired()?></label>
+        <div class="col-lg-10">
+            <?=UForm::input('password', 'password', false , 'form-control password-field', 'password', array('autofocus'=>'autofocus'))?>            
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-lg-2 control-label">Группа:<?=UForm::isRequired()?></label>
+        <div class="col-lg-10">
+            <?=$arResult['data']['group_list'][ $v['group_id'] ]?>            
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-lg-2 control-label">Фамилия:<?=UForm::isRequired()?></label>
+        <div class="col-lg-10">
+            <?=$v['last_name']?>            
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-lg-2 control-label">Имя:<?=UForm::isRequired()?></label>
+        <div class="col-lg-10">
+            <?=$v['name']?>            
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-lg-2 control-label">Отчество:</label>
+        <div class="col-lg-10">
+            <?=$v['surname']?>            
+        </div>
+    </div>        
+    <div class="form-group">
+        <div class="col-lg-offset-2 col-lg-10">
+            <?=UForm::button('Изменить', 'btn btn-default')?>            
+        </div>
+    </div>
+    <?=UForm::input('hidden', 'id', $v['id'])?>
+    <?=UForm::input('hidden', 'a', 'Y')?>
+</form>

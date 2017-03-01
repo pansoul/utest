@@ -1,0 +1,50 @@
+<?
+UAppBuilder::setH('Список назначенных тестов');
+
+$arCTitles = array(
+    UForm::checkbox('check_all', 1, false, 'check-all'),
+    'Дата создания',
+    'Название назначенного теста',
+    'Основа теста',
+    'Количество вопросов',
+    'Перемешивание',
+    'Управление'
+);
+
+$items = $arResult['data']['form'];
+?>
+
+<?=USiteController::loadComponent('utility', 'tabs', array($this->arTabs, 2));?>
+
+<div class="setting-panel">
+    <?=UForm::btnNew('Назначить тест', USite::getModurl() . '/newfor/', $this->model->vars['group_code'].'/'.$this->model->vars['subject_code'])?>
+</div>
+
+<?if (empty($items)):?>
+    Список пуст
+<?else:?>
+    
+    <form action="" method="post" class="formaction">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                <?foreach($arCTitles as $title):?>
+                    <th><?=$title?></th>
+                <?endforeach?>
+                </tr>
+            </thead>
+            <?foreach($items as $k => $v):?>
+                <tr>
+                    <td class="checkbox-column"><?=UForm::checkbox("i[item_{$v['id']}]", $v['id'], 'check-one')?></td>
+                    <td><?=date("d.m.Y",strtotime($v['date']))?></td>
+                    <td><?=$v['title']?></td>
+                    <td><?=$arResult['data']['test_list'][ $v['test_id'] ]?></td>
+                    <td><?=$v['count_q']?></td>
+                    <td><?=$v['is_mixing'] ? 'включено' : 'отключено'?></td>                    
+                    <td class="last-column"><?=UForm::btnEdit(USite::getModurl().'/editfortest/', $v['id'])?><?=UForm::btnDelete(USite::getModurl().'/delete/', 'fortest/'.$v['id'])?></td>
+                </tr>
+            <?endforeach?>
+        </table>
+        <?=UForm::button('Удалить выбранные', 'btn btn-danger delete-selected', 'del_all', 'Y', 'submit', true)?>
+    </form>    
+<?endif?>

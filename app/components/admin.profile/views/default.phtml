@@ -1,0 +1,27 @@
+<? 
+if (!empty($arResult['errors'])) {
+    echo UForm::error($arResult['errors'], true);
+} 
+?>
+
+<?
+if ($_SESSION['update'] == 'Y') {
+    echo UForm::success('Пароль успешно изменён');
+    unset($_SESSION['update']);
+}
+?>    
+
+<form class="form-horizontal" method="post" action="">    
+    <div class="form-group">
+        <label class="col-lg-2 control-label">Новый пароль:</label>
+        <div class="col-lg-10">
+            <?=UForm::input('password', 'password', false , 'form-control password-field', 'password')?>        
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-lg-offset-2 col-lg-10">
+            <?=UForm::button('Изменить', 'btn btn-default')?>            
+        </div>
+    </div>
+    <?=UForm::input('hidden', 'a', 'Y')?>
+</form>

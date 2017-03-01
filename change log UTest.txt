@@ -1,0 +1,30 @@
+1) 06.07.2016 Обработка настроек режима отладки была внесна внутрь главной функции запуска приложения UBase->run()
+2) 06.07.2016 Изменена ветвь отображения ошибок в конфигурационном файле
+3) 06.07.2016 Версия ORM RedBeanPHP была обновлена до актуальной версии
+
+admin - ?
+admin.prepods - ?
+admin.profile - ?
+admin.students - ?
+admin.setting - ?
+
+component_debug - ?
+
+index - ?
+
+prepod - ?
+prepod.materials - ?
+prepod.profile - ?
+prepod.results - ?
+prepod.students - ?
+prepod.subjects - ?
+prepod.tests - ?
+
+student - ?
+student.materials - ?
+student.prepods - ?
+student.profile - ?
+student.results - ?
+student.tests - ?
+
+utility - ?

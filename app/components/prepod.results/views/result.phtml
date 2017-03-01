@@ -1,0 +1,209 @@
+<?
+$test = $arResult['data']['test'];
+var_dump($test);
+$answer = $arResult['data']['answer'];
+
+$request = new UHttpRequest();
+
+$arStatusTest = Test::getStatusTest();
+$arClassOfStatus = array(
+    0 => 'label-default',
+    1 => 'label-info',
+    2 => 'label-success',
+);
+?>
+
+<?if (empty($test)):?>
+    Тест не найден
+<?else:?>
+    
+    <!-- блок с листингом пересдач -->
+    <?if($test['retake_real']):?>
+        <div class="result-retake-wrapper clearfix">
+            <span>Пересдача:</span>
+            <menu class="result-retake-list">
+                <?for ($i = 0; $i <= $test['retake_real']; $i++):
+                        if (isset($request->_GET['retake'])) {
+                            $classActive = intval($request->_GET['retake']) === $i ? "class='active'" : '';
+                        } elseif ($test['retake'] == $i) {
+                            $classActive = "class='active'";
+                        } else {
+                            $classActive = '';
+                        }
+                ?>
+                    <a <?=$classActive?> href="<?=USite::getModurl().'/r/for-'.$this->model->vars['for_tid'].'/'.$this->model->vars['uid']?>?retake=<?=$i?>"><?=$i?></a>
+                <?endfor;?>
+            </menu>
+        </div>
+    <?endif?>
+        
+    <div class="result-wrapper">   
+        <h3><?=$arResult['data']['user']?></h3>
+        
+        <!-- блок с информацией о тесте и результат его прохождения -->
+        <header class="result-header">
+            
+            <?if ($test['status'] == 2):?>
+                <div class="result-main-info">                    
+                    <span class="result-q-count">Количество верных ответов: <b><?=$answer['true_q']?> / <?=$answer['all_q']?></b></span>
+                    <div class="result-percent-passage">
+                        тест пройден на
+                        <div class="result-test"><?=$answer['percent_passage']?>%</div>
+                    </div>                    
+                </div>
+            <?endif;?>
+            
+            <div class="result-more-info">
+                <ul class="noliststyle">
+                    <li>
+                        <span class="r-m-key">Статус теста</span>
+                        <span class="r-m-value">
+                            <span class="label <?=$arClassOfStatus[ $test['status'] ]?>"><?=$arStatusTest[ $test['status'] ]?></span>
+                        </span>
+                    </li>                    
+                    <li>
+                        <span class="r-m-key">Дисциплина</span>
+                        <span class="r-m-value"><?=$test['subject']?></span>
+                    </li>
+                                        
+                    <li>
+                        <span class="r-m-key">Дата начала тестирования</span>
+                        <span class="r-m-value"><?= ($test['date_start'] ? date("d.m.Y H:i:s",strtotime($test['date_start'])) : '<i class="glyphicon glyphicon-time"></i>') ?></span>                            
+                    </li>
+                    <li>
+                        <span class="r-m-key">Дата завершения тестирования</span>
+                        <span class="r-m-value"><?= ($test['date_finish'] ? date("d.m.Y H:i:s",strtotime($test['date_finish'])) : '<i class="glyphicon glyphicon-time"></i>') ?></span>
+                    </li>                                            
+                </ul>
+            </div>
+        </header>
+
+        <!-- Ошибки -->
+        <?if (!empty($arResult['errors'])):?>
+
+            <div class="alert alert-danger">
+                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                <ul class="noliststyle">
+                <?foreach ($arResult['errors'] as $k => $e):?>
+                    <li><?=$e?></li>
+                <?endforeach;?>
+                </ul>
+            </div>
+
+        <!-- Ответы тестируемого -->
+        <?else:?>
+            <h3><?= ($test['status'] == 2 ? 'Разбор ошибок' : 'Текущие ответы') ?></h3>
+            <div class="table-result-wrapper">
+                <table class="table table-result">
+                    <!-- Главная шапка таблицы -->
+                    <thead>
+                        <tr>
+                            <th>№</th>
+                            <th colspan="2">Вопрос</th>                            
+                            <th>Результат</th>
+                        </tr>
+                    </thead>
+
+                    <!-- Список вопросов с ответами -->
+                    <?for ($i = 1; $i <= $answer['all_q']; $i++):
+                        $q = $answer['answer_list'][$i];?>
+
+                            <!-- Если вопроса нет -->
+                            <?if (!$q):?>
+                            
+                                <tr class="row-delimiter">
+                                    <td class="cell-number"><?=$i?></td>
+                                    <td colspan="3"><?= ($test['status'] == 2 ? 'Вопрос был пропущен' : 'Вопрос не сформирован') ?></td>
+                                </tr>
+                                
+                            <!-- Разбор каждого вопроса -->
+                            <?else:?>
+                                <tr class="row-delimiter">
+                                    <td class="cell-number" rowspan="3"><?=$i?></td>
+                                    <td colspan="2"><?=$q['text']?></td>
+                                    <?
+                                    if ($q) {
+                                        $class = $q['is_right'] ? 'cell-result--true' : 'cell-result--false';
+                                        $icoClass = $q['is_right'] ? 'glyphicon-ok' : 'glyphicon-remove';
+                                    } else {
+                                        $class = 'cell-result--unknow';
+                                        $icoClass = 'glyphicon-time';
+                                    }                            
+                                    ?>                            
+                                    <td rowspan="3" class="cell-result <?=$class?>">
+                                        <span class="glyphicon <?=$icoClass?>"></span>
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td class="cell-header">Ответ студента</td>
+                                    <td class="cell-header">Верный ответ</td>
+                                </tr>
+                                
+                                <tr>
+                                    <!-- Тип вопроса: единственный ответ -->
+                                    <?if ($q['type'] == 'one'):?>
+                                    
+                                        <td>
+                                            <?foreach ($q['answer'] as $k => $v):?>
+                                                <?=UForm::radio("right_answer_u_{$i}", 0, false, false, $k==$q['user_answer'], true)?>&nbsp;<?=$v?><br/>
+                                            <?endforeach;?>
+                                        </td>
+                                        <td>
+                                            <?foreach ($q['answer'] as $k => $v):?>
+                                                <?=UForm::radio("right_answer_{$i}", 0, false, false, $q['right'][$k], true)?>&nbsp;<?=$v?><br/>
+                                            <?endforeach;?>
+                                        </td>
+                                    
+                                    <!-- Тип вопроса: несколько ответов -->
+                                    <?elseif ($q['type'] == 'multiple'):?>
+                                    
+                                        <td>
+                                            <?foreach ($q['answer'] as $k => $v):?>
+                                                <?=UForm::checkbox("right_answer_u_{$i}[{$k}]", 0, false, false, $q['user_answer'][$k], true)?>&nbsp;<?=$v?><br/>
+                                            <?endforeach;?>
+                                        </td>
+                                        <td>
+                                            <?foreach ($q['answer'] as $k => $v):?>
+                                                <?=UForm::checkbox("right_answer_{$i}[{$k}]", 0, false, false, $q['right'][$k], true)?>&nbsp;<?=$v?><br/>
+                                            <?endforeach;?>
+                                        </td>
+
+                                    <!-- Тип вопроса: порядок значимости -->
+                                    <?elseif ($q['type'] == 'order'):?>
+                                    
+                                        <td>
+                                            <?foreach ($q['answer'] as $k => $v):?>
+                                                [<?=$q['user_answer'][$k]?>] - <?=$v?><br/>
+                                            <?endforeach;?>
+                                        </td>
+                                        <td>
+                                            <?foreach ($q['answer'] as $k => $v):?>
+                                                [<?=$q['right'][$k]?>] - <?=$v?><br/>
+                                            <?endforeach;?>
+                                        </td>
+                                    
+                                    <!-- Тип вопроса: точность написания -->
+                                    <?elseif ($q['type'] == 'match'):?>
+                                    
+                                        <td>
+                                            <?=$q['user_answer']?>
+                                        </td>
+                                        <td>
+                                            <?=$q['right']?>
+                                        </td>
+                                        
+                                    <?endif;?>
+                                </tr>
+
+                            <?endif;?>  
+
+                    <?endfor;?>
+
+                </table>
+            </div>            
+        <?endif?>
+
+    </div>
+    
+<?endif;?>

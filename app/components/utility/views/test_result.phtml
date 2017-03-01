@@ -1,0 +1,16 @@
+<?
+$r = $arResult['data'];
+?>
+
+<header class="result-header">
+    <div class="resilt-main-info">
+        <span class="result-q-count">Количество верных ответов: <b><?=$r['true_q']?> / <?=$r['all_q']?></b></span>
+        <div class="result-percent-passage">
+            тест пройден на
+            <div class="result-test"><?=$r['percent_passage']?>%</div>
+        </div>
+    </div>
+    <div class="result-more-info result-after">
+        <a href="/student/results/<?=$_SESSION['stid']?>" class="btn btn-info">Подробнее</a> 
+    </div>
+</header>

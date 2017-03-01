@@ -1,0 +1,94 @@
+<?
+$v = $arResult['data'];
+$title = isset($v['tparent']) ? $v['tparent']['title'] : $v['title'];
+
+UAppBuilder::setH("Прохождение теста &laquo;{$title}&raquo;");
+?>
+
+<?if (empty($v)):?>
+    Тест не найден    
+<?elseif (isset($v['tparent'])):?>
+    
+    <?if (!empty($arResult['errors'])):?>
+        <div class="alert alert-danger">
+            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+            <ul class="noliststyle">
+            <?foreach ($arResult['errors'] as $k => $e):?>
+                <li><?=$e?></li>
+            <?endforeach;?>
+            </ul>
+        </div>
+    <?else:?>
+
+        <div class="test-wrapper">
+            <header class="test-header">
+                <div class="test-q-count">Вопрос: <span class="q-count-info"><span id="q-cur-count"><?=$v['q']['cur_num']?></span>&nbsp;/&nbsp;<?=$v['tparent']['count_q']?></span></div>
+                <div class="test-q-textbox">
+                    <span class="glyphicon glyphicon-question-sign"></span>
+                    <div id="test-q-text"><?=nl2br($v['q']['text'])?></div>
+                </div>
+            </header>
+            <div class="test-variantsbox">
+                <form method="get" action="" id="test-variants">
+                    <?=$v['q']['answer']?>
+                </form>
+                <div class="test-control clearfix">
+                    <?if($v['q']['is_last']) {
+                        $styleBtn = 'style="display:none"';
+                        $classBtn = 'hidden-next';
+                    }?>
+                    <button <?=$styleBtn?> data-num="<?=$v['q']['cur_num']+1?>" type="button" id="test-next" class="btn btn-info <?=$classBtn?>">Дальше</button>                    
+                    <button type="button" id="test-end" class="btn btn-success">Завершить тестирование</button>
+                </div>
+            </div>        
+            <div class="test-q-paginator">
+                <ul class="pagination">                
+                    <?for ($i = 1; $i <= $v['tparent']['count_q']; $i++):
+                      $class = $i == $v['q']['cur_num'] ? 'class="active"' : '';?>
+                    <li <?=$class?>><a data-num="<?=$i?>" class="q-<?=$i?>" href="#"><?=$i?></a></li>
+                    <?endfor;?>
+                </ul>
+            </div>
+        </div>
+    
+    <?endif;?>
+ 
+<?else:?>
+    
+    <div id="test-starter">
+        <div class="bs-callout bs-callout-warning">
+            <p>
+                Внимание! После нажатия кнопки "начать тест" начнётся тестирование. Убедитесь, что готовы пройти тест, прежде чем нажимать.
+            </p>
+        </div>
+        <button type="button" id="test-run" data-tid="<?=$v['id']?>" class="btn btn-success">Начать тест</button>
+    </div>
+
+    <div class="test-wrapper" style="display:none">
+        <header class="test-header">
+            <div class="test-q-count">Вопрос: <span class="q-count-info"><span id="q-cur-count">1</span>&nbsp;/&nbsp;<?=$v['count_q']?></span></div>
+            <div class="test-q-textbox">
+                <span class="glyphicon glyphicon-question-sign"></span>
+                <div id="test-q-text"></div>
+            </div>
+        </header>
+        <div class="test-variantsbox">
+            <form method="get" action="" id="test-variants"></form>
+            <div class="test-control clearfix">
+                <button data-num="2" type="button" id="test-next" class="btn btn-info">Дальше</button>
+                <button type="button" id="test-end" class="btn btn-success">Завершить тестирование</button>
+            </div>
+        </div>        
+        <div class="test-q-paginator">
+            <ul class="pagination"> 
+                <li class="active"><a data-num="1" class="q-1" href="#">1</a></li>
+                <?for ($i = 2; $i <= $v['count_q']; $i++):?>
+                    <li><a data-num="<?=$i?>" class="q-<?=$i?>" href="#"><?=$i?></a></li>
+                <?endfor;?>
+            </ul>
+        </div>
+    </div>
+    
+<?endif?>
+
+<?=UForm::input('hidden', 'url', USite::getModurl())?>

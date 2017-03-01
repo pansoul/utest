@@ -1,0 +1,59 @@
+<?
+UAppBuilder::setH('Cтуденты');
+
+$arTitles = array(
+    UForm::checkbox('check_all', 1, false, 'check-all'),
+    'ФИО',
+    'Логин',
+    'Контактный телефон',
+    'Контактный e-mail',
+    'Управление'
+);
+
+$newDataUsers = $arResult['data']['users'];
+$items = $arResult['data']['form'];
+?>
+
+<?
+if (is_array($newDataUsers)) {
+    UAppBuilder::addBreadcrumb('Генерация новых паролей', USite::getUrl());
+    echo USiteController::loadComponent('utility', 'pastable', array($newDataUsers));
+    return;
+}
+?>
+
+<? 
+if (empty($items)) { 
+    echo UForm::info('Список пуст');
+    return;     
+} 
+?>
+    
+<? 
+if (!empty($arResult['errors'])) {
+    echo UForm::error($arResult['errors'], true);
+} 
+?>
+
+<form action="" method="post" class="formaction">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+            <?foreach($arTitles as $title):?>
+                <th><?=$title?></th>
+            <?endforeach?>
+            </tr>
+        </thead>
+        <?foreach($items as $k => $v):?>
+            <tr>
+                <td class="checkbox-column"><?=UForm::checkbox("i[item_{$v['id']}]", $v['id'], 'check-one')?></td>
+                <td><?=$v['last_name']?> <?=$v['name']?> <?=$v['surname']?></td>
+                <td><?=$v['login']?></td>
+                <td><?=$v['phone'] ? $v['phone'] : '-'?></td>
+                <td><?=$v['email'] ? $v['email'] : '-'?></td>
+                <td class="last-column"><?=UForm::btnEdit(USite::getModurl().'/editstudent/', $v['id'])?></td>
+            </tr>
+        <?endforeach?>
+    </table>
+    <?=UForm::button('Сгенерировать нов. пароли и распечатать', 'btn btn-primary newpass-selected', 'newpass_all', 'Y', 'submit', true)?>
+</form>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="author" content="Боровских Павел Сергеевич (pansoul@mail.ru)" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+        <title>Отключен javascript | UTest</title>
+        
+        <link media="screen" rel="stylesheet" href="/css/reset.css" />
+        
+        <style>
+            @font-face {
+                font-family: 'Open Sans';
+                font-style: normal;
+                font-weight: 300;
+                src: local('Open Sans Light'), local('OpenSans-Light'), url(/fonts/DXI1ORHCpsQm3Vp6mXoaTYraN7vELC11_xip9Rz-hMs.woff) format('woff');
+            }
+            @font-face {
+                font-family: 'Open Sans';
+                font-style: normal;
+                font-weight: 400;
+                src: local('Open Sans'), local('OpenSans'), url(/fonts/RjgO7rYTmqiVp7vzi-Q5UT8E0i7KZn-EPnyo3HZu7kw.woff) format('woff');
+            }
+            @font-face {
+                font-family: 'Open Sans';
+                font-style: normal;
+                font-weight: 700;
+                src: local('Open Sans Bold'), local('OpenSans-Bold'), url(/fonts/k3k702ZOKiLJc3WVjuplzIraN7vELC11_xip9Rz-hMs.woff) format('woff');
+            }
+            @font-face {
+                font-family: 'Open Sans';
+                font-style: italic;
+                font-weight: 300;
+                src: local('Open Sans Light Italic'), local('OpenSansLight-Italic'), url(/fonts/PRmiXeptR36kaC0GEAetxq6JHp92iES8exGTOIyTn1A.woff) format('woff');
+            }
+            @font-face {
+                font-family: 'Open Sans';
+                font-style: italic;
+                font-weight: 400;
+                src: local('Open Sans Italic'), local('OpenSans-Italic'), url(/fonts/xjAJXh38I15wypJXxuGMBmOb2gHztoQeulij-1lvl-8.woff) format('woff');
+            }
+            @font-face {
+                font-family: 'Open Sans';
+                font-style: italic;
+                font-weight: 700;
+                src: local('Open Sans Bold Italic'), local('OpenSans-BoldItalic'), url(/fonts/PRmiXeptR36kaC0GEAetxlRROVH9Vvc8xHnAGvvgPQc.woff) format('woff');
+            }
+
+            html, body {    
+                height: 100%;        
+            }
+
+            body{    
+                font: 16px/1.4em 'Open Sans', Calibri, 'Trebuchet MS', Verdana, sans-serif;                                
+                min-width: 996px;
+                background: #394149;
+                font-weight: 300;
+                position: relative;                 
+            }
+            
+            a {
+                color: inherit;
+                -webkit-transition: all 0.2s ease;
+                -moz-transition: all 0.2s ease;
+                -o-transition: all 0.2s ease;
+                transition: all 0.2s ease;
+            }
+            a:hover {
+                color: #2a6496;
+                text-decoration: underline;
+            }
+
+            a:focus, a:active{    
+                outline: none !important;
+            }
+            
+            .alert{
+                width: 600px;
+                height: 200px;
+                background: #fff;
+                border: 10px solid #7BBECF;
+                border-radius: 5px;
+                box-shadow: 0 0 10px 3px rgba(0, 0, 0, 0.3);
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                margin: -100px 0 0 -300px;
+            }
+            
+            .alert__header, .alert__body{
+                padding: 10px;
+            }
+            
+            .alert__header{
+                background: #E6E6E6;
+                border-bottom: 2px solid #7B7B7B;
+                padding-bottom: 20px;
+            }
+            
+            .alert__header__logo, .alert__header_name{
+                display: inline-block;
+                vertical-align: bottom;
+            }
+            
+            .alert__header_name{
+                font-size: 28px;
+            }
+            
+            .alert__body{
+                padding-top: 25px;
+                text-align: center;
+            }
+            
+            .red{
+                color: #D2322D;
+            }
+        </style>
+
+    </head>
+    <body>   
+
+        <div class="alert">
+            <div class="alert__header">
+                <img class="alert__header__logo" src="/img/sys/utest.png">
+                <div class="alert__header_name">&ndash; Система онлайн тестирования</div>
+            </div>
+            <div class="alert__body">
+                Для работы приложения необходима поддержка <span class="red">Javascript</span>.
+                Пожалуйста, включите данную опцию у себя в браузере и перейдите на <a href="/">главную</a>. 
+            </div>
+        </div>
+        
+    </body>
+</html>

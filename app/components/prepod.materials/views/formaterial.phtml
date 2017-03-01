@@ -1,0 +1,80 @@
+<?
+UAppBuilder::setH('Список выложенных документов');
+
+$arCTitles = array(
+    UForm::checkbox('check_all', 1, false, 'check-all'),
+    'Дата',
+    'Текст комментария',
+    'Управление'
+);
+
+$arDTitles = array(
+    'Дата выкладывания',
+    'Название документа',
+    'Размер',
+    'Формат'
+);
+
+$items = $arResult['data']['comments'];
+$docs = $arResult['data']['form'];
+?>
+
+<?=USiteController::loadComponent('utility', 'tabs', array($this->arTabs, 2));?>
+
+<div class="setting-panel">
+    <?=UForm::btnNew('Оставить комментарий', USite::getModurl() . '/newcomment/', $this->model->vars['group_code'].'/'.$this->model->vars['subject_code'])?>
+    <?=UForm::btnNew('Выложить файлы', USite::getModurl() . '/newfor/', $this->model->vars['group_code'].'/'.$this->model->vars['subject_code'])?>
+</div>
+
+<h3>Комментарии</h3>
+
+<?if (empty($items)):?>
+    Комментарии отсутствуют
+<?else:?>
+    <form action="" method="post" class="formaction">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                <?foreach($arCTitles as $title):?>
+                    <th><?=$title?></th>
+                <?endforeach?>
+                </tr>
+            </thead>
+            <?foreach($items as $k => $v):?>
+                <tr>
+                    <td class="checkbox-column"><?=UForm::checkbox("i[item_{$v['id']}]", $v['id'], 'check-one')?></td>
+                    <td><?=date("d.m.Y",strtotime($v['date']))?></td>
+                    <td><?=nl2br($v['comment'])?></td>
+                    <td class="last-column"><?=UForm::btnEdit(USite::getModurl().'/editcomment/', $v['id'])?><?=UForm::btnDelete(USite::getModurl().'/delete/', 'comment/'.$v['id'])?></td>
+                </tr>
+            <?endforeach?>
+        </table>
+        <?=UForm::button('Удалить выбранные', 'btn btn-danger delete-selected', 'del_all', 'Y', 'submit', true)?>
+    </form>    
+<?endif?>
+
+<br/><br/><br/>
+
+<h3>Список документов</h3>
+
+<?if (empty($docs)):?>
+    Список пуст
+<?else:?>    
+    <table class="table table-hover">
+        <thead>
+            <tr>
+            <?foreach($arDTitles as $title):?>
+                <th><?=$title?></th>
+            <?endforeach?>
+            </tr>
+        </thead>
+        <?foreach($docs as $k => $v):?>
+            <tr>
+                <td><?=date("d.m.Y",strtotime($v['date']))?></td>
+                <td><?=$v['filename']?></td>
+                <td><?=UAppBuilder::bytesToSize($v['size'])?></td>
+                <td><?=$v['extension']?></td>
+            </tr>
+        <?endforeach?>
+    </table>    
+<?endif?>

@@ -1,0 +1,50 @@
+<?
+UAppBuilder::setH('Группы');
+
+$arTitles = array(
+    UForm::checkbox('check_all', 1, false, 'check-all'),
+    'ID',
+    'Название группы',
+    'Специальность',
+    'Управление'
+);
+
+$items = $arResult['data']['form'];
+?>
+
+<div class="setting-panel">
+    <?=UForm::btnNew('Создать новую группу', USite::getModurl() . '/newgroup')?>    
+</div>
+
+<? 
+if (empty($items)) { 
+    echo UForm::info('Список пуст');
+    return;     
+} 
+?>
+
+<div class="bs-callout bs-callout-warning">    
+    Для создания новых <b>студентов</b> необходимо перейти в <b>группу</b>    
+</div>
+
+<form action="" method="post" class="formaction">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+            <?foreach($arTitles as $title):?>
+                <th><?=$title?></th>
+            <?endforeach?>
+            </tr>
+        </thead>
+        <?foreach($items as $k => $v):?>
+            <tr>
+                <td class="checkbox-column"><?=UForm::checkbox("i[item_{$v['id']}]", $v['id'], 'check-one')?></td>
+                <td><?=$v['id']?></td>
+                <td><a href="<?=USite::getModurl()?>/group/<?=$v['alias']?>"><?=$v['title']?></a> <span rel="tooltip" data-placement="right" data-toggle="tooltip" title="Количество студентов в группе" class="badge"><?=$v['students_count']?></span></td>
+                <td><?=$v['speciality_name']?></td>
+                <td class="last-column"><?=UForm::btnEdit(USite::getModurl().'/editgroup/', $v['id'])?><?=UForm::btnDelete(USite::getModurl().'/delete/', 'group/'.$v['id'])?></td>
+            </tr>
+        <?endforeach?>
+    </table>
+    <?=UForm::button('Удалить выбранные', 'btn btn-danger delete-selected', 'del_all', 'Y', 'submit', true)?>    
+</form>  

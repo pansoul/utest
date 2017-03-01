@@ -1,0 +1,78 @@
+<?
+UAppBuilder::setH($arResult['vars']['id'] ? 'Редактирование студента' : 'Создание нового студента');
+UAppBuilder::addBreadcrumb (UAppBuilder::getH(), USite::getUrl());
+
+$newDataUser = $arResult['data']['user'];
+$v = $arResult['data']['form'];
+?>
+
+<? 
+if ($arResult['vars']['id'] && empty($v['id']) || empty($arResult)) { 
+    echo UForm::error('Пользователь не найден');
+    return;     
+} 
+?>
+
+<?
+if (is_array($newDataUser)) {
+    echo USiteController::loadComponent('utility', 'pastable', array($newDataUser));
+    return;
+}
+?>
+
+<?if (!$arResult['vars']['id']):?>
+    <div class="bs-callout bs-callout-warning">        
+        После успешного создания нового студента на данной странице выведутся его данные для входа в систему.<br/>
+        Данные будут представлены в табличной форме и содержать: <b>фамилию</b> студента, <b>логин</b> и <b>пароль</b>.        
+    </div>
+<?else:?>
+    <div class="bs-callout bs-callout-warning">        
+        При указании <b>нового пароля</b> на данной странице выведутся новые данные для входа в систему.        
+    </div>
+<?endif;?>
+
+<? 
+if (!empty($arResult['errors'])) {
+    echo UForm::error($arResult['errors'], true);
+} 
+?>
+
+<form class="form-horizontal" method="post" action="">
+    <div class="form-group">
+        <label class="col-lg-2 control-label">Фамилия:<?=UForm::isRequired()?></label>
+        <div class="col-lg-10">
+            <?=UForm::input('text', 'last_name', $v['last_name'] , 'form-control', false, array('autofocus' => 'autofocus'))?>            
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-lg-2 control-label">Имя:<?=UForm::isRequired()?></label>
+        <div class="col-lg-10">
+            <?=UForm::input('text', 'name', $v['name'] , 'form-control')?>            
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-lg-2 control-label">Отчество:</label>
+        <div class="col-lg-10">
+            <?=UForm::input('text', 'surname', $v['surname'] , 'form-control')?>            
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-lg-2 control-label"><?=$arResult['vars']['id'] ? 'Новый пароль:' : 'Пароль:'.UForm::isRequired()?></label>
+        <div class="col-lg-10">
+            <?=UForm::input('password', 'password', false , 'form-control password-field', 'password')?>            
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-lg-2 control-label">Группа:<?=UForm::isRequired()?></label>
+        <div class="col-lg-10">
+            <?=UForm::select('group_id', $arResult['data']['group_list'] , $v['group_id'], null, 'form-control')?>            
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-lg-offset-2 col-lg-10">
+            <?=UForm::button($arResult['vars']['id'] ? 'Изменить' : 'Создать', 'btn btn-default')?>            
+        </div>
+    </div>
+    <?=UForm::input('hidden', 'id', $v['id'])?>
+    <?=UForm::input('hidden', 'a', 'Y')?>
+</form>

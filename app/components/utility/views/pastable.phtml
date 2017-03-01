@@ -1,0 +1,24 @@
+<div class="u-password-table-wrapper">
+    <a id="print" rel="tooltip" data-placement="left" data-toggle="tooltip" title="Распечатать" class="glyphicon glyphicon-print" href="#"></a>    
+    <table class="u-password-table print">
+        <?if (!is_array($arResult['data'][0])):?>
+            <tr class="u-password-table-fullname">
+                <td colspan="2"><?= $arResult['data']['fullname'] ?></td>
+            </tr>
+            <tr>
+                <td><?= $arResult['data']['login'] ?></td>
+                <td><?= $arResult['data']['password'] ?></td>
+            </tr>
+        <?else:
+            foreach($arResult['data'] as $item):?>
+                <tr class="u-password-table-fullname">
+                    <td colspan="2"><?= $item['fullname'] ?></td>
+                </tr>
+                <tr>
+                    <td><?= $item['login'] ?></td>
+                    <td><?= $item['password'] ?></td>
+                </tr>
+            <?endforeach;
+        endif?>
+    </table>
+</div>

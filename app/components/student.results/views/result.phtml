@@ -1,0 +1,158 @@
+<?
+$test = $arResult['data']['test'];
+$answer = $arResult['data']['answer'];
+
+$title = $test['test_title'] ? $test['test_title'] : 'Тест не найден';
+
+$request = new UHttpRequest();
+
+UAppBuilder::setH("Результаты теста &laquo;{$title}&raquo;");
+?>
+
+<?if (empty($test)):?>
+    Тест не найден
+<?else:?>
+    
+    <?if($test['retake']):?>
+        <div class="result-retake-wrapper clearfix">
+            <span>Пересдача:</span>
+            <menu class="result-retake-list">
+                <?for ($i = 0; $i <= $test['retake']; $i++):
+                        if (isset($request->_GET['retake'])) {
+                            $classActive = intval($request->_GET['retake']) === $i ? "class='active'" : '';
+                        } elseif ($test['retake'] == $i) {
+                            $classActive = "class='active'";
+                        } else {
+                            $classActive = '';
+                        }
+                ?>
+                    <a <?=$classActive?> href="<?=USite::getModurl().'/'.$this->model->vars['tid']?>?retake=<?=$i?>"><?=$i?></a>
+                <?endfor;?>
+            </menu>
+        </div>
+    <?endif?>
+    
+    <?if (!empty($arResult['errors'])):?>
+    
+        <div class="alert alert-danger">
+            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+            <ul class="noliststyle">
+            <?foreach ($arResult['errors'] as $k => $e):?>
+                <li><?=$e?></li>
+            <?endforeach;?>
+            </ul>
+        </div>
+    
+    <?else:?>
+    
+        <div class="result-wrapper">        
+            <header class="result-header">
+                <div class="resilt-main-info">
+                    <span class="result-q-count">Количество верных ответов: <b><?=$answer['true_q']?> / <?=$answer['all_q']?></b></span>
+                    <div class="result-percent-passage">
+                        тест пройден на
+                        <div class="result-test"><?=$answer['percent_passage']?>%</div>
+                    </div>
+                </div>
+                <div class="result-more-info">
+                    <ul class="noliststyle">
+                        <li><span class="r-m-key">Дисциплина</span> <span class="r-m-value"><?=$test['subject']?></span></li>
+                        <li><span class="r-m-key">Дата начала тестирования</span> <span class="r-m-value"><?=date("d.m.Y H:i:s",strtotime($test['date_start']))?></span></li>
+                        <li><span class="r-m-key">Дата завершения тестирования</span> <span class="r-m-value"><?=date("d.m.Y H:i:s",strtotime($test['date_finish']))?></span></li>                                            
+                    </ul>
+                </div>
+            </header>
+
+            <?if (!$test['test_show_true']):?>
+                <div class="bs-callout bs-callout-warning">
+                    <p>
+                        У данного теста выставлено ограничение на разбор ошибок.
+                    </p>
+                </div>
+            <?else:?>
+                <br/>
+                <h3>Разбор ошибок</h3>
+                <div class="table-result-wrapper">
+                    <table class="table table-hover table-result">
+                        <thead>
+                            <tr>
+                                <th>№ вопроса</th>
+                                <th>Текст вопроса</th>
+                                <th>Мой ответ</th>
+                                <th>Верный ответ</th>
+                                <th>Результат</th>
+                            </tr>
+                        </thead>
+                        <?for ($i = 1; $i <= $answer['all_q']; $i++):
+                            $q = $answer['answer_list'][$i];?>
+                            <tr>
+                                <td><?=$i?></td>
+
+                                <?if (!$q):?>
+                                    <td colspan="3">Вопрос был пропущен</td>
+                                <?else:?>
+                                    <td><?=$q['text']?></td>
+
+                                        <?if ($q['type'] == 'one'):?>
+                                            <td>
+                                                <?foreach ($q['answer'] as $k => $v):?>
+                                                    <?=UForm::radio("right_answer_u_{$i}", 0, false, false, $k==$q['user_answer'], true)?>&nbsp;<?=$v?><br/>
+                                                <?endforeach;?>
+                                            </td>
+                                            <td>
+                                                <?foreach ($q['answer'] as $k => $v):?>
+                                                    <?=UForm::radio("right_answer_{$i}", 0, false, false, $q['right'][$k], true)?>&nbsp;<?=$v?><br/>
+                                                <?endforeach;?>
+                                            </td>
+
+                                        <?elseif ($q['type'] == 'multiple'):?>
+                                            <td>
+                                                <?foreach ($q['answer'] as $k => $v):?>
+                                                    <?=UForm::checkbox("right_answer_u_{$i}[{$k}]", 0, false, false, $q['user_answer'][$k], true)?>&nbsp;<?=$v?><br/>
+                                                <?endforeach;?>
+                                            </td>
+                                            <td>
+                                                <?foreach ($q['answer'] as $k => $v):?>
+                                                    <?=UForm::checkbox("right_answer_{$i}[{$k}]", 0, false, false, $q['right'][$k], true)?>&nbsp;<?=$v?><br/>
+                                                <?endforeach;?>
+                                            </td>
+
+                                        <?elseif ($q['type'] == 'order'):?>
+                                            <td>
+                                                <?foreach ($q['answer'] as $k => $v):?>
+                                                    [<?=$q['user_answer'][$k]?>] - <?=$v?><br/>
+                                                <?endforeach;?>
+                                            </td>
+                                            <td>
+                                                <?foreach ($q['answer'] as $k => $v):?>
+                                                    [<?=$q['right'][$k]?>] - <?=$v?><br/>
+                                                <?endforeach;?>
+                                            </td>
+
+                                        <?elseif ($q['type'] == 'match'):?>
+                                            <td>
+                                                <?=$q['user_answer']?>
+                                            </td>
+                                            <td>
+                                                <?=$q['right']?>
+                                            </td>
+                                        <?endif;?>
+
+                                <?endif;?>                            
+
+                                <?$class = $q['is_right'] ? 'result-true' : 'result-false';?>                            
+                                <td class="result-cell <?=$class?>">
+                                    <?$icoClass = $q['is_right'] ? 'glyphicon-ok' : 'glyphicon-remove';?>
+                                    <span class="glyphicon <?=$icoClass?>"></span>
+                                </td>
+                            </tr>
+                        <?endfor;?>
+                    </table>
+                </div>
+            <?endif;?>
+
+        </div>
+    
+    <?endif?>
+    
+<?endif;?>

@@ -1,0 +1,9 @@
+<ol class="breadcrumb">
+<?foreach ($arResult['data'] as $k => $v):
+    if (count($arResult['data']) != ++$k):?>    
+        <li><a class="<?=count($arResult['data']) == ++$k ? 'active' : ''?>" href="<?=$v['url']?>"><?=$v['name']?></a></li>   
+    <?else:?>
+        <li class="active"><?=$v['name']?></li>   
+    <?endif?>
+<? endforeach; ?>
+</ol>

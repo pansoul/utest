@@ -1,0 +1,55 @@
+<?
+UAppBuilder::setH('Список вопросов');
+
+$arTitles = array(
+    UForm::checkbox('check_all', 1, false, 'check-all'),
+    'Индекс сортировки',
+    'Вопрос',
+    'Тип вопроса',    
+    'Управление'
+);
+
+$items = $arResult['data'];
+$arQType = UTest::getTypeQuestion();
+$count = 1;
+?>
+
+<?=USiteController::loadComponent('utility', 'tabs', array($this->arTabs, 1));?>
+
+<div class="setting-panel">
+    <?=UForm::btnNew('Создать новый вопрос', USite::getModurl() . '/newmyquestion/in-', $this->model->vars['tid'])?>
+</div>
+
+<? 
+if (empty($items)) { 
+    echo UForm::info('Список пуст');
+    return;     
+} 
+?>
+    
+<div class="bs-callout bs-callout-warning">        
+    Создание и редактирование <b>вариантов ответов</b> к вопросам осуществляется внутри формы <b>вопроса</b>        
+</div>
+
+<form action="" method="post" class="formaction">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+            <?foreach($arTitles as $title):?>
+                <th><?=$title?></th>
+            <?endforeach?>
+            </tr>
+        </thead>
+        <?foreach($items as $k => $v):?>
+            <tr>
+                <td class="checkbox-column"><?=UForm::checkbox("i[item_{$v['id']}]", $v['id'], 'check-one')?></td>
+                <td>#<?=$count?></td>
+                <td><?= UUtilities::truncate(htmlspecialchars_decode($v['text']), 200) ?></td>
+                <td><?=$arQType[ $v['type'] ]['name']?></td>                    
+                <td class="last-column"><?=UForm::btnEdit(USite::getModurl().'/editmyquestion/', 'in-'.$this->model->vars['tid'].'/'.$v['id'])?><?=UForm::btnDelete(USite::getModurl().'/delquestion/', 'test-'.$this->model->vars['tid'].'/'.$v['id'])?></td>
+            </tr>
+            <?$count++;
+        endforeach?>
+    </table>
+    <?=UForm::button('Удалить выбранные', 'btn btn-danger delete-selected', 'del_all', 'Y', 'submit', true)?>
+</form>

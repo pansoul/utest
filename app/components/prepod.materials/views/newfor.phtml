@@ -1,0 +1,26 @@
+<?
+UAppBuilder::setH('Выложить файлы');
+UAppBuilder::addBreadcrumb (UAppBuilder::getH(), USite::getUrl());
+
+$v = $arResult['data']['form'];
+?>
+
+<?=USiteController::loadComponent('utility', 'tabs', array($this->arTabs, 2));?>
+
+<form class="form-horizontal" method="post" action="" enctype="multipart/form-data">
+    <div class="form-group">
+        <label class="col-lg-2 control-label">
+            Укажите какие файлы будут доступны для выбранной группы по данному предмету:
+            <span class="help-block">Для выбора нескольких файлов используйте [ctrl]+[ЛКМ]</span>
+        </label>
+        <div class="col-lg-10">
+            <?=UForm::select('materials[]', $arResult['data']['all_list'] , $arResult['data']['active_list'], null, 'form-control', false, true, 7)?>            
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-lg-offset-2 col-lg-10">
+            <?=UForm::button('Применить', 'btn btn-default')?>            
+        </div>
+    </div>
+    <?=UForm::input('hidden', 'a', 'Y')?>
+</form>

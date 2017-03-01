@@ -1,0 +1,52 @@
+body{    
+    font: 16px/1.4em Verdana, sans-serif;
+    color: #333;
+    min-width: 996px;
+}
+
+.univer-fullname, .univer-name{
+    display: block;
+    text-align: center;
+}
+
+table, tr, td{
+    border-collapse: collapse;
+}
+
+td{
+    padding: 10px;
+}
+
+.univer-name{
+    font-size: 18px;
+    font-weight: bold;
+    margin: 20px 0;
+}
+
+.u-password-table-wrapper{
+    width: 600px;
+    margin: 0 auto;
+}
+
+.u-password-table td{
+    border: 2px solid #ccc;
+    width: 100%;        
+}
+
+.u-password-table-fullname{
+    background: #F5F5F5;
+}
+
+.user-panel,
+.menu-wrapper,
+.breadcrumb,
+.btn-mini,
+.btn,
+.tooltip,
+.check-one,
+#check-all,
+.bs-callout,
+#app-footer,
+#print{
+    display: none;
+}

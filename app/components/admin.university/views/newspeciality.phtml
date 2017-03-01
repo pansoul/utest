@@ -1,0 +1,47 @@
+<?
+UAppBuilder::setH($arResult['vars']['id'] ? 'Редактирование специальности' : 'Создание новой специальности');
+UAppBuilder::addBreadcrumb (UAppBuilder::getH(), USite::getUrl());
+
+$v = $arResult['data']['form'];
+?>
+
+<? 
+if ($arResult['vars']['id'] && empty($v['id']) || empty($arResult)) { 
+    echo UForm::error('Специальность не найдена');
+    return;     
+} 
+?>
+
+<?
+if (!empty($arResult['errors'])) {    
+    echo UForm::error($arResult['errors'], true);
+}
+?>
+
+<form class="form-horizontal" method="post" action="">
+    <div class="form-group">
+        <label class="col-lg-2 control-label">Название специальности:<?=UForm::isRequired()?></label>
+        <div class="col-lg-10">
+            <?=UForm::input('text', 'title', $v['title'] , 'form-control', false, array('autofocus' => 'autofocus'))?>            
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-lg-2 control-label">Код специальности:<?=UForm::isRequired()?></label>
+        <div class="col-lg-10">
+            <?=UForm::input('text', 'code', $v['code'] , 'form-control', false, array('autofocus' => 'autofocus'))?>            
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-lg-2 control-label">Факультет:<?=UForm::isRequired()?></label>
+        <div class="col-lg-10">
+            <?=UForm::select('faculty_id', $arResult['data']['faculty_list'] , $v['faculty_id'], null, 'form-control')?>            
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-lg-offset-2 col-lg-10">
+            <?=UForm::button($arResult['vars']['id'] ? 'Изменить' : 'Создать', 'btn btn-default')?>            
+        </div>
+    </div>
+    <?=UForm::input('hidden', 'id', $v['id'])?>
+    <?=UForm::input('hidden', 'a', 'Y')?>
+</form>
