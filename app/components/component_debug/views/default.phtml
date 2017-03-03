@@ -15,7 +15,7 @@ $first = true;
                 break;
             
             case 'template':
-            case 'do_action':
+            case 'do_action':            
                 echo "<ol>";
                 foreach ($v['value'] as $value)
                 {
@@ -24,6 +24,7 @@ $first = true;
                     echo "<li style='margin-bottom:10px;'>";
                     echo "<span style='color:#DE5145'>{$value[$key]}</span>";
                     echo "<div style='font-size:80%;color:#999'>{$value['file']}, <span style='color:#000'>{$value['line']}</span></div>";
+                    echo $key == 'method' ? "<div>{$value['args']}</div>" : '';
                     echo "</li>";
                 }
                 echo "</ol>";

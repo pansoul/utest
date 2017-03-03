@@ -66,10 +66,6 @@ class USiteController {
         'template' => array(
             'name' => 'Стек вызываемых шаблонов',
             'value' => null
-        ),                
-        'do_action_args' => array(
-            'name' => 'Параметры, переданные запускаемому методу',
-            'value' => null
         )        
     );
     

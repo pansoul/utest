@@ -11,8 +11,8 @@ $arTitles = array(
 ?>
 
 <? 
-if ($arResult['errors'] == ERROR_ELEMENT_NOT_FOUND) {
-    echo UForm::error('Факультет не найден');
+if ($arResult['errors_code'] == ERROR_ELEMENT_NOT_FOUND) {
+    echo UForm::error( $arResult['errors'] );
     return; 
 } 
 ?>

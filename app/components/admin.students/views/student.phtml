@@ -16,16 +16,22 @@ $items = $arResult['data']['form'];
 ?>
 
 <?
-if (is_array($newDataUsers)) {
+if (!empty($newDataUsers)) {
     UAppBuilder::addBreadcrumb('Генерация новых паролей', USite::getUrl());
     echo USiteController::loadComponent('utility', 'pastable', array($newDataUsers));
     return;
 }
 ?>
 
-<div class="setting-panel">
-    <?//UForm::btnNew('Создать новую группу', USite::getModurl() . '/newgroup')?>
-    <?=UForm::btnNew('Создать нового студента', USite::getModurl() . '/newstudent/', $this->model->vars['group_code'])?>
+<? 
+if ($arResult['errors'] == ERROR_ELEMENT_NOT_FOUND) {
+    echo UForm::error('Группа не найдена');
+    return; 
+} 
+?>
+
+<div class="setting-panel">    
+    <?=UForm::btnNew('Создать нового студента', USite::getUrl() . '/newstudent')?>
 </div>
     
 <? 
@@ -56,9 +62,12 @@ if (!empty($arResult['errors'])) {
                 <td><?=$v['id']?></td>
                 <td><?=$v['last_name']?> <?=$v['name']?> <?=$v['surname']?></td>
                 <td><?=$v['login']?></td>
-                <td><?=$v['phone'] ? $v['phone'] : '-'?></td>
-                <td><?=$v['email'] ? $v['email'] : '-'?></td>
-                <td class="last-column"><?=UForm::btnEdit(USite::getModurl().'/editstudent/', $v['id'])?><?=UForm::btnDelete(USite::getModurl().'/delete/', 'student/'.$v['id'])?></td>
+                <td><?=$v['phone'] ?: '&mdash;'?></td>
+                <td><?=$v['email'] ?: '&mdash;'?></td>
+                <td class="last-column">
+                    <?=UForm::btnEdit(USite::getUrl().'/editstudent/', $v['id'])?>
+                    <?=UForm::btnDelete(USite::getModurl().'/delete/', 'student/'.$v['id'])?>
+                </td>
             </tr>
         <?endforeach?>
     </table>

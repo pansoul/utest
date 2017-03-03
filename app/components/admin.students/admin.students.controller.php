@@ -4,57 +4,43 @@ class AdminStudentsController extends USiteController {
 
     protected $routeMap = array(
         'setTitle' => 'Группы',
-        'actionDefault' => 'group',
-        'actionsPath' => array(
-            'group' => '/<group_code>',
-            'newstudent' => '/<in>',
-            'editgroup' => '/<id>',
-            'editstudent' => '/<id>',
-            'delete' => '/<type>/<id>'
+        'actionMain' => 'group',
+        'actionsPath' => array(            
+            'newGroup' => '/newgroup',
+            'editGroup' => '/editgroup/<id>',     
+            
+            'student' => '/<group_code>',            
+            'newstudent' => '/<group_code>/newstudent',            
+            'editstudent' => '/<group_code>/editstudent/<id>',            
+            
+            'delete' => '/delete/<type>/<id>'
         ),
-        'vars' => array(
-            'group_code' => array(
-                'mask' => '',
-                'rule' => '[-_a-zA-Z0-9]',
-                'default' => 0
-            ),
-            'in' => array(
-                'mask' => '',
-                'rule' => '[-_a-zA-Z0-9]',
-                'default' => 0
-            ),
-            'id' => array(
-                'mask' => '',
-                'rule' => '[0-9]',
-                'default' => 0
-            ),
-            'type' => array(
-                'mask' => '',
-                'rule' => '[a-zA-Z]',
-                'default' => 0
-            )
-        )
+        'varsRule' => array(
+            'group_code' => '[-_a-zA-Z0-9]',            
+            'id' => '[0-9]',
+            'type' => '[a-zA-Z]',
+        ),        
     );
 
     public function run()
     {
-        $result = $this->model->doAction($this->action);        
-        
         switch ($this->action) {
             case 'group':
+            case 'student':
+                $result = $this->model->doAction($this->action, $this->model->vars['group_code']);
                 if ($this->model->vars['group_code']) {
                     $html = $this->loadView('student', $result);
                 } else {
-                    $html = $this->loadView($this->action, $result);
+                    $html = $this->loadView('group', $result);
                 }
                 break;
             
-            case 'editgroup':
+            case 'editGroup':
                 $result = $this->model->doAction($this->action, $this->model->vars['id']);
                 $html = $this->loadView('newgroup', $result);
                 break;
             
-            case 'editstudent':
+            case 'editStudent':
                 $result = $this->model->doAction($this->action, $this->model->vars['id']);                
                 $html = $this->loadView('newstudent', $result);
                 break;
@@ -64,6 +50,7 @@ class AdminStudentsController extends USiteController {
                 break;
             
             default:
+                $result = $this->model->doAction($this->action);
                 $html = $this->loadView($this->action, $result);
                 break;
         }        

@@ -39,9 +39,9 @@ class AdminUniversityModel extends UModel {
         return $this->returnResult($v);
     }
     
-    public function specialityAction()
+    public function specialityAction($facultyCode)
     {
-        if ($this->request->_POST['del_all']) {            
+        if ($this->request->_POST['del_all'] && !$this->watcherStatus) {            
             foreach ($this->request->_POST['i'] as $item)
             {
                 $res = R::load(TABLE_UNIVER_SPECIALITY, $item);
@@ -49,18 +49,23 @@ class AdminUniversityModel extends UModel {
             }
             USite::redirect(USite::getUrl());
         }
-        $parent = R::findOne(TABLE_UNIVER_FACULTY, '`alias` = ?', array($this->vars['faculty_code']));
+        $parent = R::findOne(TABLE_UNIVER_FACULTY, '`alias` = ?', array($facultyCode));
         $res = R::find(TABLE_UNIVER_SPECIALITY, 'faculty_id = ? ORDER BY title', array($parent->id));               
         if ($parent) {
             UAppBuilder::addBreadcrumb ($parent['title'], USite::getUrl());
         } else {
-            $this->errors = ERROR_ELEMENT_NOT_FOUND;
+            $this->setErrors('Специальность не найдена', ERROR_ELEMENT_NOT_FOUND);            
         }       
         return $this->returnResult($res);
     }
     
     public function newSpecialityAction($v = array())
-    {                
+    {   
+        $this->doAction('speciality', $this->vars['faculty_code'], true);          
+        if ($this->errorsCode == ERROR_ELEMENT_NOT_FOUND) {
+            return $this->returnResult();
+        }
+        
         $in = '/' . $this->vars['faculty_code'];
         $r = R::findOne(TABLE_UNIVER_FACULTY, "`alias` = ?", (array)$this->vars['faculty_code']);
         if ($r) {
@@ -114,7 +119,7 @@ class AdminUniversityModel extends UModel {
     {
         $v = R::load(TABLE_UNIVER_FACULTY, $id);        
         if (!$v['id']) {
-            $this->errors = ERROR_ELEMENT_NOT_FOUND;
+            $this->setErrors('Факультет не найден', ERROR_ELEMENT_NOT_FOUND);            
         }
         return $this->newFacultyAction($v);
     }
@@ -123,7 +128,7 @@ class AdminUniversityModel extends UModel {
     {
         $v = R::load(TABLE_UNIVER_SPECIALITY, $id);
         if (!$v['id']) {
-            $this->errors = ERROR_ELEMENT_NOT_FOUND;
+            $this->setErrors('Специальность не найдена', ERROR_ELEMENT_NOT_FOUND);            
         }
         return $this->newSpecialityAction($v);
     }
@@ -139,12 +144,10 @@ class AdminUniversityModel extends UModel {
         } elseif ($type == 'speciality') {
             $bean = R::load(TABLE_UNIVER_SPECIALITY, $id);
             $faculty = R::load(TABLE_UNIVER_FACULTY, $bean['faculty_id']);            
-            $toback = '/' . $faculty['alias'];
-        }
+            $toback = $faculty['alias'];
+        }        
         
-        if ($bean) {
-            R::trash($bean);
-            USite::redirect(USite::getModurl().'/'.$toback);
-        }
+        R::trash($bean);
+        USite::redirect(USite::getModurl() . '/' . $toback);        
     }
 }

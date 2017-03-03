@@ -7,7 +7,8 @@ class AdminPrepodsController extends USiteController {
         'actionMain' => 'prepod',        
         'actionsPath' => array(                        
             'edit' => '/edit/<id>',
-            'delete' => '/delete/<id>',            
+            'delete' => '/delete/<id>',
+            'newPrepod' => '/newprepod'
         ),
         'varsRule' => array(
             'id' => '[0-9]',

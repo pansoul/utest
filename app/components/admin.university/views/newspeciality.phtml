@@ -6,8 +6,8 @@ $v = $arResult['data']['form'];
 ?>
 
 <? 
-if ($arResult['errors'] == ERROR_ELEMENT_NOT_FOUND) {
-    echo UForm::error('Специальность не найдена');
+if ($arResult['errors_code'] == ERROR_ELEMENT_NOT_FOUND) {
+    echo UForm::error( $arResult['errors'] );
     return; 
 } 
 ?>

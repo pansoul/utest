@@ -23,14 +23,15 @@ class AdminPrepodsModel extends UModel {
             $users = array();
             foreach ($this->request->_POST['i'] as $id)
             {
-                if (!intval($id))
+                if (!intval($id)) {
                     continue;
+                }
                 
                 $newpass = UUser::newPassword();
                 $user = UUser::user()->edit(array('password' => $newpass), $id);
-                if ($user)
+                if ($user) {
                     $users[] = $user;
-                else {
+                } else {
                     $this->errors = UUser::$last_errors;
                     break;
                 }
@@ -46,14 +47,15 @@ class AdminPrepodsModel extends UModel {
     }
 
     public function newPrepodAction($v = array())
-    {
-        $this->errors = array();        
+    {              
         if ($this->request->_POST['a']) {
+            $this->errors = array();  
             $v = $this->request->_POST;             
             if ($v['id']) {
                 $user = UUser::user()->edit($v, $v['id']);
-                if ($user && empty($v['password']))
+                if ($user && empty($v['password'])) {
                     USite::redirect(USite::getModurl());
+                }
             } else {                
                 $v['role'] = 'prepod';
                 $user = UUser::user()->add($v);                
@@ -67,28 +69,25 @@ class AdminPrepodsModel extends UModel {
     }
 
     public function editAction($id)
-    {
-        if (!$id)
-            return;
-        
+    {   
         $v = R::load(TABLE_USER, $id);   
-        if (UUser::getRootGroup($v['role']) !== 'prepod')
-            return;
-        
+        if (UUser::getRootGroup($v['role']) !== 'prepod') {
+            $this->setErrors('Пользователь не найден', ERROR_ELEMENT_NOT_FOUND);            
+        }        
         return $this->newPrepodAction($v);
     }
 
     public function deleteAction($id)
     {
-        if (!$id)
+        if (!$id) {
             return;
+        }
         
         $bean = R::load(TABLE_USER, $id);
-        if ($bean && UUser::getRootGroup($bean['role']) === 'prepod') {
-            R::trash($bean);
-            USite::redirect(USite::getModurl());
-        } else 
-            USite::redirect(USite::getModurl());
+        if (UUser::getRootGroup($bean['role']) === 'prepod') {
+            R::trash($bean);            
+        }
+        USite::redirect(USite::getModurl());
     }
     
     public function getArPost()

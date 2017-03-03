@@ -8,9 +8,13 @@ class AdminUniversityController extends USiteController {
         'actionsPath' => array(                        
             'newFaculty' => '/newfaculty',
             'editFaculty' => '/editfaculty/<id>',
+            
             'speciality' => '/<faculty_code>',
             'newSpeciality' => '/<faculty_code>/newspeciality',
             'editSpeciality' => '/<faculty_code>/editspeciality/<id>',
+            //'newSpeciality' => '/<faculty_code>/newspeciality',
+            //'editSpeciality' => '/<faculty_code>/editspeciality/<id>',
+            
             'delete' => '/delete/<type>/<id>',
         ),
         'varsRule' => array(
@@ -26,11 +30,12 @@ class AdminUniversityController extends USiteController {
         switch ($this->action) {
             case 'faculty':
             case 'speciality':
-                $result = $this->model->doAction($this->action);
-                if ($this->model->vars['faculty_code'])
+                $result = $this->model->doAction($this->action, $this->model->vars['faculty_code']);
+                if ($this->model->vars['faculty_code']) {
                     $html = $this->loadView('speciality', $result);
-                else
+                } else {
                     $html = $this->loadView('faculty', $result);
+                }
                 break;
             
             case 'editFaculty':

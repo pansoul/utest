@@ -7,9 +7,9 @@ $v = $arResult['data']['form'];
 ?>
 
 <? 
-if ($arResult['vars']['id'] && empty($v['id']) || empty($arResult)) {
-    echo UForm::error('Пользователь не найден');
-    return;     
+if ($arResult['errors_code'] == ERROR_ELEMENT_NOT_FOUND) {
+    echo UForm::error( $arResult['errors'] );
+    return; 
 } 
 ?>
 

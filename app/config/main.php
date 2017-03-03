@@ -54,7 +54,7 @@ define('ERROR_ELEMENT_NOT_FOUND', 404);
 return array(
     // Ветвь для подключения БД
     'db' => array(
-        'host' => 'localhost',	// адрес MySQL хоста
+        'host' => $_SERVER['REMOTE_ADDR'],	// адрес MySQL хоста
         'port' => '',	// номер порта для подключения
         'user' => 'root',	// имя пользователя БД
         'pass' => '',	// пароль пользователя БД

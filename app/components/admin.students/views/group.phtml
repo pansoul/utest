@@ -9,7 +9,7 @@ $arTitles = array(
     'Управление'
 );
 
-$items = $arResult['data']['form'];
+$items = $arResult['data'];
 ?>
 
 <div class="setting-panel">
@@ -40,9 +40,12 @@ if (empty($items)) {
             <tr>
                 <td class="checkbox-column"><?=UForm::checkbox("i[item_{$v['id']}]", $v['id'], 'check-one')?></td>
                 <td><?=$v['id']?></td>
-                <td><a href="<?=USite::getModurl()?>/group/<?=$v['alias']?>"><?=$v['title']?></a> <span rel="tooltip" data-placement="right" data-toggle="tooltip" title="Количество студентов в группе" class="badge"><?=$v['students_count']?></span></td>
+                <td><a href="<?=USite::getModurl()?>/<?=$v['alias']?>"><?=$v['title']?></a> <span rel="tooltip" data-placement="right" data-toggle="tooltip" title="Количество студентов в группе" class="badge"><?=$v['students_count']?></span></td>
                 <td><?=$v['speciality_name']?></td>
-                <td class="last-column"><?=UForm::btnEdit(USite::getModurl().'/editgroup/', $v['id'])?><?=UForm::btnDelete(USite::getModurl().'/delete/', 'group/'.$v['id'])?></td>
+                <td class="last-column">
+                    <?=UForm::btnEdit(USite::getModurl().'/editgroup/', $v['id'])?>
+                    <?=UForm::btnDelete(USite::getModurl().'/delete/', 'group/'.$v['id'])?>
+                </td>
             </tr>
         <?endforeach?>
     </table>

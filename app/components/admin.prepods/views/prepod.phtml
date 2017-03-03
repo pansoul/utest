@@ -56,8 +56,8 @@ if (!empty($arResult['errors'])) {
                 <td><?=$v['last_name']?> <?=$v['name']?> <?=$v['surname']?></td>
                 <td><?=$v['login']?></td>
                 <td><?=$arPost[ $v['post'] ]?></td>
-                <td><?=$v['phone'] ? $v['phone'] : '-'?></td>
-                <td><?=$v['email'] ? $v['email'] : '-'?></td>                    
+                <td><?=$v['phone'] ?: '&mdash;'?></td>
+                <td><?=$v['email'] ?: '&mdash;'?></td>                    
                 <td class="last-column"><?=UForm::btnEdit(USite::getModurl().'/edit/', $v['id'])?><?=UForm::btnDelete(USite::getModurl().'/delete/', $v['id'])?></td>
             </tr>
         <?endforeach?>

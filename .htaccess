@@ -1,19 +1,27 @@
 FileETag none
-RewriteEngine On
 Options -Indexes
 
 AddDefaultCharset utf-8
-<IfModule mod_charset.c>
-   CharsetRecodeMultipartForms Off
-   CharsetSourceEnc utf-8
+
+<IfModule mod_php5.c>
+    php_value display_errors 1
 </IfModule>
 
-RewriteCond %{REQUEST_URI} //
-RewriteRule .* /$0 [R=301,L]
+<IfModule mod_charset.c>    
+    CharsetRecodeMultipartForms Off
+    CharsetSourceEnc utf-8
+</IfModule>
 
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)/$ /$1 [L,R=301]
+<IfModule mod_rewrite.c>
+    RewriteEngine On
 
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule . index.php
+    RewriteCond %{REQUEST_URI} //
+    RewriteRule .* /$0 [R=301,L]
+
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)/$ /$1 [L,R=301]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule . index.php
+</IfModule>
