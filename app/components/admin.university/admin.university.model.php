@@ -52,9 +52,9 @@ class AdminUniversityModel extends UModel {
         $parent = R::findOne(TABLE_UNIVER_FACULTY, '`alias` = ?', array($facultyCode));
         $res = R::find(TABLE_UNIVER_SPECIALITY, 'faculty_id = ? ORDER BY title', array($parent->id));               
         if ($parent) {
-            UAppBuilder::addBreadcrumb ($parent['title'], USite::getUrl());
+            UAppBuilder::addBreadcrumb ($parent['title'], USite::getModurl() . '/' . $this->vars['faculty_code']);
         } else {
-            $this->setErrors('Специальность не найдена', ERROR_ELEMENT_NOT_FOUND);            
+            $this->setErrors('Факультет не найден', ERROR_ELEMENT_NOT_FOUND);            
         }       
         return $this->returnResult($res);
     }
