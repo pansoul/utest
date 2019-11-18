@@ -1,5 +1,5 @@
 <?php
 
-class AdminModel extends UModel {
+class AdminModel extends ComponentModel {
     
 }

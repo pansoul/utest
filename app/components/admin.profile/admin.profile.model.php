@@ -1,6 +1,6 @@
 <?php
 
-class AdminProfileModel extends UModel {
+class AdminProfileModel extends ComponentModel {
     
     public function indexAction()
     {   

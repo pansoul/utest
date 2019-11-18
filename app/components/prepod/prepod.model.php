@@ -1,5 +1,5 @@
 <?php
 
-class PrepodModel extends UModel {
+class PrepodModel extends ComponentModel {
     
 }

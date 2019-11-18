@@ -1,27 +1,30 @@
 <?php
 
-class UtilityModel extends UModel {
-    
-    const ID_U_DATA = 1; 
+namespace UTest\Components;
+
+use UTest\Kernel\User\User;
+use UTest\Kernel\Errors\AppException;
+
+class UtilityModel extends \UTest\Kernel\ComponentModel
+{
+    const ID_U_DATA = 1;
 
     public function menuAction($node)
     {
         if ($node === null) {
-            throw new UAppException('Не указано имя меню для вывода');
+            throw new AppException('Не указано имя меню для вывода');
         }
 
-        $generalMenu = include APP_CONFIG_PATH . '/menus.php';
+        $generalMenu = require APP_CONFIG_PATH . '/menus.php';
         $curMenu = @$generalMenu[$node];
-
-        return $this->returnResult($curMenu);
+        $this->setData($curMenu);
     }
 
     public function panelAction()
     {
-        if (isset($this->request->_GET['logout']) &&  $this->request->_GET['logout'] == 'Y') {
-            UUser::logout();
+        if (isset($this->_GET['logout']) && $this->_GET['logout'] == 'Y') {
+            User::logout();
         }
-        return $this->returnResult();
     }
 
     public function univerAction($field)
@@ -31,36 +34,36 @@ class UtilityModel extends UModel {
         } elseif ($field == 'univer_fullname') {
             $field = 'fullname';
         }
-        $data = R::load(TABLE_UNIVER_DATA, self::ID_U_DATA);
-        return $this->returnResult($data->$field);
+        $data = \R::load(TABLE_UNIVER_DATA, self::ID_U_DATA);
+        $this->setData($data->{$field});
     }
-    
+
     public function breadcrumbAction($arr)
     {
-        return $this->returnResult($arr);
+        $this->setData($arr);
     }
-    
+
     public function pastableAction($arr)
     {
-        return $this->returnResult($arr);
+        $this->setData($arr);
     }
-    
+
     public function tabsAction($arr, $selected)
     {
-        return $this->returnResult(array(
+        $this->setData(array(
             'tabs' => $arr,
             'selected' => $selected
         ));
     }
-    
+
     public function testAnswerAction($type, $a, $r)
     {
-        return $this->returnResult(array(
+        $this->setData(array(
             'answer' => $a,
             'right' => $r
         ));
     }
-    
+
     public function testResultAction($res)
     {
         return $this->returnResult($res);

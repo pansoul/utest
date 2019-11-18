@@ -1,6 +1,6 @@
 <?php
 
-class AdminSettingModel extends UModel {
+class AdminSettingModel extends ComponentModel {
     
     const ID = 1;
     

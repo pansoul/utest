@@ -1,5 +1,7 @@
 <?php
 
+namespace UTest\Components;
+
 class AdminStudentsController extends USiteController {
 
     protected $routeMap = array(
@@ -55,7 +57,7 @@ class AdminStudentsController extends USiteController {
                 break;
         }        
         
-        $this->putModContent($html);
+        $this->putContent($html);
     }
 
 }

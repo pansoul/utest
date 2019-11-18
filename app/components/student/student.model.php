@@ -1,5 +1,5 @@
 <?php
 
-class StudentModel extends UModel {
+class StudentModel extends ComponentModel {
     
 }

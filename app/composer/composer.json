@@ -1,0 +1,15 @@
+{
+    "require": {
+        "php": ">=7.1",
+        "symfony/var-dumper": "4.3.5",
+        "verot/class.upload.php": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "UTest\\": "../"
+        },
+        "files": [
+            "../kernel/db/rb_v4.3.2.php"
+        ]
+    }
+}

@@ -1,6 +1,6 @@
 <?php
 
-class StudentResultsModel extends UModel {
+class StudentResultsModel extends ComponentModel {
     
     private $table_student_passage = 'u_student_test_passage';
     private $table_student_test = 'u_student_test';

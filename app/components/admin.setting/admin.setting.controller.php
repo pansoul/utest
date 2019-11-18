@@ -11,6 +11,6 @@ class AdminSettingController extends USiteController {
     {           
         $result = $this->model->doAction($this->action);        
         $html = $this->loadView('', $result);        
-        $this->putModContent($html);         
+        $this->putContent($html);
     }
 }

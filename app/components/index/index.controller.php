@@ -1,15 +1,17 @@
 <?php
 
-class IndexController extends USiteController {
-    
-    protected $routeMap = array(            
+namespace UTest\Components;
+
+class IndexController extends \UTest\Kernel\ComponentController
+{
+    protected $routeMap = array(
         'setTitle' => 'Добро пожаловать'
     );
-    
-    public function run() 
+
+    public function run()
     {
-        $result = $this->model->doAction($this->action);        
-        $html = $this->loadView('mainform', $result);        
-        $this->putModContent($html);
+        $this->doAction($this->action);
+        $html = $this->loadView('mainform');
+        $this->putContent($html);
     }
 }

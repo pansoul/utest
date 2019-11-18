@@ -1,6 +1,6 @@
 <?php
 
-class PrepodStudentsModel extends UModel {
+class PrepodStudentsModel extends ComponentModel {
 
     private $table_group = 'u_univer_group';
     private $table_faculty = 'u_univer_faculty';

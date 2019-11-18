@@ -1,5 +1,5 @@
 <?php
 
-class ComponentDebugModel extends UModel {    
+class ComponentDebugModel extends ComponentModel {
     //    
 }

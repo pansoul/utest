@@ -33,7 +33,7 @@ class AdminPrepodsController extends USiteController {
                 break;
         }        
         
-        $this->putModContent($html);
+        $this->putContent($html);
     }
 
 }

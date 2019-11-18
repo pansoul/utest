@@ -1,6 +1,6 @@
 <?php
 
-class StudentPrepodsModel extends UModel {
+class StudentPrepodsModel extends ComponentModel {
     
     private $table_user = 'u_user';
     

@@ -194,7 +194,7 @@ class PrepodTestsController extends USiteController {
                 break;
         }        
         
-        $this->putModContent($html);
+        $this->putContent($html);
     }
 
 }

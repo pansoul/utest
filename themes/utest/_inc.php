@@ -1,7 +1,9 @@
 <?php
 
+use UTest\Kernel\ComponentController;
+
 /**
- * очень полезный файл, если нужно добавить какую-нибудь информацию в шаблон, 
+ * Очень полезный файл, если нужно добавить какую-нибудь информацию в шаблон,
  * используя шаблонную переменную ([!имя_переменной]).
  * 
  * Также, можно переопределить вывод таких системных шаблонных переменных 
@@ -31,11 +33,11 @@
  * 
  */
 return array(    
-    'panel' => USiteController::loadComponent('utility', 'panel'),
-    'univer_name' => USiteController::loadComponent('utility', 'univer', array('univer_name')),
-    'univer_fullname' => USiteController::loadComponent('utility', 'univer', array('univer_fullname')),
-    'univer_address' => USiteController::loadComponent('utility', 'univer', array('address')),
-    'univer_phone' => USiteController::loadComponent('utility', 'univer', array('phone')),
-    'breadcrump' => USiteController::loadComponent('utility', 'breadcrumb', array(UAppBuilder::getBreadcrumb())),
-    'copyright' => '2013. Боровских Павел Сергеевич'
+    'panel' => ComponentController::loadComponent('utility', 'panel'),
+    'univer_name' => ComponentController::loadComponent('utility', 'univer', array('univer_name')),
+    'univer_fullname' => ComponentController::loadComponent('utility', 'univer', array('univer_fullname')),
+    'univer_address' => ComponentController::loadComponent('utility', 'univer', array('address')),
+    'univer_phone' => ComponentController::loadComponent('utility', 'univer', array('phone')),
+    'breadcrump' => ComponentController::loadComponent('utility', 'breadcrumb', array(UTest\Kernel\AppBuilder::getBreadcrumb())),
+    'copyright' => '2019. Боровских Павел Сергеевич'
 );

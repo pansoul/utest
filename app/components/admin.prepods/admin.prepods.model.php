@@ -1,6 +1,6 @@
 <?php
 
-class AdminPrepodsModel extends UModel {    
+class AdminPrepodsModel extends ComponentModel {
     
     private $arPost = array(
         'old_prepod'    => 'старший преподаватель',

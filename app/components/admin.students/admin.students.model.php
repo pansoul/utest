@@ -1,6 +1,8 @@
 <?php
 
-class AdminStudentsModel extends UModel {
+namespace UTest\Components;
+
+class AdminStudentsModel extends ComponentModel {
     
     public function groupAction()
     {

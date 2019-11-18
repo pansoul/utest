@@ -1,6 +1,6 @@
 <?php
 
-class PrepodMaterialsModel extends UModel {
+class PrepodMaterialsModel extends ComponentModel {
 
     private $dir = '/uploads/materials';
     private $table_subject = 'u_prepod_subject';

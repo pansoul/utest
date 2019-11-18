@@ -1,6 +1,6 @@
 <?php
 
-class AdminUniversityModel extends UModel {
+class AdminUniversityModel extends ComponentModel {
     
     public function facultyAction()
     {   

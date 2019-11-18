@@ -2,7 +2,8 @@
 SQLyog Ultimate v11.11 (64 bit)
 MySQL - 5.1.65-community-log : Database - utest
 *********************************************************************
-*/
+*/
+
 
 /*!40101 SET NAMES utf8 */;
 
@@ -283,7 +284,7 @@ CREATE TABLE `u_univer_data` (
 
 /*Data for the table `u_univer_data` */
 
-insert  into `u_univer_data`(`id`,`name`,`address`,`phone`,`logo`,`fullname`) values (1,'','Адрес(а)','&lt;p&gt;&lt;strong&gt;qweqw&lt;/strong&gt;&lt;/p&gt;\r\n\r\n&lt;p&gt;&lt;em&gt;&lt;strong&gt;adfas&lt;/strong&gt;&lt;/em&gt;&lt;/p&gt;\r\n\r\n&lt;pre&gt;\r\n&lt;em&gt;&lt;span style=&quot;color:#ff8c00&quot;&gt;&lt;strong&gt;asasfasf&lt;/strong&gt;&lt;/span&gt;&lt;/em&gt;&lt;/pre&gt;\r\n\r\n&lt;pre&gt;\r\n&lt;code class=&quot;language-php&quot;&gt;&amp;lt;?php\r\n\r\nclass AdminSettingController extends USiteController {\r\n\r\n    protected $routeMap = array(    \r\n        \'actionDefault\' =&amp;gt; \'show\',\r\n        \'setTitle\' =&amp;gt; \'Информация о вузе\'\r\n    );\r\n\r\n    public function run()\r\n    {           \r\n        $result = $this-&amp;gt;model-&amp;gt;doAction($this-&amp;gt;action);        \r\n        $html = $this-&amp;gt;loadView(\'\', $result);        \r\n        $this-&amp;gt;putModContent($html);         \r\n    }\r\n}&lt;/code&gt;&lt;/pre&gt;\r\n\r\n&lt;p&gt;&amp;nbsp;&lt;/p&gt;',NULL,'');
+insert  into `u_univer_data`(`id`,`name`,`address`,`phone`,`logo`,`fullname`) values (1,'','Адрес(а)','&lt;p&gt;&lt;strong&gt;qweqw&lt;/strong&gt;&lt;/p&gt;\r\n\r\n&lt;p&gt;&lt;em&gt;&lt;strong&gt;adfas&lt;/strong&gt;&lt;/em&gt;&lt;/p&gt;\r\n\r\n&lt;pre&gt;\r\n&lt;em&gt;&lt;span style=&quot;color:#ff8c00&quot;&gt;&lt;strong&gt;asasfasf&lt;/strong&gt;&lt;/span&gt;&lt;/em&gt;&lt;/pre&gt;\r\n\r\n&lt;pre&gt;\r\n&lt;code class=&quot;language-php&quot;&gt;&amp;lt;?php\r\n\r\nclass AdminSettingController extends USiteController {\r\n\r\n    protected $routeMap = array(    \r\n        \'actionDefault\' =&amp;gt; \'show\',\r\n        \'setTitle\' =&amp;gt; \'Информация о вузе\'\r\n    );\r\n\r\n    public function run()\r\n    {           \r\n        $result = $this-&amp;gt;model-&amp;gt;doAction($this-&amp;gt;action);        \r\n        $html = $this-&amp;gt;loadView(\'\', $result);        \r\n        $this-&amp;gt;putContent($html);         \r\n    }\r\n}&lt;/code&gt;&lt;/pre&gt;\r\n\r\n&lt;p&gt;&amp;nbsp;&lt;/p&gt;',NULL,'');
 
 /*Table structure for table `u_univer_faculty` */
 

@@ -1,21 +1,25 @@
 <?php
 
-class IndexModel extends UModel {
-    
+namespace UTest\Components;
+
+use UTest\Kernel\Site;
+use UTest\Kernel\User\User;
+
+class IndexModel extends \UTest\Kernel\ComponentModel
+{
     public function indexAction()
     {
-        if (UUser::isAuth()) {
-            USite::redirect('/' . UUser::user()->getRoleRootGroup());
+        if (User::isAuth()) {
+            Site::redirect('/' . User::user()->getRoleRootGroup());
         }
-        
-        if (isset($this->request->_POST['a'])) {            
-            $success = UUser::login($this->request->_POST['login'], $this->request->_POST['pass']);            
+
+        if ($this->isActionRequest()) {
+            $success = User::login($this->_POST['login'], $this->_POST['pass']);
             if ($success) {
-                USite::redirect('/' . UUser::user()->getRoleRootGroup(), false, 'Здравствуйте, ' . UUser::user()->getName() . '!');
+                Site::redirect('/' . User::user()->getRoleRootGroup(), false, 'Здравствуйте, ' . User::user()->getName() . '!');
             } else {
-                $this->errors = UUser::$last_errors;
+                $this->setErrors(User::$last_errors);
             }
         }
-        return $this->returnResult();
     }
 }

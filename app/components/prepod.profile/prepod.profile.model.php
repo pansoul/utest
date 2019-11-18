@@ -1,6 +1,6 @@
 <?php
 
-class PrepodProfileModel extends UModel {   
+class PrepodProfileModel extends ComponentModel {
     
     private $arAvailableEdit = array(
         'last_name',

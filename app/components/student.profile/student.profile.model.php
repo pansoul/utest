@@ -1,6 +1,6 @@
 <?php
 
-class StudentProfileModel extends UModel {  
+class StudentProfileModel extends ComponentModel {
     
     private $arAvailableEdit = array(        
         'phone',

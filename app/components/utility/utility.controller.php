@@ -1,51 +1,57 @@
 <?php
 
-class UtilityController extends USiteController {    
+namespace UTest\Components;
 
+use UTest\Kernel\Site;
+
+class UtilityController extends \UTest\Kernel\ComponentController
+{
     public function run()
-    {   
+    {
+        $html = '';
+
         switch ($this->action) {
             case 'menu':
-                $result = $this->model->doAction($this->action, array(USite::getGroup()));                
-                $html = $this->loadView('menu', $result);
+                $this->doAction($this->action, array(Site::getGroup()));
+                $html = $this->loadView('menu');
                 break;
-            
+
             case 'panel':
-                $result = $this->model->doAction($this->action);                
-                $html = $this->loadView('panel', $result);
+                $this->doAction($this->action);
+                $html = $this->loadView('panel');
                 break;
-            
+
             case 'univer':
-                $result = $this->model->doAction($this->action, $this->actionArgs);                
-                $html = $this->loadView($this->actionArgs[0], $result);
+                $this->doAction($this->action, $this->actionArgs);
+                $html = $this->loadView($this->actionArgs[0]);
                 break;
-            
+
             case 'breadcrumb':
-                $result = $this->model->doAction($this->action, $this->actionArgs);     
-                $html = $this->loadView('breadcrumb', $result);
+                $this->doAction($this->action, $this->actionArgs);
+                $html = $this->loadView('breadcrumb');
                 break;
-            
+
             case 'pastable':
-                $result = $this->model->doAction($this->action, $this->actionArgs);     
-                $html = $this->loadView('pastable', $result);
+                $this->doAction($this->action, $this->actionArgs);
+                $html = $this->loadView('pastable');
                 break;
-            
+
             case 'tabs':
-                $result = $this->model->doAction($this->action, $this->actionArgs);     
-                $html = $this->loadView('tabs', $result);
+                $this->doAction($this->action, $this->actionArgs);
+                $html = $this->loadView('tabs');
                 break;
-            
+
             case 'testanswer':
-                $result = $this->model->doAction($this->action, $this->actionArgs);     
-                $html = $this->loadView('test_answer_'.$this->actionArgs[0], $result);                
+                $this->doAction($this->action, $this->actionArgs);
+                $html = $this->loadView('test_answer_' . $this->actionArgs[0]);
                 break;
-            
+
             case 'testresult':
-                $result = $this->model->doAction($this->action, $this->actionArgs);     
-                $html = $this->loadView('test_result', $result);                
+                $this->doAction($this->action, $this->actionArgs);
+                $html = $this->loadView('test_result');
                 break;
         }
-        
-        $this->putModContent($html);
+
+        $this->putContent($html);
     }
 }

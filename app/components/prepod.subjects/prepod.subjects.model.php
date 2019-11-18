@@ -1,6 +1,6 @@
 <?php
 
-class PrepodSubjectsModel extends UModel {
+class PrepodSubjectsModel extends ComponentModel {
     
     private $table_subject = 'u_prepod_subject';
 

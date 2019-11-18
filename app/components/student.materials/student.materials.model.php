@@ -1,6 +1,6 @@
 <?php
 
-class StudentMaterialsModel extends UModel {
+class StudentMaterialsModel extends ComponentModel {
 
     private $table_subject = 'u_prepod_subject';
     private $table_material = 'u_prepod_material';
