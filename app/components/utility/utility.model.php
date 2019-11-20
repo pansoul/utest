@@ -7,7 +7,7 @@ use UTest\Kernel\Errors\AppException;
 
 class UtilityModel extends \UTest\Kernel\ComponentModel
 {
-    const ID_U_DATA = 1;
+    const UNIVER_DATA_ID = 1;
 
     public function menuAction($node)
     {
@@ -34,7 +34,7 @@ class UtilityModel extends \UTest\Kernel\ComponentModel
         } elseif ($field == 'univer_fullname') {
             $field = 'fullname';
         }
-        $data = \R::load(TABLE_UNIVER_DATA, self::ID_U_DATA);
+        $data = \R::load(TABLE_UNIVER_DATA, self::UNIVER_DATA_ID);
         $this->setData($data->{$field});
     }
 

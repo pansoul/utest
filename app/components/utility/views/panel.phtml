@@ -1,4 +1,12 @@
+<?
+use UTest\Kernel\User\User;
+
+if (!User::isAuth()) {
+    return;
+}
+?>
+
 <div class="user-panel">
-    <a href="/<?=\UTest\Kernel\User\User::user()->getRoleRootGroup()?>/profile" class="user-name"><?=\UTest\Kernel\User\User::user()->getName()?></a>
+    <a href="/<?=User::user()->getRoleRootGroup()?>/profile" class="user-name"><?=User::user()->getName()?></a>
     <a href="?logout=Y" class="user-logout">Выйти</a>
 </div>
