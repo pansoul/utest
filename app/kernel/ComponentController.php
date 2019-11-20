@@ -2,7 +2,12 @@
 
 namespace UTest\Kernel;
 
-class ComponentController {
+class ComponentController
+{
+    /**
+     * Имя дефолтного шаблона компонетов
+     */
+    const TEMPLATE_NAME_DEFAULT = 'default';
     
     /** 
      * Значение заголовка по умолчанию
@@ -236,7 +241,7 @@ class ComponentController {
         $includeResult = self::includeComponentFiles($componentName);
         if ($includeResult !== true) {
             return $includeResult;
-        }  
+        }
         
         // Формируем имена классов, которые будем подключать
         @list($group, $module) = explode('.', $componentName, 2);
@@ -280,7 +285,7 @@ class ComponentController {
     private static function includeComponentFiles($componentName)
     {
         // Расположение компонента
-        $componentPath = APP_PATH . '/components/' . $componentName;
+        $componentPath = COMPONENTS_PATH . '/' . $componentName;
         // Расположение класса контроллера
         $componentControllerPath = $componentPath . '/' . $componentName . '.controller.php';
         // Расположение класса модели
@@ -289,15 +294,13 @@ class ComponentController {
         if (!is_dir($componentPath)) {
             return Form::warning("Компонет '{$componentName}' не найден");
         }
-
         if (!file_exists($componentControllerPath)) {
             return Form::warning("Файл контроллера компонента '{$componentName}' не найден");
         }
-
         if (!file_exists($componentModelPath)) {
             return Form::warning("Файл модели компонента '{$componentName}' не найдена");
         }
-        
+
         require_once $componentControllerPath;
         require_once $componentModelPath;
         
@@ -305,7 +308,7 @@ class ComponentController {
     }
    
     private function init($componentModel)
-    {           
+    {
         $this->model = new $componentModel();                        
         
         // Если строка параметров пуста, то запускаем главный акшн
@@ -396,51 +399,25 @@ class ComponentController {
         
         $this->run();
     }
-    
-    /**
-     * Загружает шаблон компонента.
-     * 
-     * @param string $template - название шаблона, если не передано имя, 
-     * то возьмется название шаблона по умолчанию "default"
-     * @param array $arResult - передаваемые параметры в шаблон. Переменная представляет
-     * собой массив с 4-мя ключами<br/>
-     *  <ul>
-     *      <li>
-     *          [errors] - содержит массив ошибок выполнения методов компонента.
-     *      </li>
-     *      <li>
-     *          [data] - содержит данные для заполнения шаблона. 
-     *          Может представлять из себя любой тип данных.
-     *      </li>  
-     *      <li>
-     *          [request] - Содержит объект данных запроса.
-     *      </li>
-     *      <li>
-     *          [vars] - Содержит массив значений переменных, объявленных 
-     *          в routeMap в строке параметров акшна.
-     *      </li>  
-     *  </ul>   
-     * @return string
-     */
 
     /**
      * Загружает шаблон компонента
      *
-     * @param string $template
+     * @param string $templateName
      * @param null $data
      *
      * @return string
      */
-    protected function loadView($template = 'default', $data = null)
+    protected function loadView($templateName = self::TEMPLATE_NAME_DEFAULT, $data = null)
     {   
-        $templateName = $template ? (string) $template : 'default';
-        $templatePath = APP_PATH . '/components/' . $this->componentName . '/views/' . $templateName . '.phtml';
+        $templateName = $templateName ? (string) $templateName : self::TEMPLATE_NAME_DEFAULT;
+        $templatePath = COMPONENTS_PATH . '/' . $this->componentName . '/views/' . $templateName . '.phtml';
         
         if (Base::getConfig('debug > component_debug')) {
             $bt = debug_backtrace();
             $caller = array_shift($bt);
             $this->debugInfo['template']['value'][] = array(
-                'template' => $template,
+                'template' => $templateName,
                 'file' => $caller['file'],
                 'line' => $caller['line']
             );
@@ -454,14 +431,15 @@ class ComponentController {
             $this->model->setData($data, true);
         }
 
-        $request = $this->model->_REQUEST; // массив данныйх $_REQUEST
-        $post = $this->model->_POST; // массив данныйх $_POST
-        $get = $this->model->_GET; // массив данныйх $_GET
-
+        // Набор локальных переменных для быстрого доступа внутри шаблона
+        $request = $this->model->_REQUEST;
+        $post = $this->model->_POST;
+        $get = $this->model->_GET;
         $errors = $this->model->getErrors(false);
         $data = $this->model->getData();
-        $vars = $this->model->getVars(false);
+        $vars = $this->model->getVars();
 
+        // Общий резалт со старой структурой
         $arResult = [
             'errors' => $this->model->getErrors(false),
             'data' => $this->model->getData(),
@@ -475,12 +453,12 @@ class ComponentController {
         
         return $view;
     }
-    
+
     /**
      * Сохраняет переданный контент как результат работы компонента
      *
-     * @param mixed $content - контент
-     * @param bool $overwrite - заменить ли уже имеющийся контент новым, или выполнить конкатенацию. По умолчанию true.
+     * @param string $content
+     * @param bool $overwrite
      */
     protected function putContent($content = '', $overwrite = true)
     {
@@ -500,8 +478,14 @@ class ComponentController {
         return join('', $this->content);
     }
 
-    protected function doAction($action = 'index', $args = array(), $watcher = false)
+    /**
+     * По сути алиас для доступа к аналогичному методу модели компонента
+     *
+     * @param string $action
+     * @param array $args
+     */
+    protected function doAction($action = ComponentModel::ACTION_DEFAULT, $args = [])
     {
-        $this->model->doAction($action, $args, $watcher);
+        $this->model->doAction($action, $args);
     }
 }

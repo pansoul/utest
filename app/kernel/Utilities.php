@@ -9,6 +9,34 @@ class Utilities
         //
     }
 
+    public static function generateSalt()
+    {
+        $salt = '';
+        $length = rand(5, 10); // длина соли (от 5 до 10 сомволов)
+        for ($i = 0; $i < $length; $i++) {
+            $salt .= chr(rand(33, 126)); // символ из ASCII-table
+        }
+        return $salt;
+    }
+
+    public static function getRandomString($chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', $length = 8)
+    {
+        $count = mb_strlen($chars);
+
+        for ($i = 0, $password = ''; $i < $length; $i++) {
+            $index = rand(0, $count - 1);
+            $password .= mb_substr($chars, $index, 1);
+        }
+
+        return $password;
+    }
+
+    public static function pluralForm($n, $forms, $returnWithNumber = false)
+    {
+        $label = $n % 10 == 1 && $n % 100 != 11 ? $forms[0] : ($n % 10 >= 2 && $n % 10 <= 4 && ($n % 100 < 10 || $n % 100 >= 20) ? $forms[1] : $forms[2]);
+        return $returnWithNumber ? ($n.' '.$label) : $label;
+    }
+
     public static function translit($str)
     {
         $str = mb_strtolower($str, 'utf-8');

@@ -4,6 +4,9 @@ namespace UTest\Kernel;
 
 class ComponentModel
 {
+    const ACTION_DEFAULT = 'index';
+    const ERROR_CODE_DEFAULT = 'main';
+
     protected $errors = [];
     protected $vars = [];
     protected $request = null;
@@ -27,7 +30,7 @@ class ComponentModel
         //
     }
 
-    final public function doAction($action = 'index', $args = array())
+    final public function doAction($action = self::ACTION_DEFAULT, $args = array())
     {
         $method = $action . 'Action';
         $args = (array) $args;
@@ -69,17 +72,17 @@ class ComponentModel
         return $this->data;
     }
 
-    final public function setErrors($errorsMsg = null, $errorCode = 'main')
+    final public function setErrors($errorsMsg = null, $errorCode = self::ERROR_CODE_DEFAULT)
     {
         $this->errors[$errorCode] = $errorsMsg;
     }
 
-    final public function getErrors($errorCode = 'main')
+    final public function getErrors($errorCode = self::ERROR_CODE_DEFAULT)
     {
         return $errorCode ? $this->errors[$errorCode] : $this->errors;
     }
 
-    final public function hasErrors($errorCode = 'main')
+    final public function hasErrors($errorCode = self::ERROR_CODE_DEFAULT)
     {
         return isset($this->errors[$errorCode]);
     }
@@ -91,12 +94,12 @@ class ComponentModel
 
     final public function setVars()
     {
-
+        // @todo
     }
 
     final public function getVars()
     {
-
+        // @todo
     }
 
     final public function getRequest()
