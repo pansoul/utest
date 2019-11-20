@@ -1,8 +1,10 @@
 <?php
 
-class AdminController extends USiteController {
+namespace UTest\Components;
 
-    protected $routeMap = array(        
+class AdminController extends \UTest\Kernel\ComponentController
+{
+    protected $routeMap = array(
         'setTitle' => 'Как пользоваться системой?',
         'addBreadcrumb' => false
     );

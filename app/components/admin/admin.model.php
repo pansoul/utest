@@ -1,5 +1,8 @@
 <?php
 
-class AdminModel extends ComponentModel {
-    
+namespace UTest\Components;
+
+class AdminModel extends \UTest\Kernel\ComponentModel
+{
+    //
 }
