@@ -1,6 +1,8 @@
 <?php
 
-class Admin extends UUser {
+namespace UTest\Kernel\User\Roles;
+
+class Admin extends \UTest\Kernel\User\User {
     
     const VIP_ID = 1;
     
@@ -70,11 +72,6 @@ class Admin extends UUser {
         'name',
         'last_name'
     );
-
-    public function __construct()
-    {
-        //
-    }
 
     public function add(array $arFields = array())
     {
@@ -238,6 +235,4 @@ class Admin extends UUser {
         R::trash($bean);
         return true;
     }
-    
 }
-

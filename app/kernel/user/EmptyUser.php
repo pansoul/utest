@@ -2,7 +2,7 @@
 
 namespace UTest\Kernel\User;
 
-use UTest\Kernel\Form;
+use UTest\Kernel\Errors\AppException;
 
 final class EmptyUser
 {
@@ -20,11 +20,11 @@ final class EmptyUser
 
     public function __call($name, $arguments)
     {
-        print Form::warning("Не удалось вызвать метод '{$name}'! Объект пользователя[{$this->uid}] не создан");
+        throw new AppException("Не удалось вызвать метод '{$name}'! User[{$this->uid}] не создан");
     }
 
     public function __callStatic($name, $arguments)
     {
-        print Form::warning("Не удалось вызвать метод '{$name}'! Объект пользователя[{$this->uid}] не создан");
+        throw new AppException("Не удалось вызвать метод '{$name}'! User[{$this->uid}] не создан");
     }
 }
