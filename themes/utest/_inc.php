@@ -1,6 +1,6 @@
 <?php
 
-use UTest\Kernel\ComponentController;
+use UTest\Kernel\Component\Controller;
 
 /**
  * Очень полезный файл, если нужно добавить какую-нибудь информацию в шаблон,
@@ -33,11 +33,11 @@ use UTest\Kernel\ComponentController;
  * 
  */
 return array(    
-    'panel' => ComponentController::loadComponent('utility', 'panel'),
-    'univer_name' => ComponentController::loadComponent('utility', 'univer', array('univer_name')),
-    'univer_fullname' => ComponentController::loadComponent('utility', 'univer', array('univer_fullname')),
-    'univer_address' => ComponentController::loadComponent('utility', 'univer', array('address')),
-    'univer_phone' => ComponentController::loadComponent('utility', 'univer', array('phone')),
-    'breadcrump' => ComponentController::loadComponent('utility', 'breadcrumb', array(UTest\Kernel\AppBuilder::getBreadcrumb())),
+    'panel' => Controller::loadComponent('utility', 'panel'),
+    'univer_name' => Controller::loadComponent('utility', 'univer', array('univer_name')),
+    'univer_fullname' => Controller::loadComponent('utility', 'univer', array('univer_fullname')),
+    'univer_address' => Controller::loadComponent('utility', 'univer', array('address')),
+    'univer_phone' => Controller::loadComponent('utility', 'univer', array('phone')),
+    'breadcrump' => Controller::loadComponent('utility', 'breadcrumb', array(UTest\Kernel\AppBuilder::getBreadcrumb())),
     'copyright' => '2019. Боровских Павел Сергеевич'
 );

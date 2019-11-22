@@ -43,7 +43,7 @@ if($arResult['vars']['id'] && empty($v['id']) || empty($arResult)) {
     </div>        
     <div class="form-group">
         <label class="col-lg-2 control-label">
-            Основа:<?=UForm::isRequired()?>
+            Основа:<?=UForm::asterisk()?>
             <?if(!$arResult['vars']['id']):?>
                 <span class="help-block">Необходимо выбрать на основе какого теста будет назначаться создаваемый.</span>
             <?endif;?>
