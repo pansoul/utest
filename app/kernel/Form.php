@@ -22,7 +22,7 @@ class Form
     }
 
     /**
-     * Создаёт текстовое поле.
+     * Создаёт произвольное поле.
      *
      * @param string $type - тип текстового поля (кроме "checkbox" и "radio")
      * @param string $name - имя для идентификатора инпута
@@ -35,7 +35,6 @@ class Form
      */
     public static function input($type = '', $name = '', $value = '', $class = '', $id = '', $attr = array())
     {
-        $type = !preg_match("/(checkbox|radio)/i", $type) ? $type : 'text';
         $allAttr = [
             'type' => $type,
             'name' => $name,
@@ -54,7 +53,8 @@ class Form
      * @param string $name - имя для идентификатора селекта
      * @param array $arOptions - массив опшионов. В переданном массиве ключи элементов будут являться значением, а значения - названиями для опшионов.
      * @param array|integer|string $arSelected - список активных опшионов
-     * @param string $first_option_val - если значение отлично от null, то данный опшион будет первый в списке и иметь отсылаемое значение "0"
+     * @param mix $firstOption - если значение передано, то оно будет первым в списке и иметь отсылаемое значение "0". Если был передан массив,
+     * то 1-й элемент - это отсылаемое значение, а 2-й элемент - это название опшиона.
      * @param string $class - атрибут class (можно назначать несколько классов через пробел)
      * @param string $id - атрибут id
      * @param bool $isMultiple - является ли селект "мультивыборочным"
@@ -63,40 +63,41 @@ class Form
      *
      * @return string
      */
-    public static function select(
-        $name,
-        array $arOptions,
-        $arSelected = null,
-        $first_option_val = null,
-        $class,
-        $id,
-        $isMultiple = false,
-        $size = 1,
-        array $attr = array()
-    ) {
-        $html = '';
-        $_attr = '';
-        $multiple = $isMultiple ? 'multiple' : '';
-        $size = $isMultiple ? "size='$size'" : '';
-        $arSelected = (array)$arSelected;
+    public static function select($name = '', $arOptions = [], $arSelected = [], $firstOption = null, $class = '', $id = '', $isMultiple = false, $size = false, $attr = array())
+    {
+        $html = [];
 
-        if (!empty($attr)) {
-            foreach ($attr as $k => $v) {
-                $_attr .= "{$k}='{$v}' ";
-            }
+        $allAttr = [
+            'name' => $name,
+            'class' => $class,
+            'id' => $id
+        ];
+        if ($isMultiple) {
+            $allAttr['multiple'] = 'multiple';
         }
+        if ($size > 1) {
+            $allAttr['size'] = $size;
+        }
+        $allAttr = array_merge($allAttr, (array) $attr);
 
-        $html .= "<select name='{$name}' class='{$class}' id='{$id}' {$size} {$multiple} {$_attr}>";
-        if (!is_null($first_option_val)) {
-            $html .= "<option value='0'>{$first_option_val}</option>";
+        $html[] = "<select " . self::buildAttr($allAttr, true) . ">";
+        if ($firstOption) {
+            $value = 0;
+            $label = $firstOption;
+            if (is_array($firstOption)) {
+                $firstOption = array_values($firstOption);
+                $value = $firstOption[0];
+                $label = $firstOption[1];
+            }
+            $html[] = "<option value='{$value}'>{$label}</option>";
         }
         foreach ($arOptions as $k => $v) {
             $selected = in_array($k, $arSelected) ? "selected='selected'" : '';
-            $html .= "<option {$selected} value='{$k}'>{$v}</option>";
+            $html[] = "<option {$selected} value='{$k}'>{$v}</option>";
         }
-        $html .= "</select>";
+        $html[] = "</select>";
 
-        return $html;
+        return join('', $html);
     }
 
     /**
@@ -105,42 +106,37 @@ class Form
      * @param string $name - имя для идентификатора флажка
      * @param string|integer|array $value - значение, что будет отсылаться на сервер.<br/>
      * Если флажок был не выбран, на сервер будет отсылаться значение 0.<br/>
-     * Если же был передан массив, то первый элемент будет являться значением, остылаемым
-     * при отмеченном флажке, а второй элемент - значением, отсылаемым при невыбранном флажке.
+     * Если же был передан массив, то 1-й элемент будет являться значением, остылаемым
+     * при отмеченном флажке, а 2-й элемент - значением, отсылаемым при невыбранном флажке.
      * @param string $class - атрибут class
      * @param string $id - атрибут id
      * @param bool $isChecked - отмечен/не отмечен ли флажок (по умолчанию не отмечен)
-     * @param bool $isDisbled - активный/неактивный ли флажок (по умолчанию активный)
+     * @param bool $isDisabled - активный/неактивный ли флажок (по умолчанию активный)
      * @param array $attr - другие атрибуты. Передаются через массив в виде пар "<имя_атрибута>"=>"<значение_атрибута>"
+     *
      * @return string
      */
-    public static function checkbox(
-        $name,
-        $value = 1,
-        $class,
-        $id,
-        $isChecked = false,
-        $isDisbled = false,
-        $attr = array()
-    ) {
-        $html = '';
-        $_attr = '';
-        $checked = $isChecked ? 'checked' : '';
-        $disabled = $isDisbled ? 'disabled' : '';
-
-        $val = is_array($value) ? $value[0] : $value;
-        $valDefault = is_array($value) ? $value[1] : 0;
-
-        if (!empty($attr)) {
-            foreach ($attr as $k => $v) {
-                $_attr .= "{$k}='{$v}' ";
-            }
+    public static function checkbox($name = '', $value = 1, $class = '', $id = '', $isChecked = false, $isDisabled = false, $attr = array())
+    {
+        $html = [];
+        $valReal = $value;
+        $valDefault = 0;
+        if (is_array($value)) {
+            $value = array_values($value);
+            $valReal = $value[0];
+            $valDefault = $value[1];
         }
 
-        $html .= "<input type='hidden' name='{$name}' value='{$valDefault}' />";
-        $html .= "<input type='checkbox' name='{$name}' value='{$val}' class='{$class}' id='{$id}' {$checked} {$disabled} {$_attr} />";
+        if ($isChecked) {
+            $attr['checked'] = 'checked';
+        }
+        if ($isDisabled) {
+            $attr['disabled'] = 'disabled';
+        }
 
-        return $html;
+        $html[] = self::input('hidden', $name, $valDefault);
+        $html[] = self::input('checkbox', $name, $valReal, $class, $id, $attr);
+        return join('', $html);
     }
 
     /**
@@ -151,23 +147,21 @@ class Form
      * @param string $class - атрибут class
      * @param string $id - атрибут id
      * @param bool $isChecked - отмечен/не отмечен ли переключатель (по умолчанию не отмечен)
-     * @param bool $isDisbled - активный/неактивный ли переключатель (по умолчанию активный)
+     * @param bool $isDisabled - активный/неактивный ли переключатель (по умолчанию активный)
      * @param array $attr - другие атрибуты. Передаются через массив в виде пар "<имя_атрибута>"=>"<значение_атрибута>"
+     *
      * @return string
      */
-    public static function radio($name, $value, $class, $id, $isChecked = false, $isDisbled = false, $attr = array())
+    public static function radio($name = '', $value = '', $class = '', $id = '', $isChecked = false, $isDisabled = false, $attr = array())
     {
-        $_attr = '';
-        $checked = $isChecked ? 'checked' : '';
-        $disabled = $isDisbled ? 'disabled' : '';
-
-        if (!empty($attr)) {
-            foreach ($attr as $k => $v) {
-                $_attr .= "{$k}='{$v}' ";
-            }
+        if ($isChecked) {
+            $attr['checked'] = 'checked';
+        }
+        if ($isDisabled) {
+            $attr['disabled'] = 'disabled';
         }
 
-        return "<input type='radio' name='{$name}' value='{$value}' class='{$class}' id='{$id}' {$checked} {$disabled} {$_attr} />";
+        return self::input('radio', $name, $value, $class, $id, $attr);
     }
 
     /**
@@ -206,22 +200,22 @@ class Form
      * @param string|integer $text - значение поля
      * @param string $class - атрибут class (можно назначать несколько классов через пробел)
      * @param string $id - атрибут id
-     * @param array $attr - другие атрибуты у элемента, передаются через массив в виде пар "<имя_атрибута>"=>"<значение_атрибута>"
      * @param integer $rows - высота поля в строках
+     * @param array $attr - другие атрибуты у элемента, передаются через массив в виде пар "<имя_атрибута>"=>"<значение_атрибута>"
+     *
      * @return string
      */
-    public static function textarea($name, $text, $class, $id, $attr = array(), $rows = 5)
+    public static function textarea($name = '', $text = '', $class = '', $id = '', $rows = 5, $attr = array())
     {
-        $_attr = '';
-        $size = (int)$size;
+        $allAttr = [
+            'name' => $name,
+            'class' => $class,
+            'id' => $id,
+            'rows' => (int) $rows,
+        ];
+        $allAttr = array_merge($allAttr, (array) $attr);
 
-        if (!empty($attr)) {
-            foreach ($attr as $k => $v) {
-                $_attr .= "{$k}='{$v}' ";
-            }
-        }
-
-        return "<textarea name='{$name}' class='{$class}' id='{$id}' rows='{$rows}' {$_attr}>{$text}</textarea>";
+        return "<textarea " . self::buildAttr($allAttr, true) . ">{$text}</textarea>";
     }
 
     /**
@@ -231,21 +225,15 @@ class Form
      * @param string $url - часть url, включающая название контроллера
      * @param string $params - параметры, передаваемые контроллеру
      * @param array $attr - другие атрибуты у элемента, передаются через массив в виде пар "<имя_атрибута>"=>"<значение_атрибута>"
+     *
      * @return string
      */
-    public static function btnNew($text, $url = '#', $params, $attr = array())
+    public static function btnNew($text = '', $url = '#', $params = '', $attr = array())
     {
-        $_attr = '';
-        $fullURL = $url . '/' . $params;
-        $fullURL = str_replace('//', '/', $fullURL);
+        $fullUrl = $url . '/' . $params;
+        $fullUrl = str_replace('//', '/', $fullUrl);
 
-        if (!empty($attr)) {
-            foreach ($attr as $k => $v) {
-                $_attr .= "{$k}='{$v}' ";
-            }
-        }
-
-        return "<a class='btn btn-add btn-lg' href='{$fullURL}' {$_attr}><span class='glyphicon glyphicon-plus'></span>$text</a>";
+        return "<a class='btn btn-add btn-lg' href='{$fullUrl}' " . self::buildAttr($attr, true) . "><span class='glyphicon glyphicon-plus'></span>{$text}</a>";
     }
 
     /**
@@ -254,21 +242,15 @@ class Form
      * @param string $url - часть url, включающая название контроллера
      * @param string $params - параметры, передаваемые контроллеру
      * @param array $attr - другие атрибуты у элемента, передаются через массив в виде пар "<имя_атрибута>"=>"<значение_атрибута>"
+     *
      * @return string
      */
-    public static function btnEdit($url = '#', $params, $attr = array())
+    public static function btnEdit($url = '#', $params = '', $attr = array())
     {
-        $_attr = '';
-        $fullURL = $url . '/' . $params;
-        $fullURL = str_replace('//', '/', $fullURL);
+        $fullUrl = $url . '/' . $params;
+        $fullUrl = str_replace('//', '/', $fullUrl);
 
-        if (!empty($attr)) {
-            foreach ($attr as $k => $v) {
-                $_attr .= "{$k}='{$v}' ";
-            }
-        }
-
-        return "<a title='Изменить' class='btn-mini btn-edit' href='{$fullURL}' {$_attr}></a>";
+        return "<a title='Изменить' class='btn-mini btn-edit' href='{$fullUrl}' " . self::buildAttr($attr, true) . "></a>";
     }
 
     /**
@@ -277,21 +259,15 @@ class Form
      * @param string $url - часть url, включающая название контроллера
      * @param string $params - параметры, передаваемые контроллеру
      * @param array $attr - другие атрибуты у элемента, передаются через массив в виде пар "<имя_атрибута>"=>"<значение_атрибута>"
+     *
      * @return string
      */
-    public static function btnDelete($url = '#', $params, $attr = array())
+    public static function btnDelete($url = '#', $params = '', $attr = array())
     {
-        $_attr = '';
-        $fullURL = $url . '/' . $params;
-        $fullURL = str_replace('//', '/', $fullURL);
+        $fullUrl = $url . '/' . $params;
+        $fullUrl = str_replace('//', '/', $fullUrl);
 
-        if (!empty($attr)) {
-            foreach ($attr as $k => $v) {
-                $_attr .= "{$k}='{$v}' ";
-            }
-        }
-
-        return "<a title='Удалить' class='btn-mini btn-delete' href='{$fullURL}' {$_attr}></a>";
+        return "<a title='Удалить' class='btn-mini btn-delete' href='{$fullUrl}' " . self::buildAttr($attr, true) . "></a>";
     }
 
     /**
@@ -302,19 +278,12 @@ class Form
      * @param array $attr - другие атрибуты у элемента, передаются через массив в виде пар "<имя_атрибута>"=>"<значение_атрибута>"
      * @return string
      */
-    public static function btnTest($url = '#', $params, $attr = array())
+    public static function btnTest($url = '#', $params = '', $attr = array())
     {
-        $_attr = '';
-        $fullURL = $url . '/' . $params;
-        $fullURL = str_replace('//', '/', $fullURL);
+        $fullUrl = $url . '/' . $params;
+        $fullUrl = str_replace('//', '/', $fullUrl);
 
-        if (!empty($attr)) {
-            foreach ($attr as $k => $v) {
-                $_attr .= "{$k}='{$v}' ";
-            }
-        }
-
-        return "<a class='btn-mini btn-test' href='{$fullURL}' {$_attr}></a>";
+        return "<a class='btn-mini btn-test' href='{$fullUrl}' " . self::buildAttr($attr, true) . "></a>";
     }
 
     /**
@@ -323,21 +292,15 @@ class Form
      * @param string $url - часть url, включающая название контроллера
      * @param string $params - параметры, передаваемые контроллеру
      * @param array $attr - другие атрибуты у элемента, передаются через массив в виде пар "<имя_атрибута>"=>"<значение_атрибута>"
+     *
      * @return string
      */
     public static function btnResult($url = '#', $params, $attr = array())
     {
-        $_attr = '';
-        $fullURL = $url . '/' . $params;
-        $fullURL = str_replace('//', '/', $fullURL);
+        $fullUrl = $url . '/' . $params;
+        $fullUrl = str_replace('//', '/', $fullUrl);
 
-        if (!empty($attr)) {
-            foreach ($attr as $k => $v) {
-                $_attr .= "{$k}='{$v}' ";
-            }
-        }
-
-        return "<a title='Просмотреть результаты' class='btn-mini btn-result' href='{$fullURL}' {$_attr}></a>";
+        return "<a title='Просмотреть результаты' class='btn-mini btn-result' href='{$fullUrl}' " . self::buildAttr($attr, true) . "></a>";
     }
 
     /**
@@ -346,72 +309,75 @@ class Form
      * @param string $url - часть url, включающая название контроллера
      * @param string $params - параметры, передаваемые контроллеру
      * @param array $attr - другие атрибуты у элемента, передаются через массив в виде пар "<имя_атрибута>"=>"<значение_атрибута>"
+     *
      * @return string
      */
-    public static function btnRetake($url = '#', $params, $attr = array())
+    public static function btnRetake($url = '#', $params = '', $attr = array())
     {
-        $_attr = '';
-        $fullURL = $url . '/' . $params;
-        $fullURL = str_replace('//', '/', $fullURL);
+        $fullUrl = $url . '/' . $params;
+        $fullUrl = str_replace('//', '/', $fullUrl);
 
-        if (!empty($attr)) {
-            foreach ($attr as $k => $v) {
-                $_attr .= "{$k}='{$v}' ";
-            }
-        }
-
-        return "<a class='btn-mini btn-retake' href='{$fullURL}' {$_attr}></a>";
+        return "<a class='btn-mini btn-retake' href='{$fullUrl}' " . self::buildAttr($attr, true) . "></a>";
     }
 
-    public static function isRequired()
+    /**
+     * Отобразит звёздочку
+     * @return string
+     */
+    public static function asterisk()
     {
         return "<sup class='form-control-required'>*</sup>";
     }
 
     /**
      * Выводит информацию в виде блока с произольным набором классов
+     *
      * @param array|string $msg
      * @param string $classes
      * @param bool $block
      * @param string $listType
+     *
      * @return string
      */
     public static function message($msg = '', $classes = '', $block = true, $listType = 'ul')
     {
-        $html = '';
-
         if (empty($msg)) {
-            return $html;
+            return '';
         }
 
+        if (is_array($msg) && count($msg) == 1) {
+            $msg = array_shift($msg);
+        }
+
+        $html = [];
         $el = is_array($msg) ? $listType : ($block ? 'div' : 'span');
 
-        $html .= "<{$el} class='{$classes}'>";
+        $html[] = "<{$el} class='{$classes}'>";
         if (is_array($msg)) {
             foreach ($msg as $v) {
-                $html .= "<li>{$v}</li>";
+                $html[] = "<li>{$v}</li>";
             }
         } else {
-            $html .= (string)$msg;
+            $html[] = (string)$msg;
         }
-        $html .= "</{$el}>";
+        $html[] = "</{$el}>";
 
-        return $html;
+        return join('', $html);
     }
 
     public static function success($msg = '', $block = true, $listType = 'ul')
     {
-        return self::message($msg = '', 'alert alert-success', $block, $listType);
+        return self::message($msg, 'alert alert-success', $block, $listType);
     }
 
     public static function info($msg = '', $block = true, $listType = 'ul')
     {
-        return self::message($msg = '', 'alert alert-info', $block, $listType);
+        return self::message($msg, 'alert alert-info', $block, $listType);
     }
 
     public static function notice($msg = '', $block = true, $listType = 'ul')
     {
-        return self::message($msg = '', 'alert alert-warning alert-mini', $block, $listType);
+        return self::message($msg, 'alert alert-warning alert-mini', $block, $listType);
     }
 
     public static function warning($msg = '', $block = true, $listType = 'ul')
@@ -422,7 +388,7 @@ class Form
     public static function error($msg = '', $closeControl = false, $block = true, $listType = 'ul')
     {
         if ($closeControl) {
-            $errors = self::message($msg, 'noliststyle', $block, $listType);
+            $errors = self::message($msg, '', $block, $listType);
             return <<<EOF
                 <div class="alert alert-danger">
                     <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>

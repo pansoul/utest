@@ -4,6 +4,7 @@ namespace UTest\Kernel;
 
 use UTest\Kernel\User\User;
 use Utest\Kernel\Errors\AppException;
+use UTest\Kernel\Component\Controller;
 
 class AppRouter
 {
@@ -33,7 +34,7 @@ class AppRouter
                 } elseif ($argsConfig[0] === false) {
                     $builder->build(false, $layout);
                 } else {
-                    $builder->build(ComponentController::loadComponent($argsConfig[0], true), $layout);
+                    $builder->build(Controller::loadComponent($argsConfig[0], true), $layout);
                 }
             }
         }
@@ -42,7 +43,7 @@ class AppRouter
         elseif (Site::getGroup() && (!User::isAuth() || Site::getGroup() != User::user()->getRoleRootGroup())) {
             $builder->build(false, LAYOUT_404);
         } else {
-            $builder->build(ComponentController::loadComponent(Site::getModArgs()), $layout);
+            $builder->build(Controller::loadComponent(Site::getModParamsRow()), $layout);
         }
 
         $builder->show();
@@ -62,7 +63,7 @@ class AppRouter
 
         Site::setUrl($url);
         Site::setGroup($group);
-        Site::setModArgs($args);
+        Site::setModParamsRow($args);
 
         if (User::isAuth()) {
             // @todo установить константы url'ов и др. данных пользователя

@@ -5,33 +5,38 @@ namespace UTest\Kernel;
 class Site
 {
     /**
-     * Текущий корректный url сайта
+     * Текущий url
      * @var string
      */
-    private static $url;
+    private static $url = '';
 
     /**
      * Имя группы, относительно текущего url
      * @var string
      */
-    private static $group;
+    private static $group = '';
 
     /**
-     * Название текущего модуля.
-     * Здесь храниться именно имя того модуля, который был вызван непосредственно
-     * через адресную строку, а не через ajax
+     * Название текущего модуля (компонента).
+     * Здесь храниться именно имя того модуля, который был вызван непосредственно через адресную строку.
+     * Представляем из себя запись вида "group.modName"
      * @var string
      */
-    private static $modName;
+    private static $modName = '';
 
     /**
-     * Url текущего модуля.
-     * Url именно того модуля, что был вызван через адресную строку, а не через ajax
+     * Url текущего модуля (компонента).
+     * Url именно того модуля, что был вызван через адресную строку.
+     * Представляем из себя запись вида "/group/modName/"
      * @var string
      */
-    private static $modUrl;
+    private static $modUrl = '';
 
-    private static $modArgs;
+    /**
+     * Часть url, представляющая из себя строку параметров модуля (компонента)
+     * @var string
+     */
+    private static $modParamsRow = '';
 
     private function __construct()
     {
@@ -57,21 +62,21 @@ class Site
     public static function setModName($name)
     {
         if (!self::$modName) {
-            self::$modName = (string)$name;
+            self::$modName = (string) $name;
         }
     }
 
     public static function setModUrl($url)
     {
         if (!self::$modUrl) {
-            self::$modUrl = (string)$url;
+            self::$modUrl = (string) $url;
         }
     }
 
-    public static function setModArgs($args)
+    public static function setModParamsRow($args)
     {
-        if (!self::$modArgs) {
-            self::$modArgs = (string)$args;
+        if (!self::$modParamsRow) {
+            self::$modParamsRow = (string) $args;
         }
     }
 
@@ -95,9 +100,9 @@ class Site
         return self::$modUrl;
     }
 
-    public static function getModArgs()
+    public static function getModParamsRow()
     {
-        return self::$modArgs;
+        return self::$modParamsRow;
     }
 
     /**

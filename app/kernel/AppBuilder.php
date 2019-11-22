@@ -2,6 +2,7 @@
 
 namespace UTest\Kernel;
 
+use UTest\Kernel\Component\Controller;
 use UTest\Kernel\Errors\AppException;
 
 class AppBuilder
@@ -126,7 +127,7 @@ class AppBuilder
 
     public static function getMenu()
     {
-        return ComponentController::loadComponent('utility', 'menu');
+        return Controller::loadComponent('utility', 'menu');
     }
 
     public static function addBreadcrumb($name = '', $url = '')
@@ -143,7 +144,7 @@ class AppBuilder
         return true;
     }
 
-    public static function editBreadcrumbItem($index, $name = '', $url = '')
+    public static function editBreadcrumbItem($index = 0, $name = '', $url = '')
     {
         if (!isset(self::$arBreadcrumb[$index]) || !$name || !$url) {
             return false;
@@ -165,5 +166,11 @@ class AppBuilder
     public static function clearBreadcrumb()
     {
         self::$arBreadcrumb = array();
+    }
+
+    // @todo заменить везде вызовы компонентов через данный алиас
+    public static function loadComponent($args = '', $action = false, $actionArgs = array(), $routeMap = array())
+    {
+        return Controller::loadComponent($args, $action, $actionArgs, $routeMap);
     }
 }

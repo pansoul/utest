@@ -31,6 +31,7 @@ class Base
      */
     public function run(array $config)
     {
+        @session_start();
         self::$config = $config;
 
         // Показывать ли различные предупреждения и ошибки. 
