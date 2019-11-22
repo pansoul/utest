@@ -2,10 +2,10 @@
 
 namespace UTest\Components;
 
-class IndexController extends \UTest\Kernel\ComponentController
+class IndexController extends \UTest\Kernel\Component\Controller
 {
     protected $routeMap = array(
-        'setTitle' => 'Добро пожаловать'
+        'title' => 'Добро пожаловать'
     );
 
     public function run()

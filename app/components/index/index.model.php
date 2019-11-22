@@ -5,7 +5,7 @@ namespace UTest\Components;
 use UTest\Kernel\Site;
 use UTest\Kernel\User\User;
 
-class IndexModel extends \UTest\Kernel\ComponentModel
+class IndexModel extends \UTest\Kernel\Component\Model
 {
     public function indexAction()
     {

@@ -5,8 +5,8 @@ use UTest\Kernel\Form;
 <form class="main-form" action="" method="post">
     
     <?
-    if (!empty($errors['main'])) {
-        echo Form::error($errors['main'], true);
+    if ($this->hasErrors()) {
+        echo Form::error($this->getErrors(), true);
     } 
     ?>
     
