@@ -1,15 +1,18 @@
 <?php
 
-class AdminProfileController extends USiteController {
+namespace UTest\Components;
 
+class AdminProfileController extends \UTest\Kernel\Component\Controller
+{
     protected $routeMap = array(
-        'setTitle' => 'Изменение пароля'
+        'title' => 'Изменение пароля',
+        'add_breadcrumb' => true
     );
 
     public function run()
     {           
-        $result = $this->model->doAction($this->action);        
-        $html = $this->loadView('', $result);        
+        $this->doAction($this->action);
+        $html = $this->loadView();
         $this->putContent($html);
     }
 }

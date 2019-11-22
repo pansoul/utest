@@ -1,19 +1,23 @@
 <?php
 
-class AdminProfileModel extends ComponentModel {
-    
+namespace UTest\Components;
+
+use UTest\Kernel\Site;
+use UTest\Kernel\User\User;
+
+class AdminProfileModel extends \UTest\Kernel\Component\Model
+{
     public function indexAction()
-    {   
-        if ($this->request->_POST['a']) {
-            $arField = array('password' => $this->request->_POST['password']);
-            
-            if (empty($this->request->_POST['password'])) {
-                $this->errors = array('Пароль не может быть пустым');
-            } elseif (UUser::user()->edit($arField)) {
+    {
+        if ($this->isActionRequest()) {
+            if (empty($this->_POST['password'])) {
+                $this->setErrors('Пароль не может быть пустым');
+            } elseif (User::user()->edit(['password' => $this->_POST['password']])) {
                 $_SESSION['update'] = 'Y';
-                USite::redirect (USite::getModurl());
+                Site::redirect(Site::getModurl());
+            } else {
+                $this->setErrors(User::$last_errors);
             }
         }
-        return $this->returnResult();
     }
 }

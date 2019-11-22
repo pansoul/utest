@@ -1,12 +1,12 @@
 <? 
-if (!empty($arResult['errors'])) {
-    echo UForm::error($arResult['errors'], true);
-} 
-?>
+use UTest\Kernel\Form;
 
-<?
+if ($this->hasErrors()) {
+    echo Form::error($this->getErrors(), true);
+} 
+
 if ($_SESSION['update'] == 'Y') {
-    echo UForm::success('Пароль успешно изменён');
+    echo Form::success('Пароль успешно изменён');
     unset($_SESSION['update']);
 }
 ?>    
@@ -15,13 +15,13 @@ if ($_SESSION['update'] == 'Y') {
     <div class="form-group">
         <label class="col-lg-2 control-label">Новый пароль:</label>
         <div class="col-lg-10">
-            <?=UForm::input('password', 'password', false , 'form-control password-field', 'password')?>        
+            <?=Form::input('password', 'password', false , 'form-control password-field', 'password')?>        
         </div>
     </div>
     <div class="form-group">
         <div class="col-lg-offset-2 col-lg-10">
-            <?=UForm::button('Изменить', 'btn btn-default')?>            
+            <?=Form::button('Изменить', 'btn btn-default')?>            
         </div>
     </div>
-    <?=UForm::input('hidden', 'a', 'Y')?>
+    <?=Form::input('hidden', 'a', 'Y')?>
 </form>
