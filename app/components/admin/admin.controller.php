@@ -2,10 +2,9 @@
 
 namespace UTest\Components;
 
-class AdminController extends \UTest\Kernel\ComponentController
+class AdminController extends \UTest\Kernel\Component\Controller
 {
     protected $routeMap = array(
-        'setTitle' => 'Как пользоваться системой?',
-        'addBreadcrumb' => false
+        'title' => 'Как пользоваться системой?'
     );
 }
