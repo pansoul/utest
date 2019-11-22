@@ -1,16 +1,11 @@
 <?php
 
-class AdminSettingController extends USiteController {
+namespace UTest\Components;
 
-    protected $routeMap = array(    
-        'actionMain' => 'show',
-        'setTitle' => 'Информация о вузе'
+class AdminSettingController extends \UTest\Kernel\Component\Controller
+{
+    protected $routeMap = array(
+        'title' => 'Информация о вузе',
+        'add_breadcrumb' => true,
     );
-
-    public function run()
-    {           
-        $result = $this->model->doAction($this->action);        
-        $html = $this->loadView('', $result);        
-        $this->putContent($html);
-    }
 }
