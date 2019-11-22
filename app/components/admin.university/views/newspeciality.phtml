@@ -1,47 +1,42 @@
 <?
-UAppBuilder::setH($arResult['vars']['id'] ? 'Редактирование специальности' : 'Создание новой специальности');
-UAppBuilder::addBreadcrumb (UAppBuilder::getH(), USite::getUrl());
+use UTest\Kernel\Form;
 
-$v = $arResult['data']['form'];
-?>
-
-<? 
-if ($arResult['errors_code'] == ERROR_ELEMENT_NOT_FOUND) {
-    echo UForm::error( $arResult['errors'] );
+if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) {
+    echo Form::error($this->getErrors(ERROR_ELEMENT_NOT_FOUND));
     return; 
-} 
-?>
-
-<?
-if (!empty($arResult['errors'])) {    
-    echo UForm::error($arResult['errors'], true);
 }
+
+if ($this->hasErrors()) {
+    echo Form::error($this->getErrors(), true);
+}
+
+$v = $data['form'];
 ?>
 
 <form class="form-horizontal" method="post" action="">
     <div class="form-group">
-        <label class="col-lg-2 control-label">Название специальности:<?=UForm::isRequired()?></label>
+        <label class="col-lg-2 control-label">Название специальности:<?=Form::asterisk()?></label>
         <div class="col-lg-10">
-            <?=UForm::input('text', 'title', $v['title'] , 'form-control', false, array('autofocus' => 'autofocus'))?>            
+            <?=Form::input('text', 'title', $v['title'] , 'form-control', false, array('autofocus' => 'autofocus'))?>            
         </div>
     </div>
     <div class="form-group">
-        <label class="col-lg-2 control-label">Код специальности:<?=UForm::isRequired()?></label>
+        <label class="col-lg-2 control-label">Код специальности:<?=Form::asterisk()?></label>
         <div class="col-lg-10">
-            <?=UForm::input('text', 'code', $v['code'] , 'form-control', false)?>            
+            <?=Form::input('text', 'code', $v['code'] , 'form-control', false)?>            
         </div>
     </div>
     <div class="form-group">
-        <label class="col-lg-2 control-label">Факультет:<?=UForm::isRequired()?></label>
+        <label class="col-lg-2 control-label">Факультет:<?=Form::asterisk()?></label>
         <div class="col-lg-10">
-            <?=UForm::select('faculty_id', $arResult['data']['faculty_list'] , $v['faculty_id'], null, 'form-control')?>            
+            <?=Form::select('faculty_id', $data['faculty_list'] , $v['faculty_id'], null, 'form-control')?>            
         </div>
     </div>
     <div class="form-group">
         <div class="col-lg-offset-2 col-lg-10">
-            <?=UForm::button($arResult['vars']['id'] ? 'Изменить' : 'Создать', 'btn btn-default')?>            
+            <?=Form::button($vars['id'] ? 'Изменить' : 'Создать', 'btn btn-default')?>            
         </div>
     </div>
-    <?=UForm::input('hidden', 'id', $v['id'])?>
-    <?=UForm::input('hidden', 'a', 'Y')?>
+    <?=Form::input('hidden', 'id', $v['id'])?>
+    <?=Form::input('hidden', 'a', 'Y')?>
 </form>
