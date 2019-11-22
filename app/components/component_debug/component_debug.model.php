@@ -1,5 +1,8 @@
 <?php
 
-class ComponentDebugModel extends ComponentModel {
+namespace UTest\Components;
+
+class ComponentDebugModel extends \UTest\Kernel\Component\Model
+{
     //    
 }
