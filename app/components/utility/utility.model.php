@@ -5,7 +5,7 @@ namespace UTest\Components;
 use UTest\Kernel\User\User;
 use UTest\Kernel\Errors\AppException;
 
-class UtilityModel extends \UTest\Kernel\ComponentModel
+class UtilityModel extends \UTest\Kernel\Component\Model
 {
     const UNIVER_DATA_ID = 1;
 

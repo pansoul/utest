@@ -4,7 +4,7 @@ namespace UTest\Components;
 
 use UTest\Kernel\Site;
 
-class UtilityController extends \UTest\Kernel\ComponentController
+class UtilityController extends \UTest\Kernel\Component\Controller
 {
     public function run()
     {
