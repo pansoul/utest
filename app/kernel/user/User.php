@@ -12,7 +12,7 @@ class User
      * Данную роль нельзя переопределять.
      * Список пользовательских ролей содержится в файле roles.php в папке конфигурации
      */
-    const VIP_ROLE = 'admin';
+    const ADMIN_ROLE = 'admin';
 
     /**
      * Id пользователя
@@ -366,8 +366,6 @@ class User
         return $rootGroup->type;
     }
 
-
-
     /**
      * Возвращает массив всех системных (=корневых) ролей приложения
      * @return array
@@ -473,7 +471,7 @@ class User
         $arFullRoles = array_reverse($arFullRoles);
 
         foreach ($arFullRoles as $k => $v) {
-            if ($k == self::VIP_ROLE) {
+            if ($k == self::ADMIN_ROLE) {
                 throw new AppException ("Нельзя переопределять роль 'admin'");
             }
 

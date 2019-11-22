@@ -1,39 +1,53 @@
 <?php
 
-class AdminPrepodsController extends USiteController {
+namespace UTest\Components;
 
+class AdminPrepodsController extends \UTest\Kernel\Component\Controller
+{
     protected $routeMap = array(
-        'setTitle' => 'Преподаватели',
-        'actionMain' => 'prepod',        
-        'actionsPath' => array(                        
-            'edit' => '/edit/<id>',
-            'delete' => '/delete/<id>',
-            'newPrepod' => '/newprepod'
+        'title' => 'Преподаватели',
+        'add_breadcrumb' => true,
+        'action_main' => 'prepod',
+        'actions_params' => array(
+            '/newprepod' => [
+                'action' => 'newPrepod',
+                'title' => 'Создание нового преподавателя',
+                'add_breadcrumb' => true
+            ],
+            '/edit/<id>' => [
+                'action' => 'edit',
+                'title' => 'Редактирование преподавателя',
+                'add_breadcrumb' => true
+            ],
+            '/delete/<id>' => [
+                'action' => 'delete',
+            ],
         ),
-        'varsRule' => array(
+        'vars_rules' => array(
             'id' => '[0-9]',
         )
     );
 
     public function run()
-    {   
+    {
+        $html = '';
+
         switch ($this->action) {
             case 'edit':
-                $result = $this->model->doAction($this->action, array($this->model->vars['id']));                
-                $html = $this->loadView('newprepod', $result);
+                $this->doAction($this->action, array($this->vars['id']));
+                $html = $this->loadView('newprepod');
                 break;
-            
+
             case 'delete':
-                $result = $this->model->doAction($this->action, array($this->model->vars['id']));
+                $this->doAction($this->action, array($this->vars['id']));
                 break;
-            
+
             default:
-                $result = $this->model->doAction($this->action);        
-                $html = $this->loadView($this->action, $result);
+                $this->doAction($this->action);
+                $html = $this->loadView($this->action);
                 break;
-        }        
-        
+        }
+
         $this->putContent($html);
     }
-
 }

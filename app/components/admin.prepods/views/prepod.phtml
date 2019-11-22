@@ -1,67 +1,74 @@
 <?
+
+use UTest\Kernel\Form;
+use UTest\Kernel\AppBuilder;
+use UTest\Kernel\Component\Controller;
+use UTest\Kernel\Site;
+
 $arTitles = array(
-    UForm::checkbox('check_all', 1, false, 'check-all'),
+    Form::checkbox('check_all', 1, false, 'check-all'),
     'ID',
     'ФИО',
     'Логин',
-    'Должность',    
-    'Контактный телефон',
-    'Контактный e-mail',
+    'Должность',
+    'Телефон',
+    'E-mail',
     'Управление'
 );
 
-$newDataUsers = $arResult['data']['users'];
-$items = $arResult['data']['form'];
-$arPost = $this->model->getArPost();
-?>
+$newDataUsers = $data['users'];
+$items = $data['form'];
+$arPosts = $data['posts'];
 
-<?
 if (!empty($newDataUsers)) {
-    UAppBuilder::addBreadcrumb('Генерация новых паролей', USite::getUrl());
-    echo USiteController::loadComponent('utility', 'pastable', array($newDataUsers));
+    AppBuilder::addBreadcrumb('Генерация новых паролей', Site::getUrl());
+    echo Controller::loadComponent('utility', 'pastable', array($newDataUsers));
     return;
 }
 ?>
 
-<div class="setting-panel">    
-    <?=UForm::btnNew('Создать нового преподавателя', USite::getModurl() . '/newprepod')?>
+<div class="setting-panel">
+    <?= Form::btnNew('Создать нового преподавателя', Site::getModurl() . '/newprepod') ?>
 </div>
 
-<? 
-if (empty($items)) { 
-    echo UForm::info('Список пуст');
-    return;     
-} 
-?>
-    
-<? 
-if (!empty($arResult['errors'])) {
-    echo UForm::error($arResult['errors'], true);
-} 
+<?
+if (empty($items)) {
+    echo Form::info('Список пуст');
+    return;
+}
+
+if ($this->hasErrors()) {
+    echo Form::error($this->getErrors(), true);
+}
 ?>
 
 <form action="" method="post" class="formaction">
     <table class="table table-hover">
         <thead>
-            <tr>
-            <?foreach($arTitles as $title):?>
-                <th><?=$title?></th>
-            <?endforeach?>
-            </tr>
+        <tr>
+            <? foreach ($arTitles as $title): ?>
+                <th><?= $title ?></th>
+            <? endforeach ?>
+        </tr>
         </thead>
-        <?foreach($items as $k => $v):?>
-            <tr>
-                <td class="checkbox-column"><?=UForm::checkbox("i[item_{$v['id']}]", $v['id'], 'check-one')?></td>
-                <td><?=$v['id']?></td>
-                <td><?=$v['last_name']?> <?=$v['name']?> <?=$v['surname']?></td>
-                <td><?=$v['login']?></td>
-                <td><?=$arPost[ $v['post'] ]?></td>
-                <td><?=$v['phone'] ?: '&mdash;'?></td>
-                <td><?=$v['email'] ?: '&mdash;'?></td>                    
-                <td class="last-column"><?=UForm::btnEdit(USite::getModurl().'/edit/', $v['id'])?><?=UForm::btnDelete(USite::getModurl().'/delete/', $v['id'])?></td>
-            </tr>
-        <?endforeach?>
+        <tbody>
+            <? foreach ($items as $k => $v): ?>
+                <tr>
+                    <td class="checkbox-column"><?= Form::checkbox("i[]", $v['id'], 'check-one') ?></td>
+                    <td><?= $v['id'] ?></td>
+                    <td><?= $v['last_name'] ?> <?= $v['name'] ?> <?= $v['surname'] ?></td>
+                    <td><?= $v['login'] ?></td>
+                    <td><?= $arPosts[$v['post']] ?></td>
+                    <td><?= $v['phone'] ?: '&mdash;' ?></td>
+                    <td><?= $v['email'] ?: '&mdash;' ?></td>
+                    <td class="last-column">
+                        <?= Form::btnEdit(Site::getModurl() . '/edit/', $v['id']) ?>
+                        <?= Form::btnDelete(Site::getModurl() . '/delete/', $v['id']) ?>
+                    </td>
+                </tr>
+            <? endforeach ?>
+        </tbody>
     </table>
-    <?=UForm::button('Удалить выбранные', 'btn btn-danger delete-selected', 'del_all', 'Y', 'submit', true)?>
-    <?=UForm::button('Сгенерировать нов. пароли и распечатать', 'btn btn-primary newpass-selected', 'newpass_all', 'Y', 'submit', true)?>
+    <?= Form::button('Удалить выбранные', 'btn btn-danger delete-selected', 'del_all', 'Y', 'submit', true) ?>
+    <?= Form::button('Сгенерировать нов. пароли и распечатать', 'btn btn-primary newpass-selected', 'newpass_all', 'Y','submit', true) ?>
 </form>

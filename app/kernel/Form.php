@@ -63,7 +63,7 @@ class Form
      *
      * @return string
      */
-    public static function select($name = '', $arOptions = [], $arSelected = [], $firstOption = null, $class = '', $id = '', $isMultiple = false, $size = false, $attr = array())
+    public static function select($name = '', $arOptions = [], $arSelected = [], $firstOption = false, $class = '', $id = '', $isMultiple = false, $size = false, $attr = array())
     {
         $html = [];
 

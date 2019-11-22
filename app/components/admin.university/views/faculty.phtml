@@ -36,7 +36,7 @@ if (empty($data)) {
         </thead>
         <?foreach($data as $k => $v):?>
             <tr>
-                <td class="checkbox-column"><?=Form::checkbox("i[item_{$v['id']}]", $v['id'], 'check-one')?></td>
+                <td class="checkbox-column"><?=Form::checkbox("i[]", $v['id'], 'check-one')?></td>
                 <td><?=$v['id']?></td>
                 <td><a href="<?=Site::getModurl()?>/<?=$v['alias']?>"><?=$v['title']?></a></td>
                 <td class="last-column">

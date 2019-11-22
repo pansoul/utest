@@ -2,147 +2,121 @@
 
 namespace UTest\Kernel\User\Roles;
 
-class Admin extends \UTest\Kernel\User\User {
-    
-    const VIP_ID = 1;
-    
-    private $arFields = array(
-        'role' => array(
-            'for_action' => array('add'),
-            'required' => array('add')
-        ),
-        'password' => array(
-            'for_action' => array('add', 'edit'),
-            'required' => array('add')
-        ),
-        'name' => array(
-            'for_action' => array('add', 'edit'),
-            'required' => array('add', 'edit')
-        ),
-        'last_name' => array(
-            'for_action' => array('add', 'edit'),
-            'required' => array('add', 'edit')
-        ),
-        'surname' => array(
-            'for_action' => array('add', 'edit'),            
-        ),
-        'phone' => array(
-            'for_action' => array('add', 'edit'),            
-        ),
-        'email' => array(
-            'for_action' => array('add', 'edit'),            
-        ),
-        'group_id' => array(
-            'for_action' => array('add', 'edit'),            
-        ),
-        'post' => array(
-            'for_action' => array('add', 'edit'),            
-        ),
-    );
-    
-    private $arAvailableAdd = array(
-        'role',
-        'password',
-        'name',
-        'last_name',
-        'surname',
-        'phone',
-        'email',
-        'group_id',
-        'post'
-    );    
-    private $arRequiredAdd = array(
-        'role',
-        'password',
-        'name',
-        'last_name'
-    );
-    
-    private $arAvailableEdit = array(
-        'password',
-        'name',
-        'last_name',
-        'surname',
-        'phone',
-        'email',
-        'group_id',
-        'post'
-    );    
-    private $arRequiredEdit = array(        
-        'name',
-        'last_name'
-    );
+use \R;
+use UTest\Kernel\Utilities;
 
-    public function add(array $arFields = array())
+class Admin extends \UTest\Kernel\User\User
+{
+    const ADMIN_ID = 1;
+    const FIELDS_GROUP_ADD = 'add';
+    const FIELDS_GROUP_EDIT = 'edit';
+    const FIELDS_TYPE_AVAILABLE = 'available';
+    const FIELDS_TYPE_REQUIRED = 'required';
+
+    private $arFields = [
+        'role' => [
+            'name' => 'Роль пользователя',
+            self::FIELDS_TYPE_AVAILABLE => [self::FIELDS_GROUP_ADD],
+            self::FIELDS_TYPE_REQUIRED => [self::FIELDS_GROUP_ADD]
+        ],
+        'password' => [
+            'name' => 'Пароль',
+            self::FIELDS_TYPE_AVAILABLE => [self::FIELDS_GROUP_ADD, self::FIELDS_GROUP_EDIT],
+            self::FIELDS_TYPE_REQUIRED => [self::FIELDS_GROUP_ADD]
+        ],
+        'name' => [
+            'name' => 'Имя',
+            self::FIELDS_TYPE_AVAILABLE => [self::FIELDS_GROUP_ADD, self::FIELDS_GROUP_EDIT],
+            self::FIELDS_TYPE_REQUIRED => [self::FIELDS_GROUP_ADD, self::FIELDS_GROUP_EDIT]
+        ],
+        'last_name' => [
+            'name' => 'Фамилия',
+            self::FIELDS_TYPE_AVAILABLE => [self::FIELDS_GROUP_ADD, self::FIELDS_GROUP_EDIT],
+            self::FIELDS_TYPE_REQUIRED => [self::FIELDS_GROUP_ADD, self::FIELDS_GROUP_EDIT]
+        ],
+        'surname' => [
+            'name' => 'Отчество',
+            self::FIELDS_TYPE_AVAILABLE => [self::FIELDS_GROUP_ADD, self::FIELDS_GROUP_EDIT],
+        ],
+        'phone' => [
+            'name' => 'Пароль',
+            self::FIELDS_TYPE_AVAILABLE => [self::FIELDS_GROUP_ADD, self::FIELDS_GROUP_EDIT],
+        ],
+        'email' => [
+            'name' => 'E-mail',
+            self::FIELDS_TYPE_AVAILABLE => [self::FIELDS_GROUP_ADD, self::FIELDS_GROUP_EDIT],
+        ],
+        'group_id' => [
+            'name' => 'Группа',
+            self::FIELDS_TYPE_AVAILABLE => [self::FIELDS_GROUP_ADD, self::FIELDS_GROUP_EDIT],
+        ],
+        'post' => [
+            'name' => 'Должность',
+            self::FIELDS_TYPE_AVAILABLE => [self::FIELDS_GROUP_ADD, self::FIELDS_GROUP_EDIT],
+        ],
+    ];
+
+    public function getGroupFields($groups = null, $types = self::FIELDS_TYPE_AVAILABLE)
     {
-        $_e = array();
-        $_translate = array(
-            'role' => 'Роль пользователя',
-            'name' => 'Имя пользователя',
-            'last_name' => 'Фамилия пользователя',
-            'password' => 'Пароль',
-            //'group_id' => 'Группа'
-        );
-        
-        foreach ($arFields as $k => $v)
-        {
-            if (!in_array($k, $this->arAvailableAdd) || !is_string($k)) {
-                unset($arFields[$k]);
-            }
+        if (empty($groups) || empty($types)) {
+            return array_keys($this->arFields);
         }
-        
-        if (empty($arFields)) {
-            $_e[] = 'Входной массив параметров для создания пользователя пуст';
-            self::$last_errors = $_e;
-            return false;
-        }
-        
-        foreach ($this->arRequiredAdd as $oneRequired)
-        {
-            if (!key_exists($oneRequired, $arFields) || empty($arFields[$oneRequired])) {
-                $_e[] = "Заполните поле '{$_translate[$oneRequired]}'";
-            } elseif ($oneRequired == 'role') {                
-                $isset = R::count(self::$table_roles, "`type` = ?", array('prepod'));                
-                if (!$isset) {
-                    $_e[] = "Роль '{$arFields[$oneRequired]}' не найдена в системе";
+
+        $groups = (array) $groups;
+        $types = (array) $types;
+        $arFields = array_filter($this->arFields, function($item) use ($groups, $types) {
+            foreach ($types as $type) {
+                if (array_diff($groups, (array) @$item[$type])) {
+                    return false;
                 }
             }
-        }
-        if (!empty($_e)) {
-            self::$last_errors = $_e;
+            return true;
+        });
+
+        return array_keys($arFields);
+    }
+
+    // @todo
+    public function add($arFields = array())
+    {
+        $arFields = $this->checkFields($arFields, self::FIELDS_GROUP_ADD);
+        if ($arFields === false) {
             return false;
         }
-        
+
         if (empty($arFields['group_id'])) {
-            $arFields['group_id'] = null;  
+            $arFields['group_id'] = null;
         }
-        
-        $newUser = R::dispense(self::$table);
-        foreach ($arFields as $k => $v)
-        {
-            $newUser->$k = $v;
-        }        
-        $newUser->salt = $this->generateSalt();
+
+        $rootRole = self::getRootGroup($arFields['role']);
+        if (!$rootRole) {
+            return false;
+        }
+
+        $newUser = R::dispense(TABLE_USER);
+        foreach ($arFields as $k => $v) {
+            $newUser->{$k} = $v;
+        }
+        $newUser->salt = Utilities::generateSalt();
         $newUser->password = md5(sha1($arFields['password']) . $newUser->salt);
         $id = R::store($newUser);
-        $rootRole = self::getRootGroup($arFields['role']);
-        switch ($rootRole)
-        {
+        // @todo
+        switch ($rootRole) {
             case 'admin':
                 $logname = 'admin';
                 break;
-            
+
             case 'prepod':
                 $logname = 'prepod';
                 break;
-            
+
             default :
                 $logname = 'student';
         }
         $login = $logname . str_pad($id, 2, '0', STR_PAD_LEFT);
         $newUser->login = $login;
         R::store($newUser);
-        
+
         return array(
             'id' => $id,
             'login' => $login,
@@ -150,89 +124,94 @@ class Admin extends \UTest\Kernel\User\User {
             'fullname' => $arFields['last_name'] . ' ' . $arFields['name']
         );
     }
-    
-    public function edit(array $arFields = array(), $uid = null)
-    {        
-        $_e = array();
-        $_translate = array(            
-            'name' => 'Имя пользователя',
-            'last_name' => 'Фамилия пользователя'
-            //'group_id' => 'Группа'
-        );
-        
-        $uid = is_null($uid) ? $this->getUID() : $uid;
-        
-        $curUser = R::load(self::$table, $uid);
-        if (!$curUser) {
-            $_e[] = "Пользователя с Id = $uid не существует";
-        }
-        
-        if (!empty($_e)) {
-            self::$last_errors = $_e;
+
+    public function edit($arFields = array(), $uid = null)
+    {
+        $uid = intval($uid) ? intval($uid) : $this->getUID();
+        $user = self::getById($uid);
+
+        if (!$user) {
             return false;
         }
-        
-        foreach ($arFields as $k => $v)
-        {
-            if (!in_array($k, $this->arAvailableEdit) || !is_string($k)) {
-                unset($arFields[$k]);
-            }
-        }
-        
-        if (empty($arFields)) {
-            $_e[] = 'Входной массив параметров для редактирования пользователя пуст';
-            self::$last_errors = $_e;
+
+        $arFields = $this->checkFields($arFields, self::FIELDS_GROUP_EDIT);
+        if ($arFields === false) {
             return false;
         }
-        
-        foreach ($this->arRequiredEdit as $oneRequired)
-        {
-            if (isset($arFields[$oneRequired]) && empty($arFields[$oneRequired])) {
-                $_e[] = "Заполните поле '{$_translate[$oneRequired]}'";
-            }
+
+        foreach ($arFields as $k => $v) {
+            $user->{$k} = $v;
         }
-        if (!empty($_e)) {
-            self::$last_errors = $_e;
-            return false;
-        }
-        foreach ($arFields as $k => $v)
-        {
-            $curUser->$k = $v;
-        }        
         // новый пароль
         if (!empty($arFields['password'])) {
-            $curUser->salt = $this->generateSalt();
-            $curUser->password = md5(sha1($arFields['password']) . $curUser->salt);
+            $user->salt = Utilities::generateSalt();
+            $user->password = md5(sha1($arFields['password']) . $user->salt);
         } else {
-            unset($curUser->password);
+            unset($user->password);
         }
-        R::store($curUser);
-        
+        R::store($user);
+
         return array(
-            'id' => $curUser['id'],
-            'login' => $curUser['login'],
+            'id' => $user['id'],
+            'login' => $user['login'],
             'password' => $arFields['password'],
-            'fullname' => $curUser['last_name'] . ' ' . $curUser['name']
+            'fullname' => $user['last_name'] . ' ' . $user['name']
         );
     }
 
     public function delete($uid)
     {
-        $_e = array();
-        
-        $bean = R::load(self::$table, $uid);
-        if (!$bean) {
-            $_e[] = "Пользователя с Id = $uid не существует";        
-        } elseif ($bean['id'] == self::VIP_ID) {
-            $_e[] = "Невозможно удалить пользователя с Id = " . self::VIP_ID;        
-        }
-        
-        if (!empty($_e)) {
-            self::$last_errors = $_e;
+        $e = array();
+
+        $user = self::getById($uid);
+        if (!$user) {
+            return false;
+        } elseif ($user['id'] == self::ADMIN_ID) {
+            $e[] = "Невозможно удалить пользователя с Id = " . self::ADMIN_ID;
+            self::$last_errors = $e;
             return false;
         }
-        
-        R::trash($bean);
+
+        R::trash($user);
         return true;
+    }
+
+    private function checkFields($arFields = [], $group = null)
+    {
+        $e = [];
+        $arAvailableFields = $this->getGroupFields($group);
+        $arRequiredFields = $this->getGroupFields($group, [self::FIELDS_TYPE_AVAILABLE, self::FIELDS_TYPE_REQUIRED]);
+
+        $arFields = array_filter($arFields, function($key) use ($arAvailableFields) {
+            return in_array($key, $arAvailableFields);
+        }, ARRAY_FILTER_USE_KEY);
+
+        if (empty($arFields)) {
+            $e[] = 'Входной массив параметров для редактирования пользователя пуст';
+            self::$last_errors = $e;
+            return false;
+        }
+
+        if ($group == self::FIELDS_GROUP_EDIT) {
+            foreach ($arRequiredFields as $field) {
+                if (isset($arFields[$field]) && empty($arFields[$field])) {
+                    $e[] = "Заполните поле '{$this->arFields[$field]['name']}'";
+                }
+            }
+        } else {
+            foreach ($arRequiredFields as $field) {
+                if (!key_exists($field, $arFields) || empty($arFields[$field])) {
+                    $e[] = "Заполните поле '{$this->arFields[$field]['name']}'";
+                }
+            }
+        }
+
+
+        if (!empty($e)) {
+            self::$last_errors = $e;
+            return false;
+        }
+
+        return $arFields;
     }
 }

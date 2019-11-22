@@ -37,7 +37,7 @@ if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) {
         </thead>
         <?foreach($data as $k => $v):?>
             <tr>
-                <td class="checkbox-column"><?=Form::checkbox("i[item_{$v['id']}]", $v['id'], 'check-one')?></td>
+                <td class="checkbox-column"><?=Form::checkbox("i[]", $v['id'], 'check-one')?></td>
                 <td><?=$v['id']?></td>
                 <td><?=$v['title']?></td>
                 <td><?=$v['code']?></td>
