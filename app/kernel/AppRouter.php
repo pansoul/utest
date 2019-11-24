@@ -25,7 +25,7 @@ class AppRouter
 
         // Синхронизируемся с картой url-алиасов из настроек
         // @todo проверить позже
-        if ($argsConfig = Base::getConfig('urlAliases > ' . Site::getUrl())) {
+        if ($argsConfig = Base::getConfig('url_aliases > ' . Site::getUrl())) {
             if (is_array($argsConfig)) {
                 if ($argsConfig[1] !== false) {
                     if (!User::isAuth()) {
@@ -72,10 +72,10 @@ class AppRouter
 
     private function getLayoutPage($url)
     {
-        if (Base::getConfig('tplMap > ' . $url)) {
-            return (string) Base::getConfig('tplMap > ' . $url);
-        } elseif (Base::getConfig('tplMap > *')) {
-            return (string) Base::getConfig('tplMap > *');
+        if (Base::getConfig('tpl_map > ' . $url)) {
+            return (string) Base::getConfig('tpl_map > ' . $url);
+        } elseif (Base::getConfig('tpl_map > *')) {
+            return (string) Base::getConfig('tpl_map > *');
         } else {
             throw new AppException('Не задан шаблон по умолчанию');
         }

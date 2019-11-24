@@ -10,15 +10,7 @@ use UTest\Kernel\Utilities;
 
 class AdminPrepodsModel extends \UTest\Kernel\Component\Model
 {
-    const ROLE = 'prepod';
-
-    // @todo
-    private $arPosts = array(
-        'old_prepod' => 'старший преподаватель',
-        'docent' => 'доцент',
-        'prof' => 'профессор',
-        'prepod' => 'преподаватель',
-    );
+    const PREPOD_ROLE = 'prepod';
 
     public function prepodAction()
     {
@@ -51,8 +43,7 @@ class AdminPrepodsModel extends \UTest\Kernel\Component\Model
         $res = R::find(TABLE_USER, 'group_id IS NULL AND role != "admin" ORDER BY last_name');
         $this->setData([
             'form' => $res,
-            'users' => $users,
-            'posts' => $this->arPosts
+            'users' => $users
         ]);
     }
 
@@ -61,7 +52,7 @@ class AdminPrepodsModel extends \UTest\Kernel\Component\Model
         if ($this->isActionRequest()) {
             $this->clearErrors();
             $v = $this->_POST;
-            $v['role'] = self::ROLE;
+            $v['role'] = self::PREPOD_ROLE;
             if ($v['id']) {
                 $user = User::user()->edit($v, $v['id']);
                 if ($user && empty($v['password'])) {
@@ -75,35 +66,26 @@ class AdminPrepodsModel extends \UTest\Kernel\Component\Model
 
         $this->setData([
             'form' => $v,
-            'user' => $user,
-            'posts' => $this->arPosts
+            'user' => $user
         ]);
     }
 
-//    public function editAction($id)
-//    {
-//        $v = R::load(TABLE_USER, $id);
-//        if (User::getRootGroup($v['role']) !== 'prepod') {
-//            $this->setErrors('Пользователь не найден', ERROR_ELEMENT_NOT_FOUND);
-//        }
-//        return $this->newPrepodAction($v);
-//    }
-//
-//    public function deleteAction($id)
-//    {
-//        if (!$id) {
-//            return;
-//        }
-//
-//        $bean = R::load(TABLE_USER, $id);
-//        if (User::getRootGroup($bean['role']) === 'prepod') {
-//            R::trash($bean);
-//        }
-//        Site::redirect(Site::getModurl());
-//    }
-//
-//    public function getarPosts()
-//    {
-//        return $this->arPosts;
-//    }
+    public function editAction($id)
+    {
+        $v = User::getById($id);
+        if (User::getRootGroup($v['role']) !== self::PREPOD_ROLE) {
+            $this->setErrors('Пользователь не найден', ERROR_ELEMENT_NOT_FOUND);
+        }
+        return $this->newPrepodAction($v);
+    }
+
+    public function deleteAction($id)
+    {
+        if (!$id) {
+            return;
+        }
+
+        User::user()->delete($id);
+        Site::redirect(Site::getModurl());
+    }
 }

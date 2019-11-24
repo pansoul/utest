@@ -70,17 +70,12 @@ class User
     protected $userData = null;
 
     /**
-     * Системный список доступных ролей
+     * Список доступных ролей
      * @var array
      */
-    protected static $arRoles = array(
-        'prepod' => array(
-            'name' => 'Преподаватель'
-        ),
-        'student' => array(
-            'name' => 'Студент'
-        ),
-    );
+    protected static $arRoles = [
+        self::ADMIN_ROLE => 'Администратор'
+    ];
 
     /**
      * Объект текущего авторизованного пользователя

@@ -34,12 +34,12 @@ class AdminPrepodsController extends \UTest\Kernel\Component\Controller
 
         switch ($this->action) {
             case 'edit':
-                $this->doAction($this->action, array($this->vars['id']));
+                $this->doAction($this->action, $this->getVars('id'));
                 $html = $this->loadView('newprepod');
                 break;
 
             case 'delete':
-                $this->doAction($this->action, array($this->vars['id']));
+                $this->doAction($this->action, $this->getVars('id'));
                 break;
 
             default:

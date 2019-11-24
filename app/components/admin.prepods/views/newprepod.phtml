@@ -3,10 +3,11 @@ use UTest\Kernel\Form;
 use UTest\Kernel\Component\Controller;
 use UTest\Kernel\AppBuilder;
 use UTest\Kernel\Site;
+use UTest\Kernel\Base;
 
 $newDataUser = $data['user'];
 $v = $data['form'];
-$arPosts = $data['posts'];
+$arPositions = Base::getConfig('positions');
 
 if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) {
     echo Form::error($this->getErrors(ERROR_ELEMENT_NOT_FOUND));
@@ -60,7 +61,7 @@ if ($this->hasErrors()) {
     <div class="form-group">
         <label class="col-lg-2 control-label">Должность:</label>
         <div class="col-lg-10">
-            <?=Form::select('post', $arPosts, $v['post'], false, 'form-control')?>
+            <?=Form::select('post', $arPositions, $v['post'], false, 'form-control')?>
         </div>
     </div>
     <div class="form-group">

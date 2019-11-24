@@ -4,20 +4,20 @@ namespace UTest\Components;
 
 use UTest\Kernel\User\User;
 use UTest\Kernel\Errors\AppException;
+use UTest\Kernel\Base;
+use \R;
 
 class UtilityModel extends \UTest\Kernel\Component\Model
 {
     const UNIVER_DATA_ID = 1;
 
-    public function menuAction($node)
+    public function menuAction($role = '')
     {
-        if ($node === null) {
-            throw new AppException('Не указано имя меню для вывода');
-        }
-
-        $generalMenu = require APP_CONFIG_PATH . '/menus.php';
-        $curMenu = @$generalMenu[$node];
-        $this->setData($curMenu);
+        $menu = Base::getConfig('menus > ' . $role);
+//        if (!$menu) {
+//            throw new AppException("Меню для роли {$role} не создано");
+//        }
+        $this->setData($menu);
     }
 
     public function panelAction()
@@ -34,7 +34,7 @@ class UtilityModel extends \UTest\Kernel\Component\Model
         } elseif ($field == 'univer_fullname') {
             $field = 'fullname';
         }
-        $data = \R::load(TABLE_UNIVER_DATA, self::UNIVER_DATA_ID);
+        $data = R::load(TABLE_UNIVER_DATA, self::UNIVER_DATA_ID);
         $this->setData($data->{$field});
     }
 

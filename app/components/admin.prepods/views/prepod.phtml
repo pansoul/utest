@@ -4,6 +4,7 @@ use UTest\Kernel\Form;
 use UTest\Kernel\AppBuilder;
 use UTest\Kernel\Component\Controller;
 use UTest\Kernel\Site;
+use UTest\Kernel\Base;
 
 $arTitles = array(
     Form::checkbox('check_all', 1, false, 'check-all'),
@@ -18,7 +19,7 @@ $arTitles = array(
 
 $newDataUsers = $data['users'];
 $items = $data['form'];
-$arPosts = $data['posts'];
+$arPositions = Base::getConfig('positions');
 
 if (!empty($newDataUsers)) {
     AppBuilder::addBreadcrumb('Генерация новых паролей', Site::getUrl());
@@ -58,7 +59,7 @@ if ($this->hasErrors()) {
                     <td><?= $v['id'] ?></td>
                     <td><?= $v['last_name'] ?> <?= $v['name'] ?> <?= $v['surname'] ?></td>
                     <td><?= $v['login'] ?></td>
-                    <td><?= $arPosts[$v['post']] ?></td>
+                    <td><?= $arPositions[$v['post']] ?></td>
                     <td><?= $v['phone'] ?: '&mdash;' ?></td>
                     <td><?= $v['email'] ?: '&mdash;' ?></td>
                     <td class="last-column">

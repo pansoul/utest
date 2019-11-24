@@ -2,6 +2,8 @@
 
 namespace UTest\Kernel;
 
+use \R;
+
 class Base
 {
     /**
@@ -54,15 +56,15 @@ class Base
         @set_exception_handler(['\\UTest\\Kernel\\Errors\\ExceptionHandler', 'exceptionHandler']);
 
         $dbconfig = $config['db'];
-        \R::setup(
+        R::setup(
             "mysql:host={$dbconfig['host']};port={$dbconfig['port']};dbname={$dbconfig['name']}",
             $dbconfig['user'],
             $dbconfig['pass']
         );
-        \R::freeze(true);
+        R::freeze(true);
         if ($config['debug']['enable'] && $config['debug']['db_debug']) {
-            \R::fancyDebug(true);
-            //\R::debug(true);
+            R::fancyDebug(true);
+            //R::debug(true);
         }
 
         if ($this->simpleMode) { // @todo продумать над данным модом. Что должно быть прогружено, показано/не показано при нём?
@@ -78,7 +80,7 @@ class Base
      *
      * @param string|bool $path - какую ветвь из настроек вернуть.
      * Для указания вложенности между элементами используется знак ">".
-     * Например, Base::getConfig('tplMap > *') возвратит имя шаблона по умолчанию.
+     * Например, Base::getConfig('tpl_map > *') возвратит имя шаблона по умолчанию.
      *
      * @return boolean|array|string
      */

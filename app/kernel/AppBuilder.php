@@ -8,7 +8,6 @@ use UTest\Kernel\Errors\AppException;
 class AppBuilder
 {
     const INC_FILE_NAME = '_inc.php';
-    const LAYOUT_EXT = '.html';
 
     private static $title = '';
     private static $h = '';
@@ -45,7 +44,7 @@ class AppBuilder
         }
 
         $includedLayout = pathinfo($layout, PATHINFO_EXTENSION) ? true : false;
-        $layoutPath = $themePath . '/' . $layout . ($includedLayout ? '' : self::LAYOUT_EXT);
+        $layoutPath = $themePath . '/' . $layout . ($includedLayout ? '' : '.html');
         if (!file_exists($layoutPath)) {
             if ($includedLayout) {
                 return Form::notice("Подключаемый шаблон '{$layout}' не найден");

@@ -1,15 +1,14 @@
 <?php
 
-// @todo
-// Сырая реализация!!!
-
-return array(    
-    'laborant' => array(
-        'group' => 'student',
-        'name'  => 'Лаборант',
-        'actions' => array(
-            'add' => array('admin','add'),
-            'do' => array('someFunction')
-        )
+/**
+ * Массив произвольных ролей пользователей.
+ * Каждая роль также должна быть описана своим отдельным классом.
+ */
+return array(
+    'prepod' => array(
+        'name' => 'Преподаватель'
+    ),
+    'student' => array(
+        'name' => 'Студент'
     )
 );
