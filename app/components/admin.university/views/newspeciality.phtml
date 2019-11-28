@@ -29,12 +29,12 @@ $v = $data['form'];
     <div class="form-group">
         <label class="col-lg-2 control-label">Факультет:<?=Form::asterisk()?></label>
         <div class="col-lg-10">
-            <?=Form::select('faculty_id', $data['faculty_list'] , $v['faculty_id'], null, 'form-control')?>            
+            <?=Form::select('faculty_id', $data['faculty_list'] , $v['faculty_id'], false, 'form-control')?>
         </div>
     </div>
     <div class="form-group">
         <div class="col-lg-offset-2 col-lg-10">
-            <?=Form::button($vars['id'] ? 'Изменить' : 'Создать', 'btn btn-default')?>            
+            <?=Form::button($v['id'] ? 'Изменить' : 'Создать', 'btn btn-default')?>
         </div>
     </div>
     <?=Form::input('hidden', 'id', $v['id'])?>

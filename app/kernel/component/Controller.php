@@ -204,11 +204,16 @@ class Controller
 
         $actionsParams = array_merge_recursive(
             $this->routeMapDefault['actions_params'],
-            (array) @$this->routeMap['actions_params'],
+            (array) @$this->routeMap()['actions_params'],
             (array) @$routeMap['actions_params']
         );
-        $this->routeMap = array_merge($this->routeMapDefault, (array) $this->routeMap, (array) $routeMap);
+        $this->routeMap = array_merge($this->routeMapDefault, (array) $this->routeMap(), (array) $routeMap);
         $this->routeMap['actions_params'] = $actionsParams;
+    }
+
+    protected function routeMap()
+    {
+        return $this->routeMap;
     }
 
     /**

@@ -5,7 +5,7 @@ namespace UTest\Components;
 use UTest\Kernel\User\User;
 use UTest\Kernel\Errors\AppException;
 use UTest\Kernel\Base;
-use \R;
+use UTest\Kernel\DB;
 
 class UtilityModel extends \UTest\Kernel\Component\Model
 {
@@ -29,13 +29,8 @@ class UtilityModel extends \UTest\Kernel\Component\Model
 
     public function univerAction($field)
     {
-        if ($field == 'univer_name') {
-            $field = 'name';
-        } elseif ($field == 'univer_fullname') {
-            $field = 'fullname';
-        }
-        $data = R::load(TABLE_UNIVER_DATA, self::UNIVER_DATA_ID);
-        $this->setData($data->{$field});
+        $data = DB::table(TABLE_UNIVER_DATA)->find(self::UNIVER_DATA_ID);
+        $this->setData(html_entity_decode($data[$field]));
     }
 
     public function breadcrumbAction($arr)

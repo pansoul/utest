@@ -2,8 +2,8 @@
 
 namespace UTest\Components;
 
-use \R;
 use UTest\Kernel\Site;
+use UTest\Kernel\DB;
 
 class AdminSettingModel extends \UTest\Kernel\Component\Model
 {
@@ -11,28 +11,25 @@ class AdminSettingModel extends \UTest\Kernel\Component\Model
 
     public function indexAction()
     {
-        $data = R::load(TABLE_UNIVER_DATA, self::ID);
+        $data = DB::table(TABLE_UNIVER_DATA)->find(self::ID);
 
         if ($this->isActionRequest()) {
             $v = $this->_POST;
-            $data->name = $v['univer_name'];
-            $data->fullname = $v['univer_fullname'];
-            $data->address = $v['address'];
-            $data->phone = $v['~phone'];
-            //$data->contacts = $v['contacts'];
-            //$data->info = $v['~info'];
+            $dataRow = [
+                'name' => $v['univer_name'],
+                'fullname' => $v['univer_fullname'],
+                'address' => $v['address'],
+                'phone' => $v['phone'],
+                //'contacts' => $v['contacts'],
+                //'info' => $v['~info']
+            ];
 
-            if (R::store($data)) {
+            if (DB::table(TABLE_UNIVER_DATA)->where('id', '=', self::ID)->update($dataRow)) {
                 $_SESSION['update'] = 'Y';
                 Site::redirect(Site::getModurl());
             }
         }
 
-        $this->setData([
-            'univer_name' => $data->name,
-            'univer_fullname' => $data->fullname,
-            'address' => $data->address,
-            'phone' => $data->phone,
-        ]);
+        $this->setData($data);
     }
 }

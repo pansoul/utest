@@ -92,7 +92,7 @@ class Form
             $html[] = "<option value='{$value}'>{$label}</option>";
         }
         foreach ($arOptions as $k => $v) {
-            $selected = in_array($k, $arSelected) ? "selected='selected'" : '';
+            $selected = in_array($k, (array) $arSelected) ? "selected='selected'" : '';
             $html[] = "<option {$selected} value='{$k}'>{$v}</option>";
         }
         $html[] = "</select>";

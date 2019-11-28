@@ -2,12 +2,11 @@
 
 namespace UTest\Kernel\User\Roles;
 
-use \R;
 use UTest\Kernel\Utilities;
+use UTest\Kernel\DB;
 
 class Admin extends \UTest\Kernel\User\User
 {
-    const ADMIN_ID = 1;
     const FIELDS_GROUP_ADD = 'add';
     const FIELDS_GROUP_EDIT = 'edit';
     const FIELDS_TYPE_AVAILABLE = 'available';
@@ -93,13 +92,10 @@ class Admin extends \UTest\Kernel\User\User
             return false;
         }
 
-        $newUser = R::dispense(TABLE_USER);
-        foreach ($arFields as $k => $v) {
-            $newUser->{$k} = $v;
-        }
-        $newUser->salt = Utilities::generateSalt();
-        $newUser->password = md5(sha1($arFields['password']) . $newUser->salt);
-        $id = R::store($newUser);
+        $password = $arFields['password'];
+        $arFields['salt'] = Utilities::generateSalt();
+        $arFields['password'] = md5(sha1($password) . $arFields['salt']);
+        $id = DB::table(TABLE_USER)->insertGetId($arFields);
         // @todo
         switch ($rootRole) {
             case 'admin':
@@ -114,13 +110,12 @@ class Admin extends \UTest\Kernel\User\User
                 $logname = 'student';
         }
         $login = $logname . str_pad($id, 2, '0', STR_PAD_LEFT);
-        $newUser->login = $login;
-        R::store($newUser);
+        DB::table(TABLE_USER)->where('id', '=', $id)->update(['login' => $login]);
 
         return array(
             'id' => $id,
             'login' => $login,
-            'password' => $arFields['password'],
+            'password' => $password,
             'fullname' => $arFields['last_name'] . ' ' . $arFields['name']
         );
     }
@@ -139,22 +134,20 @@ class Admin extends \UTest\Kernel\User\User
             return false;
         }
 
-        foreach ($arFields as $k => $v) {
-            $user->{$k} = $v;
-        }
         // новый пароль
         if (!empty($arFields['password'])) {
-            $user->salt = Utilities::generateSalt();
-            $user->password = md5(sha1($arFields['password']) . $user->salt);
+            $password = $arFields['password'];
+            $arFields['salt'] = Utilities::generateSalt();
+            $arFields['password'] = md5(sha1($password) . $arFields['salt']);
         } else {
-            unset($user->password);
+            unset($arFields['password']);
         }
-        R::store($user);
+        DB::table(TABLE_USER)->where('id', '=', $uid)->update($arFields);
 
         return array(
-            'id' => $user['id'],
+            'id' => $uid,
             'login' => $user['login'],
-            'password' => $arFields['password'],
+            'password' => $password,
             'fullname' => $user['last_name'] . ' ' . $user['name']
         );
     }
@@ -172,7 +165,7 @@ class Admin extends \UTest\Kernel\User\User
             return false;
         }
 
-        R::trash($user);
+        DB::table(TABLE_USER)->delete($user['id']);
         return true;
     }
 

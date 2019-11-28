@@ -2,11 +2,10 @@
 
 namespace UTest\Components;
 
-use \R;
 use UTest\Kernel\Site;
-use UTest\Kernel\User\Roles\Admin;
 use UTest\Kernel\User\User;
 use UTest\Kernel\Utilities;
+use UTest\Kernel\DB;
 
 class AdminPrepodsModel extends \UTest\Kernel\Component\Model
 {
@@ -25,7 +24,7 @@ class AdminPrepodsModel extends \UTest\Kernel\Component\Model
 
         if ($this->isActionRequest('newpass_all')) {
             foreach ($this->_POST['i'] as $id) {
-                if (!intval($id) || $id == Admin::ADMIN_ID) {
+                if (!intval($id) || $id == User::ADMIN_ID) {
                     continue;
                 }
 
@@ -40,7 +39,12 @@ class AdminPrepodsModel extends \UTest\Kernel\Component\Model
             }
         }
 
-        $res = R::find(TABLE_USER, 'group_id IS NULL AND role != "admin" ORDER BY last_name');
+        $res = DB::table(TABLE_USER)
+            ->whereNull('group_id')
+            ->where('role', '!=', User::ADMIN_ROLE)
+            ->orderBy('last_name')
+            ->get();
+
         $this->setData([
             'form' => $res,
             'users' => $users

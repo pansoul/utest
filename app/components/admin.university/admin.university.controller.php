@@ -2,54 +2,56 @@
 
 namespace UTest\Components;
 
-use UTest\Kernel\Site;
-
 class AdminUniversityController extends \UTest\Kernel\Component\Controller
 {
-    protected $routeMap = [
-        'title' => 'Факультеты',
-        'add_breadcrumb' => true,
-        'action_main' => 'faculty',
-        'action_default' => 'index',
-        'actions_params' => [
-            '/newfaculty' => [
-                'action' => 'newFaculty',
-                'title' => 'Новый факультет',
-                'add_breadcrumb' => true,
-            ],
-            '/editfaculty/<id>' => [
-                'action' => 'editFaculty',
-                'title' => 'Создание нового факультета',
-                'add_breadcrumb' => true,
-            ],
+    function routeMap() {
+        return [
+            'title' => 'Факультеты',
+            'add_breadcrumb' => true,
+            'action_main' => 'faculty',
+            'actions_params' => [
+                '/newfaculty' => [
+                    'action' => 'newFaculty',
+                    'title' => 'Новый факультет',
+                    'add_breadcrumb' => true,
+                ],
+                '/editfaculty/<id>' => [
+                    'action' => 'editFaculty',
+                    'title' => 'Создание нового факультета',
+                    'add_breadcrumb' => true,
+                ],
 
-            '/<faculty_code>' => [
-                'action' => 'speciality',
-                'title' => 'Специальности',
-                'add_breadcrumb' => true,
-            ],
-            '/<faculty_code>/newspeciality' => [
-                'action' => 'newSpeciality',
-                'title' => 'Создание новой специальности',
-                'add_breadcrumb' => true,
-            ],
-            '/<faculty_code>/editspeciality/<id>' => [
-                'action' => 'editSpeciality',
-                'title' => 'Редактирование специальности',
-                'add_breadcrumb' => true,
-            ],
+                '/<faculty_code>' => [
+                    'action' => 'speciality',
+                    'title' => 'Специальности',
+                    'add_breadcrumb' => true,
+                ],
+                '/<faculty_code>/newspeciality' => [
+                    'action' => 'newSpeciality',
+                    'title' => 'Создание новой специальности',
+                    'subtitle' => function(){
+                        // @todo
+                    },
+                    'add_breadcrumb' => true,
+                ],
+                '/<faculty_code>/editspeciality/<id>' => [
+                    'action' => 'editSpeciality',
+                    'title' => 'Редактирование специальности',
+                    'add_breadcrumb' => true,
+                ],
 
-            '/delete/<type>/<id>' => [
-                'action' => 'delete'
-            ]
-        ],
-        'vars_rules' => [
-            'faculty_code' => '[-_a-zA-Z0-9]',
-            'in' => '[-_a-zA-Z0-9]',
-            'id' => '[0-9]',
-            'type' => '[a-zA-Z]'
-        ],
-    ];
+                '/delete/<type>/<id>' => [
+                    'action' => 'delete'
+                ]
+            ],
+            'vars_rules' => [
+                'faculty_code' => '[-_a-zA-Z0-9]',
+                'in' => '[-_a-zA-Z0-9]',
+                'id' => '[0-9]',
+                'type' => '[a-zA-Z]'
+            ],
+        ];
+    }
 
     public function run()
     {

@@ -2,9 +2,9 @@
 
 namespace UTest\Kernel\User;
 
-use \R;
 use UTest\Kernel\Site;
 use UTest\Kernel\Errors\AppException;
+use UTest\Kernel\DB;
 
 class User
 {
@@ -13,6 +13,11 @@ class User
      * Список пользовательских ролей содержится в файле roles.php в папке конфигурации
      */
     const ADMIN_ROLE = 'admin';
+
+    /**
+     * Предопределённый Id админа
+     */
+    const ADMIN_ID = 1;
 
     /**
      * Id пользователя
@@ -100,12 +105,12 @@ class User
         $this->userData = $userData;
         $this->isRequestedUser = $isRequestedUser;
 
-        $this->uid = $userData->id;
-        $this->name = $userData->name;
-        $this->role = $userData->role;
-        $this->login = $userData->login;
-        $this->groupId = $userData->group_id;
-        $this->setRoleGroups($userData->role);
+        $this->uid = $userData['id'];
+        $this->name = $userData['name'];
+        $this->role = $userData['role'];
+        $this->login = $userData['login'];
+        $this->groupId = $userData['group_id'];
+        $this->setRoleGroups($userData['role']);
     }
 
     public function __call($name, $arguments)
@@ -164,20 +169,20 @@ class User
                 return self::$requestedUser;
             }
 
-            $userData = R::load(TABLE_USER, $uid);
-            if (!$userData->id) {
+            $userData = self::getById($uid);
+            if (!$userData) {
                 return new EmptyUser($uid);
             }
         }
         // Если кэша текущего авторизованного пользователя нет
         elseif (self::isAuth() && !self::$user) {
-            $userData = R::load(TABLE_USER, $_SESSION['u_uid']);
+            $userData = self::getById($_SESSION['u_uid']);
         }
         else {
             return new EmptyUser($uid);
         }
 
-        $userRole = ucfirst($userData->role);
+        $userRole = ucfirst($userData['role']);
         $userClass = '\\UTest\\Kernel\\User\\Roles\\' . $userRole;
         $userClassPath = KERNEL_PATH . '/user/roles/' . $userRole . '.php';
 
@@ -204,13 +209,13 @@ class User
      */
     private function setRoleGroups($role)
     {
-        $rootGroup = R::findOne(TABLE_USER_ROLES, 'type = ?', array($role));
-        $this->roleGroup = $rootGroup->group;
+        $rootGroup = DB::table(TABLE_USER_ROLES)->where('type', '=', $role)->first();
+        $this->roleGroup = $rootGroup['group'];
 
-        while ($rootGroup->group != 0) {
-            $rootGroup = R::findOne(TABLE_USER_ROLES, 'type = ?', array($rootGroup->group));
+        while ($rootGroup['group'] != 0) {
+            $rootGroup = DB::table(TABLE_USER_ROLES)->where('type', '=', $rootGroup['group'])->first();
         }
-        $this->roleRootGroup = $rootGroup->type;
+        $this->roleRootGroup = $rootGroup['type'];
     }
 
     /**
@@ -221,8 +226,8 @@ class User
     public static function getById($uid)
     {
         $e = array();
-        $user = R::load(TABLE_USER, $uid);
-        if (!$user->id) {
+        $user = DB::table(TABLE_USER)->find($uid);
+        if (!$user) {
             $e[] = "Пользователя с Id = '{$uid}' не существует";
             self::$last_errors = $e;
             return false;
@@ -238,8 +243,8 @@ class User
     public static function getByLogin($login)
     {
         $e = array();
-        $user = R::findOne(TABLE_USER, 'login = ?', array((string)$login));
-        if (!$user->id) {
+        $user = DB::table(TABLE_USER)->where('login', '=', $login)->first();
+        if (!$user) {
             $e[] = "Пользователя с login = '{$login}' не существует";
             self::$last_errors = $e;
             return false;
@@ -348,17 +353,18 @@ class User
     public static function getRootGroup($role)
     {
         $e = array();
-        $rootGroup = R::findOne(TABLE_USER_ROLES, '`type` = ?', array((string)$role));
+        $rootGroup = DB::table(TABLE_USER_ROLES)->where('type', '=', $role)->first();
 
         if (empty($rootGroup)) {
             $e[] = "Роль '{$role}' в системе не существует";
             self::$last_errors = $e;
             return false;
         }
-        while ($rootGroup->group != 0) {
-            $rootGroup = R::findOne(TABLE_USER_ROLES, 'type = ?', array($rootGroup->group));
+
+        while ($rootGroup['group'] != 0) {
+            $rootGroup = DB::table(TABLE_USER_ROLES)->where('type', '=', $rootGroup['group'])->first();
         }
-        return $rootGroup->type;
+        return $rootGroup['type'];
     }
 
     /**
@@ -367,7 +373,7 @@ class User
      */
     public static function getSysRoles()
     {
-        return R::findAndExport(TABLE_USER_ROLES, "`group` = '0'");
+        return DB::table(TABLE_USER_ROLES)->where('group', '=', 0)->get();
     }
 
     /**
@@ -391,15 +397,15 @@ class User
     public static function login($login, $pass, $redirectUrl = false)
     {
         $e = array();
-        $user = R::findOne(TABLE_USER, '`login` = ?', array(strtolower((string)$login)));
+        $user = self::getByLogin($login);
 
-        if ($user->password != md5(sha1($pass) . $user->salt)) {
+        if ($user['password'] != md5(sha1($pass) . $user['salt'])) {
             $e[] = "Неверно введён логин или пароль";
             self::$last_errors = $e;
             return false;
         }
 
-        $_SESSION['u_uid'] = $user->id;
+        $_SESSION['u_uid'] = $user['id'];
         if (strlen($redirectUrl) > 0) {
             Site::redirect($redirectUrl);
         }

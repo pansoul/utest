@@ -15,7 +15,7 @@ $arTitles = array(
 </div>
 
 <? 
-if (empty($data)) { 
+if (count($data) == 0) {
     echo Form::info('Список пуст');
     return;     
 } 

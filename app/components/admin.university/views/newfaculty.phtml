@@ -22,7 +22,7 @@ $v = $data;
     </div>
     <div class="form-group">
         <div class="col-lg-offset-2 col-lg-10">
-            <?=Form::button($vars['id'] ? 'Изменить' : 'Создать', 'btn btn-default')?>            
+            <?=Form::button($v['id'] ? 'Изменить' : 'Создать', 'btn btn-default')?>
         </div>
     </div>
     <?=Form::input('hidden', 'id', $v['id'])?>

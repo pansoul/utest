@@ -2,8 +2,6 @@
 
 namespace UTest\Kernel;
 
-use \R;
-
 class Base
 {
     /**
@@ -13,18 +11,18 @@ class Base
      * приложения, а далее выполнять свой код.
      * @var bool
      */
-    protected $simpleMode;
+    private $simpleMode = false;
 
     /**
      * Сохраним массив настроек в переменную, чтобы в дальнейшем работать
      * с ним через классы
      * @var array
      */
-    protected static $config;
+    private static $config;
 
     public function __construct($simpleMode = false)
     {
-        $this->simpleMode = (bool)$simpleMode;
+        $this->simpleMode = (bool) $simpleMode;
     }
 
     /**
@@ -36,43 +34,74 @@ class Base
         @session_start();
         self::$config = $config;
 
-        // Показывать ли различные предупреждения и ошибки. 
-        // Регулируется через файл конфигурации
-        if ($config['debug']['enable']) {
-            if ($config['debug']['register_errors'] === 1) {
-                error_reporting(E_ALL);
-            } else {
-                error_reporting($config['debug']['register_errors']);
-            }
-            ini_set('display_errors', $config['debug']['display_errors']);
-            if (!$config['debug']['display_errors']) {
-                ini_set("log_errors", 1);
-                ini_set("error_log", $config['debug']['error_log']);
-            }
-        } else {
-            error_reporting(0);
-        }
-
         @set_exception_handler(['\\UTest\\Kernel\\Errors\\ExceptionHandler', 'exceptionHandler']);
 
-        $dbconfig = $config['db'];
-        R::setup(
-            "mysql:host={$dbconfig['host']};port={$dbconfig['port']};dbname={$dbconfig['name']}",
-            $dbconfig['user'],
-            $dbconfig['pass']
-        );
-        R::freeze(true);
-        if ($config['debug']['enable'] && $config['debug']['db_debug']) {
-            R::fancyDebug(true);
-            //R::debug(true);
-        }
+        $this->setDebug();
+        $this->setDbConnection();
 
-        if ($this->simpleMode) { // @todo продумать над данным модом. Что должно быть прогружено, показано/не показано при нём?
+        // @todo продумать над данным модом. Что должно быть прогружено, показано/не показано при нём?
+        if ($this->simpleMode) {
             return;
         }
 
         $router = new AppRouter();
         $router->parse();
+    }
+    
+    private function setDebug()
+    {
+        $debugConfig = self::getConfig('debug');
+        
+        if ($debugConfig['enable']) {
+            if ($debugConfig['register_errors'] === 1) {
+                error_reporting(E_ALL);
+            } else {
+                error_reporting($debugConfig['register_errors']);
+            }
+            ini_set('display_errors', $debugConfig['display_errors']);
+            if (!$debugConfig['display_errors']) {
+                ini_set("log_errors", 1);
+                ini_set("error_log", $debugConfig['error_log']);
+            }
+        } else {
+            error_reporting(0);
+        }
+    }
+
+    private function setDbConnection()
+    {
+        $dbConfig = self::getConfig('db');
+        $debugConfig = self::getConfig('debug');
+        
+        $capsule = new DB;
+        $capsule->addConnection([
+            'driver' => 'mysql',
+            'host' => $dbConfig['host'],
+            'database' => $dbConfig['name'],
+            'username' => $dbConfig['user'],
+            'password' => $dbConfig['pass'],
+            'charset' => 'utf8',
+            'collation' => 'utf8_unicode_ci',
+            'prefix' => '',
+        ]);
+        $dispatcher = new \Illuminate\Events\Dispatcher;
+        $dispatcher->listen(\Illuminate\Database\Events\StatementPrepared::class, function ($event) {
+            $event->statement->setFetchMode(\PDO::FETCH_ASSOC);
+        });
+
+        if ($debugConfig['enable'] && $debugConfig['db_debug']) {
+            $dispatcher->listen(\Illuminate\Database\Events\QueryExecuted::class, function($query){
+                $q = [
+                    'sql' => $query->sql,
+                    'bindings' => $query->bindings,
+                    'time' => $query->time
+                ];
+                echo "<pre>"; var_dump($q); echo "</pre>";
+            });
+        }
+
+        $capsule->setEventDispatcher($dispatcher);
+        $capsule->setAsGlobal();
     }
 
     /**

@@ -20,7 +20,7 @@ if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) {
     <?=Form::btnNew('Создать новую специальность', Site::getUrl(), 'newspeciality')?>
 </div>
 
-<? if (empty($data)) { 
+<? if (count($data) == 0) {
     echo Form::info('Список пуст');
     return; 
 } 

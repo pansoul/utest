@@ -34,8 +34,8 @@ use UTest\Kernel\Component\Controller;
  */
 return array(    
     'panel' => Controller::loadComponent('utility', 'panel'),
-    'univer_name' => Controller::loadComponent('utility', 'univer', array('univer_name')),
-    'univer_fullname' => Controller::loadComponent('utility', 'univer', array('univer_fullname')),
+    'univer_name' => Controller::loadComponent('utility', 'univer', array('name')),
+    'univer_fullname' => Controller::loadComponent('utility', 'univer', array('fullname')),
     'univer_address' => Controller::loadComponent('utility', 'univer', array('address')),
     'univer_phone' => Controller::loadComponent('utility', 'univer', array('phone')),
     'breadcrump' => Controller::loadComponent('utility', 'breadcrumb', array(UTest\Kernel\AppBuilder::getBreadcrumb())),

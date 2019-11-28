@@ -107,9 +107,10 @@ class Utilities
         return $string;
     }
 
+    // @todo нужна ли ссылка?
     public static function checkUniq(&$alias, $table)
     {
-        while ($res = \R::findOne($table, '`alias` = ?', array($alias))) {
+        while ($res = DB::table($table)->where('alias', '=', $alias)->first()) {
             $alias .= '-1';
         }
     }

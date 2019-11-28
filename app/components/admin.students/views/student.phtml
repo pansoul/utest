@@ -1,8 +1,11 @@
 <?
-UAppBuilder::setH('Cтуденты');
+use UTest\Kernel\Form;
+use UTest\Kernel\Component\Controller;
+use UTest\Kernel\AppBuilder;
+use UTest\Kernel\Site;
 
 $arTitles = array(
-    UForm::checkbox('check_all', 1, false, 'check-all'),
+    Form::checkbox('check_all', 1, false, 'check-all'),
     'ID',
     'ФИО',
     'Логин',
@@ -11,39 +14,33 @@ $arTitles = array(
     'Управление'
 );
 
-$newDataUsers = $arResult['data']['users'];
-$items = $arResult['data']['form'];
-?>
+$newDataUsers = $data['users'];
+$items = $data['form'];
 
-<?
 if (!empty($newDataUsers)) {
-    UAppBuilder::addBreadcrumb('Генерация новых паролей', USite::getUrl());
-    echo USiteController::loadComponent('utility', 'pastable', array($newDataUsers));
+    AppBuilder::addBreadcrumb('Генерация новых паролей', Site::getUrl());
+    echo Controller::loadComponent('utility', 'pastable', array($newDataUsers));
     return;
+}
+
+if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) {
+    echo Form::error($this->getErrors(ERROR_ELEMENT_NOT_FOUND));
+    return; 
 }
 ?>
 
-<? 
-if ($arResult['errors'] == ERROR_ELEMENT_NOT_FOUND) {
-    echo UForm::error('Группа не найдена');
-    return; 
-} 
-?>
-
 <div class="setting-panel">    
-    <?=UForm::btnNew('Создать нового студента', USite::getUrl() . '/newstudent')?>
+    <?=Form::btnNew('Создать нового студента', Site::getUrl() . '/newstudent')?>
 </div>
     
-<? 
-if (empty($items)) { 
-    echo UForm::info('Список пуст');
+<?
+if (count($items) == 0) {
+    echo Form::info('Список пуст');
     return;     
 } 
-?>
-    
-<? 
-if (!empty($arResult['errors'])) {
-    echo UForm::error($arResult['errors'], true);
+
+if ($this->hasErrors()) {
+    echo Form::error($this->getErrors(), true);
 } 
 ?>
 
@@ -51,26 +48,26 @@ if (!empty($arResult['errors'])) {
     <table class="table table-hover">
         <thead>
             <tr>
-            <?foreach($arTitles as $title):?>
-                <th><?=$title?></th>
-            <?endforeach?>
+                <?foreach($arTitles as $title):?>
+                    <th><?=$title?></th>
+                <?endforeach?>
             </tr>
         </thead>
-        <?foreach($items as $k => $v):?>
-            <tr>
-                <td class="checkbox-column"><?=UForm::checkbox("i[item_{$v['id']}]", $v['id'], 'check-one')?></td>
-                <td><?=$v['id']?></td>
-                <td><?=$v['last_name']?> <?=$v['name']?> <?=$v['surname']?></td>
-                <td><?=$v['login']?></td>
-                <td><?=$v['phone'] ?: '&mdash;'?></td>
-                <td><?=$v['email'] ?: '&mdash;'?></td>
-                <td class="last-column">
-                    <?=UForm::btnEdit(USite::getUrl().'/editstudent/', $v['id'])?>
-                    <?=UForm::btnDelete(USite::getModurl().'/delete/', 'student/'.$v['id'])?>
-                </td>
-            </tr>
-        <?endforeach?>
+            <?foreach($items as $k => $v):?>
+                <tr>
+                    <td class="checkbox-column"><?=Form::checkbox("i[item_{$v['id']}]", $v['id'], 'check-one')?></td>
+                    <td><?=$v['id']?></td>
+                    <td><?=$v['last_name']?> <?=$v['name']?> <?=$v['surname']?></td>
+                    <td><?=$v['login']?></td>
+                    <td><?=$v['phone'] ?: '&mdash;'?></td>
+                    <td><?=$v['email'] ?: '&mdash;'?></td>
+                    <td class="last-column">
+                        <?=Form::btnEdit(Site::getUrl().'/editstudent/', $v['id'])?>
+                        <?=Form::btnDelete(Site::getModurl().'/delete/', 'student/'.$v['id'])?>
+                    </td>
+                </tr>
+            <?endforeach?>
     </table>
-    <?=UForm::button('Удалить выбранные', 'btn btn-danger delete-selected', 'del_all', 'Y', 'submit', true)?>
-    <?=UForm::button('Сгенерировать нов. пароли и распечатать', 'btn btn-primary newpass-selected', 'newpass_all', 'Y', 'submit', true)?>
+    <?=Form::button('Удалить выбранные', 'btn btn-danger delete-selected', 'del_all', 'Y', 'submit', true)?>
+    <?=Form::button('Сгенерировать нов. пароли и распечатать', 'btn btn-primary newpass-selected', 'newpass_all', 'Y', 'submit', true)?>
 </form>

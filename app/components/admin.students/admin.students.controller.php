@@ -2,62 +2,86 @@
 
 namespace UTest\Components;
 
-class AdminStudentsController extends USiteController {
+class AdminStudentsController extends \UTest\Kernel\Component\Controller
+{
+    function routeMap()
+    {
+        return [
+            'title' => 'Группы',
+            'add_breadcrumb' => true,
+            'action_main' => 'group',
+            'actions_params' => [
+                '/newgroup' => [
+                    'action' => 'newGroup',
+                    'title' => 'Создание новой группы',
+                    'add_breadcrumb' => true,
+                ],
+                '/editgroup/<id>' => [
+                    'action' => 'editGroup',
+                    'title' => 'Редактирование группы',
+                    'add_breadcrumb' => true,
+                ],
 
-    protected $routeMap = array(
-        'setTitle' => 'Группы',
-        'actionMain' => 'group',
-        'actionsPath' => array(            
-            'newGroup' => '/newgroup',
-            'editGroup' => '/editgroup/<id>',     
-            
-            'student' => '/<group_code>',            
-            'newstudent' => '/<group_code>/newstudent',            
-            'editstudent' => '/<group_code>/editstudent/<id>',            
-            
-            'delete' => '/delete/<type>/<id>'
-        ),
-        'varsRule' => array(
-            'group_code' => '[-_a-zA-Z0-9]',            
-            'id' => '[0-9]',
-            'type' => '[a-zA-Z]',
-        ),        
-    );
+                '/<group_code>' => [
+                    'action' => 'student',
+                    'title' => 'Cтуденты',
+                    'add_breadcrumb' => true,
+                ],
+                '/<group_code>/newstudent' => [
+                    'action' => 'newStudent',
+                    'title' => 'Создание нового студента',
+                    'add_breadcrumb' => true,
+                ],
+                '/<group_code>/editstudent/<id>' => [
+                    'action' => 'editStudent',
+                    'title' => 'Редактирование студента',
+                    'add_breadcrumb' => true,
+                ],
+
+
+                '/delete/<type>/<id>' => [
+                    'action' => 'delete'
+                ]
+            ],
+            'vars_rules' => [
+                'group_code' => '[-_a-zA-Z0-9]',
+                'id' => '[0-9]',
+                'type' => '[a-zA-Z]',
+            ],
+        ];
+    }
 
     public function run()
     {
+        $html = '';
+
         switch ($this->action) {
             case 'group':
             case 'student':
-                $result = $this->model->doAction($this->action, $this->model->vars['group_code']);
-                if ($this->model->vars['group_code']) {
-                    $html = $this->loadView('student', $result);
-                } else {
-                    $html = $this->loadView('group', $result);
-                }
+                $this->doAction($this->action, $this->getVars('group_code'));
+                $html = $this->loadView($this->getVars('group_code') ? 'student' : 'group');
                 break;
-            
+
             case 'editGroup':
-                $result = $this->model->doAction($this->action, $this->model->vars['id']);
-                $html = $this->loadView('newgroup', $result);
+                $this->doAction($this->action, $this->getVars('id'));
+                $html = $this->loadView('newGroup');
                 break;
-            
+
             case 'editStudent':
-                $result = $this->model->doAction($this->action, $this->model->vars['id']);                
-                $html = $this->loadView('newstudent', $result);
+                $this->doAction($this->action, $this->getVars('id'));
+                $html = $this->loadView('newStudent');
                 break;
-            
+
             case 'delete':
-                $result = $this->model->doAction($this->action, array($this->model->vars['type'], $this->model->vars['id']));
+                $this->doAction($this->action, $this->getVars(['type', 'id']));
                 break;
-            
+
             default:
-                $result = $this->model->doAction($this->action);
-                $html = $this->loadView($this->action, $result);
+                $this->doAction($this->action);
+                $html = $this->loadView($this->action);
                 break;
-        }        
-        
+        }
+
         $this->putContent($html);
     }
-
 }

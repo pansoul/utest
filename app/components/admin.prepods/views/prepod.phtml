@@ -1,5 +1,4 @@
 <?
-
 use UTest\Kernel\Form;
 use UTest\Kernel\AppBuilder;
 use UTest\Kernel\Component\Controller;
@@ -33,7 +32,7 @@ if (!empty($newDataUsers)) {
 </div>
 
 <?
-if (empty($items)) {
+if (count($items) == 0) {
     echo Form::info('Список пуст');
     return;
 }

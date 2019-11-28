@@ -23,7 +23,7 @@ class UtilityController extends \UTest\Kernel\Component\Controller
 
             case 'univer':
                 $this->doAction($this->action, $this->actionArgs);
-                $html = $this->loadView($this->actionArgs[0]);
+                $html = $this->loadView('univer_' . $this->actionArgs[0]);
                 break;
 
             case 'breadcrumb':

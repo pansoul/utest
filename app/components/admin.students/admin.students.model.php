@@ -2,177 +2,186 @@
 
 namespace UTest\Components;
 
-class AdminStudentsModel extends ComponentModel {
-    
+use UTest\Kernel\Site;
+use UTest\Kernel\DB;
+use UTest\Kernel\Utilities;
+use UTest\Kernel\User\User;
+
+class AdminStudentsModel extends \UTest\Kernel\Component\Model
+{
+    const STUDENT_ROLE = 'student';
+
     public function groupAction()
     {
-        if ($this->request->_POST['del_all']) {            
-            foreach ($this->request->_POST['i'] as $item)
-            {
-                $res = R::load(TABLE_UNIVER_GROUP, $item);
-                R::trash($res);
+        if ($this->isActionRequest('del_all')) {
+            foreach ($this->_POST['i'] as $id) {
+                DB::table(TABLE_UNIVER_GROUP)->delete($id);
             }
-            USite::redirect(USite::getUrl());
-        }         
-        
-        $res = R::findAll(TABLE_UNIVER_GROUP, 'ORDER BY title');
-        foreach ($res as &$item)
-        {
-            $spec = R::load(TABLE_UNIVER_SPECIALITY, $item['speciality_id']);
-            $item['speciality_name'] = $spec['title'];
-            $item['students_count'] = R::count(TABLE_USER, "`group_id` = ?", (array)$item['id']);
-        }        
-        
-        return $this->returnResult($res);
+            Site::redirect(Site::getUrl());
+        }
+
+        $res = DB::table(TABLE_UNIVER_GROUP)
+            ->select(
+                TABLE_UNIVER_GROUP.'.*',
+                TABLE_UNIVER_SPECIALITY.'.title as speciality_name',
+                DB::raw('count('.TABLE_USER.'.id) as students_count')
+            )
+            ->leftJoin(TABLE_UNIVER_SPECIALITY, TABLE_UNIVER_SPECIALITY.'.id', '=', TABLE_UNIVER_GROUP.'.speciality_id')
+            ->leftJoin(TABLE_USER, TABLE_USER.'.group_id', '=', TABLE_UNIVER_GROUP.'.id')
+            ->groupBy(TABLE_UNIVER_GROUP.'.id')
+            ->get();
+
+        $this->setData($res);
     }
-    
+
     public function studentAction($groupCode)
     {
-        if ($this->request->_POST['del_all']) {            
-            foreach ($this->request->_POST['i'] as $item)
-            {
-                $res = R::load(TABLE_USER, $item);
-                R::trash($res);
+        if ($this->isActionRequest('del_all')) {
+            foreach ($this->_POST['i'] as $id) {
+                User::user()->delete($id);
             }
-            USite::redirect(USite::getUrl());
-        }         
-        elseif ($this->request->_POST['newpass_all']) {
-            $users = array();
-            foreach ($this->request->_POST['i'] as $id)
-            {
-                if (!intval($id)) {
+            Site::redirect(Site::getUrl());
+        }
+
+        if ($this->isActionRequest('newpass_all')) {
+            foreach ($this->_POST['i'] as $id) {
+                if (!intval($id) || $id == User::ADMIN_ID) {
                     continue;
                 }
-                
-                $newpass = UUser::newPassword();
-                $user = UUser::user()->edit(array('password' => $newpass), $id);
+
+                $newpass = Utilities::getRandomString();
+                $user = User::user()->edit(array('password' => $newpass), $id);
                 if ($user) {
                     $users[] = $user;
                 } else {
-                    $this->errors = UUser::$last_errors;
+                    $this->setErrors(User::$last_errors);
                     break;
                 }
             }
         }
-        
-        $parent = R::findOne(TABLE_UNIVER_GROUP, '`alias` = ?', array($groupCode));
-        $res = R::find(TABLE_USER, 'group_id = ? ORDER BY last_name', array($parent->id));
-        if ($parent) {
-            UAppBuilder::addBreadcrumb ($parent['title'], USite::getUrl());
+
+        $parent = DB::table(TABLE_UNIVER_GROUP)->where('alias', '=', $groupCode)->first();
+        $res = DB::table(TABLE_USER)->where('group_id', '=', $parent['id'])->get();
+
+        if (!$parent) {
+            $this->setErrors('Группа не найдена', ERROR_ELEMENT_NOT_FOUND);
         }
-        
-        return $this->returnResult(array(
+
+        $this->setData([
             'form' => $res,
             'users' => $users
-        ));
+        ]);
     }
 
     public function newGroupAction($v = array())
-    {        
-        if ($this->request->_POST['a']) {
-            $this->errors = array();
-            $v = $this->request->_POST;
+    {
+        if ($this->isActionRequest()) {
+            $this->clearErrors();
+            $v = $this->_POST;
             $required = array(
                 'title' => 'Заполните название группы',
                 'speciality_id' => 'Укажите, к какой специальности относится группа'
             );
-            foreach ($required as $k => $message)
-            {
+            
+            foreach ($required as $k => $message) {
                 if (empty($v[$k])) {
-                    $this->errors[] = $message;
+                    $this->setErrors($message);
                 }
-            }             
-            if (empty($this->errors)) {
-                if ($v['id']) {
-                    $dataRow = R::load(TABLE_UNIVER_GROUP, $v['id']);
-                } else {
-                    $dataRow = R::dispense(TABLE_UNIVER_GROUP);
-                }
-                $dataRow->title = $v['title'];
-                $dataRow->speciality_id = $v['speciality_id'];
-                $dataRow->alias = UAppBuilder::translit($v['title']);
-                UUtilities::checkUniq($dataRow->alias, TABLE_UNIVER_GROUP);
-                if (R::store($dataRow)) {
-                    USite::redirect(USite::getModurl());
+            }
+            
+            if (!$this->hasErrors()) {
+                $dataRow = [
+                    'title' => $v['title'],
+                    'speciality_id' => $v['speciality_id'],
+                    'alias' => Utilities::translit($v['title'])
+                ];
+
+                Utilities::checkUniq($dataRow['alias'], TABLE_UNIVER_GROUP);
+
+                if ($r = DB::table(TABLE_UNIVER_GROUP)->updateOrInsert(['id' => $v['id']], $dataRow)) {
+                    Site::redirect(Site::getModurl());
                 }
             }
         }
-        $_list = R::findAll(TABLE_UNIVER_SPECIALITY, 'ORDER BY faculty_id, title');
-        $sList = array();
-        $fList = R::findAll(TABLE_UNIVER_FACULTY);
-        foreach ($_list as $k => $j)
-        {            
-            $sList[$k] = "[{$fList[ $j['faculty_id'] ]['title']}] - " . $j['title'];
-        }
-        return $this->returnResult(array(
+
+        $specialityList = DB::table(TABLE_UNIVER_SPECIALITY)
+            ->select(
+                TABLE_UNIVER_SPECIALITY.'.*',
+                TABLE_UNIVER_FACULTY.'.title as faculty_name'
+            )
+            ->leftJoin(TABLE_UNIVER_FACULTY, TABLE_UNIVER_FACULTY.'.id', '=', TABLE_UNIVER_SPECIALITY.'.faculty_id')
+            ->orderBy(TABLE_UNIVER_SPECIALITY.'.faculty_id')
+            ->orderBy(TABLE_UNIVER_SPECIALITY.'.title')
+            ->get()
+            ->toArray();
+
+        $specialityList = array_reduce($specialityList, function($acc, $item){
+            $acc[$item['id']] = '['.$item['faculty_name'].'] - '.$item['title'];
+            return $acc;
+        }, []);
+
+        $this->setData([
             'form' => $v,
-            'speciality_list' => $sList
-        ));
+            'speciality_list' => $specialityList
+        ]);
     }
 
     public function newStudentAction($v = array())
-    {       
-        var_dump($this->vars);die;
-        if ($this->vars['in']) {            
-            $r = R::findOne(TABLE_UNIVER_GROUP, "`alias` = ?", (array) $this->vars['in']);
-            if ($r) {
-                $v['group_id'] = $r['id'];
-                UAppBuilder::addBreadcrumb($r['title'], USite::getModurl().'/group/'.$r['alias']);
-            }
-        } elseif ($this->vars['id']) {
-            $_r = R::load(TABLE_USER, $this->vars['id']);
-            $r = R::load(TABLE_UNIVER_GROUP, $_r['group_id']);
-            if ($r) {
-                $in = '/group/'.$r['alias'];
-                UAppBuilder::addBreadcrumb($r['title'], USite::getModurl().$in);                
-            }
+    {
+        $this->studentAction($this->vars['group_code']);
+        if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) {
+            $this->setData(null);
+            return;
         }
-        if ($this->request->_POST['a']) {
-            $this->errors = array();
-            $v = $this->request->_POST;            
+
+        $parent = DB::table(TABLE_UNIVER_GROUP)->where('alias', '=', $this->vars['group_code'])->first();
+        $groupList = DB::table(TABLE_UNIVER_GROUP)->orderBy('title')->get()->toArray();
+        $groupList = array_reduce($groupList, function($acc, $item){
+            $acc[$item['id']] = $item['title'];
+            return $acc;
+        }, []);
+
+        if ($this->isActionRequest()) {
+            $this->clearErrors();
+            $v = $this->_POST;
+            $v['role'] = self::STUDENT_ROLE;
+            $v['group_id'] = isset($groupList[$v['group_id']]) ? $v['group_id'] : $parent['id'];
             if ($v['id']) {
-                $user = UUser::user()->edit($v, $v['id']);
+                $user = User::user()->edit($v, $v['id']);
                 if ($user && empty($v['password'])) {
-                    USite::redirect(USite::getModurl().$in);
+                    Site::redirect(Site::getModurl() . '/' . $parent['alias']);
                 }
             } else {
-                $v['role'] = 'student';
-                $user = UUser::user()->add($v);
+                $user = User::user()->add($v);
             }
-            $this->errors = UUser::$last_errors;            
+            $this->setErrors(User::$last_errors);
+        } else {
+            $v['group_id'] = $parent['id'];
         }
-        $_list = R::findAll(TABLE_UNIVER_GROUP, 'ORDER BY title');
-        $gList = array();
-        foreach ($_list as $k => $j)
-        {
-            $gList[$k] = $j['title'];
-        }
-        return $this->returnResult(array(
+
+        $this->setData([
             'form' => $v,
-            'group_list' => $gList,
+            'group_list' => $groupList,
             'user' => $user
-        ));
+        ]);
     }
 
     public function editGroupAction($id)
-    {        
-        $v = R::load(TABLE_UNIVER_GROUP, $id);        
+    {
+        $v = DB::table(TABLE_UNIVER_GROUP)->find($id);
         if (!$v['id']) {
-            $this->errors = ERROR_ELEMENT_NOT_FOUND;
+            $this->setErrors('Группа не найдена', ERROR_ELEMENT_NOT_FOUND);
         }
         return $this->newGroupAction($v);
     }
 
     public function editStudentAction($id)
     {
-        if (!$id)
-            return;
-        
-        $v = R::load(TABLE_USER, $id);                
-        if (UUser::getRootGroup($v['role']) !== 'student')
-            return;
-        
-        return $this->newStudentAction($v);        
+        $v = User::getById($id);
+        if (User::getRootGroup($v['role']) !== self::STUDENT_ROLE) {
+            $this->setErrors('Пользователь не найден', ERROR_ELEMENT_NOT_FOUND);
+        }
+        return $this->newStudentAction($v);
     }
 
     public function deleteAction($type, $id)
@@ -181,19 +190,17 @@ class AdminStudentsModel extends ComponentModel {
             return;
         }
 
-        if ($type == 'group') {            
-            $bean = R::load(TABLE_UNIVER_GROUP, $id);
+        if ($type == 'group') {
+            DB::table(TABLE_UNIVER_GROUP)->delete($id);
         } elseif ($type == 'student') {
-            $bean = R::load(TABLE_USER, $id);
-            if (UUser::getRootGroup($bean['role']) !== 'student') {
-                USite::redirect(USite::getModurl());            
-            }
-            $group = R::load(TABLE_UNIVER_GROUP, $bean['group_id']);
-            $toback = $group['alias'];            
+            $groupCode = DB::table(TABLE_USER)
+                ->select(TABLE_UNIVER_GROUP.'.alias as group_code')
+                ->leftJoin(TABLE_UNIVER_GROUP, TABLE_UNIVER_GROUP.'.id', TABLE_USER.'.group_id')
+                ->where(TABLE_USER.'.id', '=', $id)
+                ->first()['group_code'];
+            User::user()->delete($id);
         }
-            
-        R::trash($bean);
-        USite::redirect(USite::getModurl() . '/' . $toback);        
-    }    
 
+        Site::redirect(Site::getModurl() . '/' . $groupCode);
+    }
 }

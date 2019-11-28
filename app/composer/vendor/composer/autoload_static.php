@@ -8,9 +8,9 @@ class ComposerStaticInit882d5cc1882b6a850926aca8c0e7bbb6
 {
     public static $files = array (
         '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
-        '25072dd6e2470089de65ae7bf11d3109' => __DIR__ . '/..' . '/symfony/polyfill-php72/bootstrap.php',
+        '5255c38a0faeba867671b61dfda6d864' => __DIR__ . '/..' . '/paragonie/random_compat/lib/random.php',
         '667aeda72477189d0494fecd327c3641' => __DIR__ . '/..' . '/symfony/var-dumper/Resources/functions/dump.php',
-        'd41f4bfceb60cb8d534df7c2f4f1b7a6' => __DIR__ . '/../..' . '/../kernel/db/rb_v4.3.2.php',
+        '72579e7bd17821bb1321b87411366eae' => __DIR__ . '/..' . '/illuminate/support/helpers.php',
     );
 
     public static $prefixLengthsPsr4 = array (
@@ -20,9 +20,17 @@ class ComposerStaticInit882d5cc1882b6a850926aca8c0e7bbb6
         ),
         'S' => 
         array (
-            'Symfony\\Polyfill\\Php72\\' => 23,
             'Symfony\\Polyfill\\Mbstring\\' => 26,
             'Symfony\\Component\\VarDumper\\' => 28,
+            'Symfony\\Component\\Translation\\' => 30,
+        ),
+        'I' => 
+        array (
+            'Illuminate\\Support\\' => 19,
+            'Illuminate\\Events\\' => 18,
+            'Illuminate\\Database\\' => 20,
+            'Illuminate\\Contracts\\' => 21,
+            'Illuminate\\Container\\' => 21,
         ),
     );
 
@@ -31,10 +39,6 @@ class ComposerStaticInit882d5cc1882b6a850926aca8c0e7bbb6
         array (
             0 => __DIR__ . '/../..' . '/..',
         ),
-        'Symfony\\Polyfill\\Php72\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/symfony/polyfill-php72',
-        ),
         'Symfony\\Polyfill\\Mbstring\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-mbstring',
@@ -42,6 +46,51 @@ class ComposerStaticInit882d5cc1882b6a850926aca8c0e7bbb6
         'Symfony\\Component\\VarDumper\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/var-dumper',
+        ),
+        'Symfony\\Component\\Translation\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/symfony/translation',
+        ),
+        'Illuminate\\Support\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/illuminate/support',
+        ),
+        'Illuminate\\Events\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/illuminate/events',
+        ),
+        'Illuminate\\Database\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/illuminate/database',
+        ),
+        'Illuminate\\Contracts\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/illuminate/contracts',
+        ),
+        'Illuminate\\Container\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/illuminate/container',
+        ),
+    );
+
+    public static $fallbackDirsPsr4 = array (
+        0 => __DIR__ . '/..' . '/nesbot/carbon/src',
+    );
+
+    public static $prefixesPsr0 = array (
+        'U' => 
+        array (
+            'UpdateHelper\\' => 
+            array (
+                0 => __DIR__ . '/..' . '/kylekatarnls/update-helper/src',
+            ),
+        ),
+        'D' => 
+        array (
+            'Doctrine\\Common\\Inflector\\' => 
+            array (
+                0 => __DIR__ . '/..' . '/doctrine/inflector/lib',
+            ),
         ),
     );
 
@@ -54,6 +103,8 @@ class ComposerStaticInit882d5cc1882b6a850926aca8c0e7bbb6
         return \Closure::bind(function () use ($loader) {
             $loader->prefixLengthsPsr4 = ComposerStaticInit882d5cc1882b6a850926aca8c0e7bbb6::$prefixLengthsPsr4;
             $loader->prefixDirsPsr4 = ComposerStaticInit882d5cc1882b6a850926aca8c0e7bbb6::$prefixDirsPsr4;
+            $loader->fallbackDirsPsr4 = ComposerStaticInit882d5cc1882b6a850926aca8c0e7bbb6::$fallbackDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInit882d5cc1882b6a850926aca8c0e7bbb6::$prefixesPsr0;
             $loader->classMap = ComposerStaticInit882d5cc1882b6a850926aca8c0e7bbb6::$classMap;
 
         }, null, ClassLoader::class);

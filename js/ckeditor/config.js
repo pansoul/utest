@@ -37,6 +37,6 @@ CKEDITOR.editorConfig = function( config ) {
 	// Simplify the dialog windows.
 	config.removeDialogTabs = 'image:advanced;link:advanced';
         
-        config.codeSnippet_theme = 'androidstudio';    
-        //config.enterMode = CKEDITOR.ENTER_BR;
+    config.codeSnippet_theme = 'androidstudio';
+    //config.enterMode = CKEDITOR.ENTER_BR;
 };
