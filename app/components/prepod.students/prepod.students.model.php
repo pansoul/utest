@@ -1,101 +1,104 @@
 <?php
 
-class PrepodStudentsModel extends ComponentModel {
+namespace UTest\Components;
 
-    private $table_group = 'u_univer_group';
-    private $table_faculty = 'u_univer_faculty';
-    private $table_speciality = 'u_univer_speciality';    
-    private $table_user = 'u_user';
-    private $table_roles = 'u_user_roles';    
+use UTest\Kernel\DB;
+use UTest\Kernel\User\User;
+use UTest\Kernel\Utilities;
+
+class PrepodStudentsModel extends \UTest\Kernel\Component\Model
+{
+    const STUDENT_ROLE = 'student';
 
     public function groupAction()
     {
-        if ($this->request->_POST['newpass_all']) {
-            $users = array();
-            foreach ($this->request->_POST['i'] as $id)
-            {
-                if (!intval($id))
+        $res = DB::table(TABLE_UNIVER_GROUP)
+            ->select(
+                TABLE_UNIVER_GROUP.'.*',
+                TABLE_UNIVER_SPECIALITY.'.title as speciality_name',
+                DB::raw('count('.TABLE_USER.'.id) as students_count')
+            )
+            ->leftJoin(TABLE_UNIVER_SPECIALITY, TABLE_UNIVER_SPECIALITY.'.id', '=', TABLE_UNIVER_GROUP.'.speciality_id')
+            ->leftJoin(TABLE_USER, TABLE_USER.'.group_id', '=', TABLE_UNIVER_GROUP.'.id')
+            ->groupBy(TABLE_UNIVER_GROUP.'.id')
+            ->get();
+
+        $this->setData($res);
+    }
+
+    public function studentAction($groupCode)
+    {
+        $users = [];
+
+        if ($this->isActionRequest('newpass_all')) {
+            foreach ($this->_POST['i'] as $id) {
+                if (!intval($id) || $id == User::ADMIN_ID) {
                     continue;
-                
-                $newpass = UUser::newPassword();
-                $user = UUser::user()->doAction('admin', 'edit', array(array('password' => $newpass), $id));
-                if ($user)
+                }
+
+                $newpass = Utilities::getRandomString();
+                $user = User::user()->doAction('admin', 'edit', ['password' => $newpass], $id);
+                if ($user) {
                     $users[] = $user;
-                else {
-                    $this->errors = UUser::$last_errors;
+                } else {
+                    $this->setErrors(User::$last_errors);
                     break;
                 }
             }
         }
-        
-        $res = R::findAll($this->table_group, 'ORDER BY title');
-        foreach ($res as &$item)
-        {
-            $spec = R::load($this->table_speciality, $item['speciality_id']);
-            $item['speciality_name'] = $spec['title'];
-            $item['students_count'] = R::count($this->table_user, "`group_id` = ?", (array)$item['id']);
+
+        $parent = DB::table(TABLE_UNIVER_GROUP)->where('alias', '=', $groupCode)->first();
+        $res = DB::table(TABLE_USER)->where('group_id', '=', $parent['id'])->get();
+
+        if (!$parent) {
+            $this->setErrors('Группа не найдена', ERROR_ELEMENT_NOT_FOUND);
         }
-        
-        if ($this->vars['group_code']) {
-            $parent = R::findOne($this->table_group, '`alias` = ?', array($this->vars['group_code']));
-            $res = R::find($this->table_user, 'group_id = ? ORDER BY last_name', array($parent->id));
-            if ($parent)
-                UAppBuilder::addBreadcrumb ($parent['title'], USite::getUrl()); 
-        }
-        
-        return $this->returnResult(array(
+
+        $this->setData([
             'form' => $res,
             'users' => $users
-        ));
-    }    
+        ]);
+
+        return $parent;
+    }
 
     public function newStudentAction($v = array())
     {
-        $this->errors = array();
-        if ($this->vars['in']) {            
-            $r = R::findOne($this->table_group, "`alias` = ?", (array) $this->vars['in']);
-            if ($r) {
-                $v['group_id'] = $r['id'];
-                UAppBuilder::addBreadcrumb($r['title'], USite::getModurl().'/group/'.$r['alias']);
+        $group = $this->studentAction($this->vars['group_code']);
+        if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) {
+            $this->setData(null);
+            return;
+        }
+
+        if ($this->isActionRequest()) {
+            $this->clearErrors();
+            $v = $this->_POST;
+            if (empty(trim($v['password']))) {
+                $this->setErrors('Пароль не может быть пустым');
             }
-        } elseif ($this->vars['id']) {
-            $_r = R::load($this->table_user, $this->vars['id']);
-            $r = R::load($this->table_group, $_r['group_id']);
-            if ($r) {
-                $in = '/group/'.$r['alias'];
-                UAppBuilder::addBreadcrumb($r['title'], USite::getModurl().$in);                
+            if (!$this->hasErrors()) {
+                $user = User::user()->doAction('admin', 'edit', ['password' => $v['password']], $this->vars['id']);
+                if (!$user) {
+                    $this->setErrors(User::$last_errors);
+                }
             }
         }
-        if ($this->request->_POST['a']) {
-            $v = $this->request->_POST;            
-            
-            $user = UUser::user()->doAction('admin', 'edit', array(array('password' => $v['password']), $v['id']));
-            if ($user && empty($v['password']))
-                USite::redirect(USite::getModurl().$in);            
-        }
-        $_list = R::findAll($this->table_group, 'ORDER BY title');
-        $gList = array();
-        foreach ($_list as $k => $j)
-        {
-            $gList[$k] = $j['title'];
-        }
-        return $this->returnResult(array(
-                    'form' => $v,
-                    'group_list' => $gList,
-                    'user' => $user
-        ));
-    }    
+
+        $v['group_name'] = $group['title'];
+
+        $this->setData([
+            'form' => $v,
+            'user' => $user
+        ]);
+    }
 
     public function editStudentAction($id)
     {
-        if (!$id)
-            return;
-        
-        $v = R::load($this->table_user, $id);                
-        if (UUser::getRootGroup($v['role']) !== 'student')
-            return;
-        
-        return $this->newStudentAction($v);        
+        $v = User::getById($id);
+        if (User::getRootGroup($v['role']) !== self::STUDENT_ROLE) {
+            $this->setErrors('Пользователь не найден', ERROR_ELEMENT_NOT_FOUND);
+        }
+        return $this->newStudentAction($v);
     }
 
 }

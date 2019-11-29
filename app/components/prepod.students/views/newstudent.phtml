@@ -1,21 +1,27 @@
 <?
-UAppBuilder::setH('Редактирование студента');
-UAppBuilder::addBreadcrumb (UAppBuilder::getH(), USite::getUrl());
+use UTest\Kernel\Form;
+use UTest\Kernel\Component\Controller;
+use UTest\Kernel\Site;
+use UTest\Kernel\AppBuilder;
 
-$newDataUser = $arResult['data']['user'];
-$v = $arResult['data']['form'];
-?>
+$arTitles = array(
+    'ФИО',
+    'Логин',
+    'Телефон',
+    'E-mail'
+);
 
-<? 
-if ($arResult['vars']['id'] && empty($v['id']) || empty($arResult)) { 
-    echo UForm::error('Пользователь не найден');
+$newDataUser = $data['user'];
+$v = $data['form'];
+
+if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) { 
+    echo Form::error($this->getErrors(ERROR_ELEMENT_NOT_FOUND));
     return;     
-} 
-?>
+}
 
-<?
-if (is_array($newDataUser)) {
-    echo USiteController::loadComponent('utility', 'pastable', array($newDataUser));
+if (!empty($newDataUser)) {
+    AppBuilder::addBreadcrumb('Генерация новых паролей', Site::getUrl());
+    echo Controller::loadComponent('utility', 'pastable', array($newDataUser));
     return;
 }
 ?>
@@ -26,48 +32,44 @@ if (is_array($newDataUser)) {
     Для возврата к списку студентов, воспользуйтесь главным меню или навигационной цепочкой.    
 </div>
 
-<? 
-if (!empty($arResult['errors'])) {
-    echo UForm::error($arResult['errors'], true);
-} 
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <?foreach($arTitles as $title):?>
+                <th><?=$title?></th>
+            <?endforeach?>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><?=$v['last_name']?> <?=$v['name']?> <?=$v['surname']?></td>
+            <td><?=$v['login']?></td>
+            <td><?=$v['phone'] ? $v['phone'] : '&mdash;'?></td>
+            <td><?=$v['email'] ? $v['email'] : '&mdash;'?></td>
+        </tr>
+    </tbody>
+</table>
+
+<?
+if ($this->hasErrors()) {
+    echo Form::error($this->getErrors(), true);
+}
 ?>
 
 <form class="form-horizontal" method="post" action="">
     <div class="form-group">
-        <label class="col-lg-2 control-label"><?=$arResult['vars']['id'] ? 'Новый пароль:' : 'Пароль:'.UForm::asterisk()?></label>
+        <label class="col-lg-2 control-label">Пароль:<?=Form::asterisk()?></label>
         <div class="col-lg-10">
-            <?=UForm::input('password', 'password', false , 'form-control password-field', 'password', array('autofocus'=>'autofocus'))?>            
+            <?=Form::input('password', 'password', false , 'form-control password-field', 'password', array('autofocus'=>'autofocus'))?>            
         </div>
     </div>
-    <div class="form-group">
-        <label class="col-lg-2 control-label">Группа:<?=UForm::asterisk()?></label>
-        <div class="col-lg-10">
-            <?=$arResult['data']['group_list'][ $v['group_id'] ]?>            
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-lg-2 control-label">Фамилия:<?=UForm::asterisk()?></label>
-        <div class="col-lg-10">
-            <?=$v['last_name']?>            
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-lg-2 control-label">Имя:<?=UForm::asterisk()?></label>
-        <div class="col-lg-10">
-            <?=$v['name']?>            
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-lg-2 control-label">Отчество:</label>
-        <div class="col-lg-10">
-            <?=$v['surname']?>            
-        </div>
-    </div>        
     <div class="form-group">
         <div class="col-lg-offset-2 col-lg-10">
-            <?=UForm::button('Изменить', 'btn btn-default')?>            
+            <?=Form::button('Изменить', 'btn btn-default')?>            
         </div>
     </div>
-    <?=UForm::input('hidden', 'id', $v['id'])?>
-    <?=UForm::input('hidden', 'a', 'Y')?>
+    <?=Form::input('hidden', 'last_name', $v['last_name'])?>
+    <?=Form::input('hidden', 'name', $v['name'])?>
+    <?=Form::input('hidden', 'surname', $v['surname'])?>
+    <?=Form::input('hidden', 'a', 'Y')?>
 </form>

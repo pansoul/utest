@@ -1,56 +1,59 @@
 <?php
 
-class PrepodStudentsController extends USiteController {
+namespace UTest\Components;
+
+class PrepodStudentsController extends \UTest\Kernel\Component\Controller
+{
 
     protected $routeMap = array(
-        'setTitle' => 'Группы',
-        'actionDefault' => 'group',
-        'paramsPath' => array(
-            'group' => '/<group_code>',
-            'newstudent' => '/<in>',            
-            'editstudent' => '/<id>',
+        'title' => 'Группы',
+        'add_breadcrumb' => true,
+        'action_main' => 'group',
+        'actions_params' => array(
+            '/<group_code>' => [
+                'action' => 'student',
+                'title' => 'Cтуденты',
+                'add_breadcrumb' => true
+            ],
+            '/<group_code>/editstudent/<id>' => [
+                'action' => 'editStudent',
+                'title' => 'Редактирование студента',
+                'add_breadcrumb' => true,
+            ]
         ),
-        'params' => array(
-            'group_code' => array(
-                'mask' => '',
-                'rule' => '[-_a-zA-Z0-9]',
-                'default' => 0
-            ),
-            'in' => array(
-                'mask' => '',
-                'rule' => '[-_a-zA-Z0-9]',
-                'default' => 0
-            ),
-            'id' => array(
-                'mask' => '',
-                'rule' => '[0-9]',
-                'default' => 0
-            )            
+        'vars_rules' => array(
+            'group_code' => '[-_a-zA-Z0-9]',
+            'in' => '[-_a-zA-Z0-9]',
+            'id' => '[0-9]'
         )
     );
 
     public function run()
     {
-        $result = $this->model->doAction($this->action);        
-        
+        $html = '';
+
         switch ($this->action) {
             case 'group':
-                if ($this->model->vars['group_code'])
-                    $html = $this->loadView('student', $result);
-                else
-                    $html = $this->loadView($this->action, $result);
+                $this->model->doAction($this->action);
+                $html = $this->loadView($this->action);
                 break;
-            
-            case 'editstudent':
-                $result = $this->model->doAction($this->action, (array)$this->model->vars['id']);                
-                $html = $this->loadView('newstudent', $result);
+
+            case 'student':
+                $this->model->doAction($this->action, $this->getVars('group_code'));
+                $html = $this->loadView($this->action);
                 break;
-            
+
+            case 'editStudent':
+                $this->model->doAction($this->action, $this->getVars('id'));
+                $html = $this->loadView('newstudent');
+                break;
+
             default:
-                $html = $this->loadView($this->action, $result);
+                $this->model->doAction($this->action);
+                $html = $this->loadView($this->action);
                 break;
-        }        
-        
+        }
+
         $this->putContent($html);
     }
 
