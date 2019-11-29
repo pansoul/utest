@@ -13,7 +13,7 @@ class AdminPrepodsModel extends \UTest\Kernel\Component\Model
 
     public function prepodAction()
     {
-        $users = array();
+        $users = [];
 
         if ($this->isActionRequest('del_all')) {
             foreach ($this->_POST['i'] as $id) {

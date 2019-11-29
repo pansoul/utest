@@ -36,6 +36,8 @@ class AdminStudentsModel extends \UTest\Kernel\Component\Model
 
     public function studentAction($groupCode)
     {
+        $users = [];
+
         if ($this->isActionRequest('del_all')) {
             foreach ($this->_POST['i'] as $id) {
                 User::user()->delete($id);

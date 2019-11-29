@@ -53,9 +53,10 @@ if ($this->hasErrors()) {
                 <?endforeach?>
             </tr>
         </thead>
+        <tbody>
             <?foreach($items as $k => $v):?>
                 <tr>
-                    <td class="checkbox-column"><?=Form::checkbox("i[item_{$v['id']}]", $v['id'], 'check-one')?></td>
+                    <td class="checkbox-column"><?=Form::checkbox("i[]", $v['id'], 'check-one')?></td>
                     <td><?=$v['id']?></td>
                     <td><?=$v['last_name']?> <?=$v['name']?> <?=$v['surname']?></td>
                     <td><?=$v['login']?></td>
@@ -67,6 +68,7 @@ if ($this->hasErrors()) {
                     </td>
                 </tr>
             <?endforeach?>
+        </tbody>
     </table>
     <?=Form::button('Удалить выбранные', 'btn btn-danger delete-selected', 'del_all', 'Y', 'submit', true)?>
     <?=Form::button('Сгенерировать нов. пароли и распечатать', 'btn btn-primary newpass-selected', 'newpass_all', 'Y', 'submit', true)?>

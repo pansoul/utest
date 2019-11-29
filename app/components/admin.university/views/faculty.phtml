@@ -34,17 +34,19 @@ if (count($data) == 0) {
                 <?endforeach?>
             </tr>
         </thead>
-        <?foreach($data as $k => $v):?>
-            <tr>
-                <td class="checkbox-column"><?=Form::checkbox("i[]", $v['id'], 'check-one')?></td>
-                <td><?=$v['id']?></td>
-                <td><a href="<?=Site::getModurl()?>/<?=$v['alias']?>"><?=$v['title']?></a></td>
-                <td class="last-column">
-                    <?=Form::btnEdit(Site::getModurl().'/editfaculty/', $v['id'])?>
-                    <?=Form::btnDelete(Site::getModurl().'/delete/', 'faculty/'.$v['id'])?>
-                </td>
-            </tr>
-        <?endforeach?>
+        <tbody>
+            <?foreach($data as $k => $v):?>
+                <tr>
+                    <td class="checkbox-column"><?=Form::checkbox("i[]", $v['id'], 'check-one')?></td>
+                    <td><?=$v['id']?></td>
+                    <td><a href="<?=Site::getModurl()?>/<?=$v['alias']?>"><?=$v['title']?></a></td>
+                    <td class="last-column">
+                        <?=Form::btnEdit(Site::getModurl().'/editfaculty/', $v['id'])?>
+                        <?=Form::btnDelete(Site::getModurl().'/delete/', 'faculty/'.$v['id'])?>
+                    </td>
+                </tr>
+            <?endforeach?>
+        </tbody>
     </table>
     <?=Form::button('Удалить выбранные', 'btn btn-danger delete-selected', 'del_all', 'Y', 'submit', true)?>
 </form>
