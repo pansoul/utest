@@ -1,5 +1,8 @@
 <?php
 
-class PrepodModel extends ComponentModel {
-    
+namespace UTest\Components;
+
+class PrepodModel extends \UTest\Kernel\Component\Model
+{
+    //
 }

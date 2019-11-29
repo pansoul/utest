@@ -1,9 +1,10 @@
 <?php
 
-class PrepodController extends USiteController {
+namespace UTest\Components;
 
-    protected $routeMap = array(        
-        'setTitle' => 'Как пользоваться системой?',
-        'addBreadcrumb' => false
+class PrepodController extends \UTest\Kernel\Component\Controller
+{
+    protected $routeMap = array(
+        'title' => 'Как пользоваться системой?'
     );
 }
