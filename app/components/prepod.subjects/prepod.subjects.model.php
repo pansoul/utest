@@ -1,85 +1,87 @@
 <?php
 
-class PrepodSubjectsModel extends ComponentModel {
-    
-    private $table_subject = 'u_prepod_subject';
+namespace UTest\Components;
 
+use UTest\Kernel\DB;
+use UTest\Kernel\User\User;
+use UTest\Kernel\Utilities;
+use UTest\Kernel\Site;
+
+class PrepodSubjectsModel extends \UTest\Kernel\Component\Model
+{
     public function subjectAction()
     {
-        if ($this->request->_POST['del_all']) {            
-            foreach ($this->request->_POST['i'] as $item)
-            {
-                $res = R::load($this->table_subject, $item);
-                R::trash($res);
+        if ($this->isActionRequest('del_all')) {
+            foreach ($this->_POST['i'] as $id) {
+                DB::table(TABLE_PREPOD_SUBJECT)
+                    ->where('id', '=', $id)
+                    ->where('user_id', '=', User::user()->getUID())
+                    ->delete();
             }
-            USite::redirect(USite::getUrl());
-        } 
-        
-        $res = R::find($this->table_subject, 'user_id = ? ORDER BY title', array(UUser::user()->getUID()));        
-        
-        return $this->returnResult($res);
+
+            Site::redirect(Site::getUrl());
+        }
+
+        $res = DB::table(TABLE_PREPOD_SUBJECT)
+            ->where('user_id', '=', User::user()->getUID())
+            ->orderBy('title')
+            ->get();
+
+        $this->setData($res);
     }
 
     public function newSubjectAction($v = array())
     {
-        $this->errors = array();
-        if ($this->request->_POST['a']) {
-            $v = $this->request->_POST;
-            if (!$v['title'])
-                $this->errors[] = 'Заполните название предмета';
-            if (empty($this->errors)) {
-                if ($v['id'])
-                    $dataRow = R::load($this->table_subject, $v['id']);
-                else {
-                    $dataRow = R::dispense($this->table_subject);
-                    $dataRow->user_id = UUser::user()->getUID();
+        if ($this->isActionRequest()) {
+            $this->clearErrors();
+            $v = $this->_POST;
+            if (!$v['title']) {
+                $this->setErrors('Заполните название предмета');
+            }
+
+            if (!$this->hasErrors()) {
+                $dataRow = [
+                    'title' => $v['title'],
+                    'alias' => Utilities::translit($v['title']),
+                    'user_id' => User::user()->getUID()
+                ];
+
+                Utilities::checkUniq($dataRow['alias'], TABLE_PREPOD_SUBJECT);
+
+                if (DB::table(TABLE_PREPOD_SUBJECT)->updateOrInsert(['id' => $v['id']], $dataRow)) {
+                    Site::redirect(Site::getModurl());
                 }
-                $dataRow->title = $v['title'];
-                $dataRow->alias = UAppBuilder::translit($v['title']);
-                $this->checkUniq($dataRow->alias, $this->table_subject);
-                if (R::store($dataRow))
-                    USite::redirect(USite::getModurl());
             }
         }
-        return $this->returnResult($v);
+
+        $this->setData($v);
     }
 
     public function editAction($id)
     {
-        if (!$id)
-            return;
-        
-        $v = R::findOne($this->table_subject, 'user_id = :uid AND id = :id', array(
-            ':uid' => UUser::user()->getUID(),
-            ':id' => $id
-        ));
+        $v = DB::table(TABLE_PREPOD_SUBJECT)
+            ->where('id', '=', $id)
+            ->where('user_id', '=', User::user()->getUID())
+            ->first();
+
+        if (!$v['id']) {
+            $this->setErrors('Дисциплина не найдена', ERROR_ELEMENT_NOT_FOUND);
+        }
+
         return $this->newSubjectAction($v);
     }
 
     public function deleteAction($id)
     {
-        if (!$id)
+        if (!$id) {
             return;
-        
-        $bean = R::findOne($this->table_subject, 'user_id = :uid AND id = :id', array(
-            ':uid' => UUser::user()->getUID(),
-            ':id' => $id
-        ));
-        if ($bean) {
-            R::trash($bean);
-            USite::redirect(USite::getModurl());
-        } else 
-            USite::redirect(USite::getModurl());
-    }
-    
-    protected function checkUniq(&$alias, $table)
-    {        
-        while ($res = R::findOne($table, '`alias` = :alias AND user_id = :uid ', array(
-            ':alias' => $alias, 
-            ':uid' => UUser::user()->getUID()
-        ))) {
-            $alias .= '-1';
         }
-    }
 
+        DB::table(TABLE_PREPOD_SUBJECT)
+            ->where('id', '=', $id)
+            ->where('user_id', '=', User::user()->getUID())
+            ->delete();
+
+        Site::redirect(Site::getModurl());
+    }
 }

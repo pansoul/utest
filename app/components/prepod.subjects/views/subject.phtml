@@ -1,27 +1,27 @@
 <?
+use UTest\Kernel\Form;
+use UTest\Kernel\Site;
+
 $arTitles = array(
-    UForm::checkbox('check_all', 1, false, 'check-all'),
+    Form::checkbox('check_all', 1, false, 'check-all'),
+    'ID',
     'Название дисциплины',
     'Управление'
 );
-
-$items = $arResult['data'];
 ?>
 
 <div class="setting-panel">    
-    <?=UForm::btnNew('Создать новую дисциплину', USite::getModurl() . '/newsubject')?>
+    <?=Form::btnNew('Создать новую дисциплину', Site::getModurl() . '/newsubject')?>
 </div>
 
 <? 
-if (empty($items)) { 
-    echo UForm::info('Список пуст');
+if (count($data) == 0) {
+    echo Form::info('Список пуст');
     return;     
 } 
-?>
-    
-<? 
-if (!empty($arResult['errors'])) {
-    echo UForm::error($arResult['errors'], true);
+
+if ($this->hasErrors()) {
+    echo Form::error($this->getErrors(), true);
 } 
 ?>
 
@@ -29,18 +29,24 @@ if (!empty($arResult['errors'])) {
     <table class="table table-hover">
         <thead>
             <tr>
-            <?foreach($arTitles as $title):?>
-                <th><?=$title?></th>
-            <?endforeach?>
+                <?foreach($arTitles as $title):?>
+                    <th><?=$title?></th>
+                <?endforeach?>
             </tr>
         </thead>
-        <?foreach($items as $k => $v):?>
-            <tr>
-                <td class="checkbox-column"><?=UForm::checkbox("i[item_{$v['id']}]", $v['id'], 'check-one')?></td>
-                <td><?=$v['title']?></td>                    
-                <td class="last-column"><?=UForm::btnEdit(USite::getModurl().'/edit/', $v['id'])?><?=UForm::btnDelete(USite::getModurl().'/delete/', $v['id'])?></td>
-            </tr>
-        <?endforeach?>
+        <tbody>
+            <?foreach($data as $k => $v):?>
+                <tr>
+                    <td class="checkbox-column"><?=Form::checkbox("i[]", $v['id'], 'check-one')?></td>
+                    <td><?=$v['id']?></td>
+                    <td><?=$v['title']?></td>
+                    <td class="last-column">
+                        <?=Form::btnEdit(Site::getModurl().'/edit/', $v['id'])?>
+                        <?=Form::btnDelete(Site::getModurl().'/delete/', $v['id'])?>
+                    </td>
+                </tr>
+            <?endforeach?>
+        </tbody>
     </table>
-    <?=UForm::button('Удалить выбранные', 'btn btn-danger delete-selected', 'del_all', 'Y', 'submit', true)?>        
+    <?=Form::button('Удалить выбранные', 'btn btn-danger delete-selected', 'del_all', 'Y', 'submit', true)?>        
 </form>
