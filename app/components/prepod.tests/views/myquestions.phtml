@@ -42,7 +42,7 @@ if (empty($items)) {
         </thead>
         <?foreach($items as $k => $v):?>
             <tr>
-                <td class="checkbox-column"><?=UForm::checkbox("i[item_{$v['id']}]", $v['id'], 'check-one')?></td>
+                <td class="checkbox-column"><?=UForm::checkbox("i[]", $v['id'], 'check-one')?></td>
                 <td>#<?=$count?></td>
                 <td><?= UUtilities::truncate(htmlspecialchars_decode($v['text']), 200) ?></td>
                 <td><?=$arQType[ $v['type'] ]['name']?></td>                    

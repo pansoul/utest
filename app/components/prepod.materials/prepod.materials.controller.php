@@ -1,13 +1,22 @@
 <?php
 
-class PrepodMaterialsController extends USiteController {
-    
+namespace UTest\Components;
+
+use UTest\Kernel\Site;
+
+class PrepodMaterialsController extends \UTest\Kernel\Component\Controller
+{
     protected $arTabs;
 
     protected $routeMap = array(
-        'setTitle' => 'Материал',
-        'actionDefault' => 'my',
-        'paramsPath' => array(
+        'title' => 'Материал',
+        'add_breadcrumb' => true,
+        'action_main' => 'my',
+        'actions_params' => array(
+            '/my/<subject_code>' => [
+                'action' => 'myMaterial',
+            ],
+
             'my' => '/<subject_code>',
             'for' => '/<group_code>/<subject_code>',
             'newmy' => '/<in>',
@@ -17,93 +26,93 @@ class PrepodMaterialsController extends USiteController {
             'editcomment' => '/<id>',
             'delete' => '/<type>/<id>'
         ),
-        'params' => array(
-            'subject_code' => array(
-                'mask' => '',
-                'rule' => '[-_a-zA-Z0-9]',
-                'default' => 0
-            ),
-            'group_code' => array(
-                'mask' => '',
-                'rule' => '[-_a-zA-Z0-9]',
-                'default' => 0
-            ),
-            'in' => array(
-                'mask' => '',
-                'rule' => '[-_a-zA-Z0-9]',
-                'default' => 0
-            ),
-            'id' => array(
-                'mask' => '',
-                'rule' => '[0-9]',
-                'default' => 0
-            ),
-            'type' => array(
-                'mask' => '',
-                'rule' => '[a-zA-Z]',
-                'default' => 0
-            )
+        'vars_rules' => array(
+            'subject_code' => '[-_a-zA-Z0-9]',
+            'group_code' => '[-_a-zA-Z0-9]',
+            'in' => '[-_a-zA-Z0-9]',
+            'id' => '[0-9]',
+            'type' => '[a-zA-Z]'
         )
     );
 
     public function run()
     {
+        $html = '';
         $this->arTabs = array(
-            1 => array(
+            'my' => array(
                 'name' => 'Мой материал',
-                'href' => USite::getModurl() . '/my'
+                'href' => Site::getModurl() . '/my'
             ),
-            2 => array(
+            'for' => array(
                 'name' => 'Материал для групп',
-                'href' => USite::getModurl() . '/for'
+                'href' => Site::getModurl() . '/for'
             )
         );
-        
-        $result = $this->model->doAction($this->action);              
-        
+        $tabSelected = 'my';
+
+        dump($this->action);
+
         switch ($this->action) {
             case 'my':
-                $html = $this->model->vars['subject_code'] 
-                    ? $this->loadView('mymaterial', $result)
-                    : $this->loadView($this->action, $result);
+                $this->doAction($this->action);
+                $html = $this->getVars('subject_code')
+                    ? $this->loadView('mymaterial')
+                    : $this->loadView($this->action);
                 break;
-            
+
             case 'for':
-                UAppBuilder::editBreadcrumpItem(array('name' => 'Материал для групп', 'url' => USite::getModurl().'/for'));
-                if ($this->model->vars['subject_code'])
-                    $html = $this->loadView('formaterial', $result);
-                elseif ($this->model->vars['group_code'])
-                    $html = $this->loadView('forsubject', $result);
-                else
-                    $html = $this->loadView($this->action, $result);
+                UAppBuilder::editBreadcrumpItem(array(
+                    'name' => 'Материал для групп',
+                    'url' => Site::getModurl() . '/for'
+                ));
+                if ($this->model->vars['subject_code']) {
+                    $html = $this->loadView('formaterial');
+                } elseif ($this->model->vars['group_code']) {
+                    $html = $this->loadView('forsubject');
+                } else {
+                    $html = $this->loadView($this->action);
+                }
                 break;
-                
+
             case 'newfor':
             case 'newcomment':
-                UAppBuilder::editBreadcrumpItem(array('name' => 'Материал для групп', 'url' => USite::getModurl().'/for'));
-                $html = $this->loadView($this->action, $result);
+                UAppBuilder::editBreadcrumpItem(array(
+                    'name' => 'Материал для групп',
+                    'url' => Site::getModurl() . '/for'
+                ));
+                $html = $this->loadView($this->action);
                 break;
-            
+
             case 'editmy':
-                $result = $this->model->doAction($this->action, (array)$this->model->vars['id']);
-                $html = $this->loadView('newmy', $result);
+                $this->doAction($this->action, (array)$this->model->vars['id']);
+                $html = $this->loadView('newmy');
                 break;
-            
+
             case 'editcomment':
-                UAppBuilder::editBreadcrumpItem(array('name' => 'Материал для групп', 'url' => USite::getModurl().'/for'));
-                $result = $this->model->doAction($this->action, (array)$this->model->vars['id']);                
-                $html = $this->loadView('newcomment', $result);
+                UAppBuilder::editBreadcrumpItem(array(
+                    'name' => 'Материал для групп',
+                    'url' => Site::getModurl() . '/for'
+                ));
+                $this->doAction($this->action, (array)$this->model->vars['id']);
+                $html = $this->loadView('newcomment');
                 break;
-            
+
             case 'delete':
-                $result = $this->model->doAction($this->action, array($this->model->vars['type'], $this->model->vars['id']));
+                $this->doAction($this->action,
+                    array($this->model->vars['type'], $this->model->vars['id']));
                 break;
-            
+
             default:
-                $html = $this->loadView($this->action, $result);
+                $html = $this->loadView($this->action);
                 break;
-        }        
-        
+        }
+
+        $tabs = $this->loadView('tabs', [
+            'tabs' => $this->arTabs,
+            'selected' => $tabSelected
+        ]);
+
+        $this->putContent($tabs);
         $this->putContent($html);
     }
 

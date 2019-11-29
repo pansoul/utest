@@ -38,7 +38,7 @@ if (empty($items)) {
         </thead>
         <?foreach($items as $k => $v):?>
             <tr>
-                <td class="checkbox-column"><?=UForm::checkbox("i[item_{$v['id']}]", $v['id'], 'check-one')?></td>
+                <td class="checkbox-column"><?=UForm::checkbox("i[]", $v['id'], 'check-one')?></td>
                 <td><a href="<?=USite::getUrl()?>/test-<?=$v['id']?>"><?=$v['title']?></a></td>
                 <td class="last-column"><?=UForm::btnEdit(USite::getModurl().'/editmytest/', $v['id'])?><?=UForm::btnDelete(USite::getModurl().'/delete/', 'mytest/'.$v['id'])?></td>
             </tr>

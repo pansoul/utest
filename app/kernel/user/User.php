@@ -182,7 +182,30 @@ class User
             return new EmptyUser($uid);
         }
 
-        $userRole = ucfirst($userData['role']);
+        $person = self::loadPerson($userData['role'], $userData, $isRequestedUser);
+
+        if ($isRequestedUser) {
+            self::$requestedUser = $person;
+        } else {
+            self::$user = $person;
+        }
+
+        return $person;
+    }
+
+    /**
+     * Возвращает объект персонажа (пользователя конкретной роли)
+     *
+     * @param $role
+     * @param array $userData
+     * @param bool $isRequestedUser
+     *
+     * @return mixed
+     * @throws AppException
+     */
+    private static function loadPerson($role, $userData = [], $isRequestedUser = false)
+    {
+        $userRole = ucfirst($role);
         $userClass = '\\UTest\\Kernel\\User\\Roles\\' . $userRole;
         $userClassPath = KERNEL_PATH . '/user/roles/' . $userRole . '.php';
 
@@ -193,14 +216,7 @@ class User
             throw new AppException("Класс '{$userClass}' для типа пользователя '{$userRole}' не найден");
         }
 
-        $person = new $userClass($userData, $isRequestedUser);
-        if ($isRequestedUser) {
-            self::$requestedUser = $person;
-        } else {
-            self::$user = $person;
-        }
-
-        return $person;
+        return new $userClass($userData, $isRequestedUser);
     }
 
     /**
@@ -328,17 +344,15 @@ class User
         $arFields = (array) $arFields;
 
         if (empty($arFields)) {
-            foreach ($this->userData as $k => $v) {
-                $arOut[$k] = $v;
-            }
+            return $this->userData;
         } else {
             foreach ($arFields as $v) {
-                if (property_exists($this->userData, $v)) {
+                if (!isset($this->userData[$v])) {
                     $e[] = "Поле '{$v}' не существует в списке свойств пользователя";
                     self::$last_errors = $e;
                     return false;
                 }
-                $arOut[$v] = $this->userData->{$v};
+                $arOut[$v] = $this->userData[$v];
             }
         }
 
@@ -426,6 +440,30 @@ class User
     }
 
     /**
+     * Выполняет произвольный метод от лица указанного персонажа (пользователя конкретной роли)
+     *
+     * @param $role
+     * @param $action
+     * @param mixed ...$args
+     *
+     * @return bool|mixed
+     * @throws AppException
+     */
+    public function doAction($role, $action, ...$args)
+    {
+        $e = array();
+        $person = self::loadPerson($role, [], true);
+
+        if (!method_exists($person, $action)) {
+            $e[] = "Метод '{$action}' отсутствует у класса запрашиваемой роли '{$role}'";
+            self::$last_errors = $e;
+            return false;
+        }
+
+        return call_user_func_array([$person, $action], $args);
+    }
+
+    /**
      * Возвращает массив групп, которые относятся к переданной роли
      * @param string $role
      * @return array
@@ -493,34 +531,6 @@ class User
         }
     }*/
 
-    // @todo пересмотреть
-    /*public function doAction($fromRole, $action, array $args = array())
-    {
-        $e = array();
-        $arAvailableRoles = glob(KERNEL_PATH . '/user/roles/*.php');
-        foreach ($arAvailableRoles as &$oneDir) {
-            $oneDir = basename($oneDir, '.php');
-        }
 
-        if (!self::$isCurrentAuth) {
-            $e[] = 'Выполнение методов от других ролей доступно только для будучи авторизованного пользователя';
-            self::$last_errors = $e;
-            return false;
-        }
 
-        $classRole = ucfirst(strtolower($fromRole));
-
-        if (!in_array($classRole, $arAvailableRoles)) {
-            $e[] = "Класс запрашиваемой роли '$classRole' не найден";
-            self::$last_errors = $e;
-            return false;
-        } elseif (!method_exists($classRole, $action)) {
-            $e[] = "Метода '$action' у класса запрашиваемой роли '$classRole' не существует";
-            self::$last_errors = $e;
-            return false;
-        }
-
-        $o = new $classRole();
-        return call_user_func_array(array($o, $action), $args);
-    }*/
 }

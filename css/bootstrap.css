@@ -2165,19 +2165,18 @@ input[type="button"].btn-block {
     max-width: none;
 }
 .nav-tabs {
-    border-bottom: 1px solid #dddddd;
+    border-bottom: 2px solid #dddddd;
     margin-bottom: 20px;
 }
 .nav-tabs > li {
     float: left;
-    margin-bottom: -1px;
+    margin-bottom: -2px;
 }
 .nav-tabs > li > a {
     margin-right: 2px;
     line-height: 1.428571429;
-    border: 1px solid transparent;
+    border: 2px solid transparent;
     border-radius: 4px 4px 0 0;
-    text-decoration: none;
 }
 .nav-tabs > li > a:hover {
     border-color: #eeeeee #eeeeee #dddddd;
@@ -2187,9 +2186,10 @@ input[type="button"].btn-block {
 .nav-tabs > li.active > a:focus {
     color: #555555;
     background-color: #ffffff;
-    border: 1px solid #dddddd;
+    border: 2px solid #dddddd;
     border-bottom-color: transparent;
     cursor: default;
+    text-decoration: none;
 }
 .nav-tabs.nav-justified {
     width: 100%;

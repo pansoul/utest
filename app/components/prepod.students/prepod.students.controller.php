@@ -34,22 +34,22 @@ class PrepodStudentsController extends \UTest\Kernel\Component\Controller
 
         switch ($this->action) {
             case 'group':
-                $this->model->doAction($this->action);
+                $this->doAction($this->action);
                 $html = $this->loadView($this->action);
                 break;
 
             case 'student':
-                $this->model->doAction($this->action, $this->getVars('group_code'));
+                $this->doAction($this->action, $this->getVars('group_code'));
                 $html = $this->loadView($this->action);
                 break;
 
             case 'editStudent':
-                $this->model->doAction($this->action, $this->getVars('id'));
+                $this->doAction($this->action, $this->getVars('id'));
                 $html = $this->loadView('newstudent');
                 break;
 
             default:
-                $this->model->doAction($this->action);
+                $this->doAction($this->action);
                 $html = $this->loadView($this->action);
                 break;
         }

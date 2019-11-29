@@ -1,7 +1,13 @@
 <?php
 
-class PrepodMaterialsModel extends ComponentModel {
+namespace UTest\Components;
 
+use UTest\Kernel\DB;
+use UTest\Kernel\User\User;
+use UTest\Kernel\Site;
+
+class PrepodMaterialsModel extends \UTest\Kernel\Component\Model
+{
     private $dir = '/uploads/materials';
     private $table_subject = 'u_prepod_subject';
     private $table_material = 'u_prepod_material';
@@ -10,47 +16,65 @@ class PrepodMaterialsModel extends ComponentModel {
 
     public function myAction()
     {
-        if ($this->request->_POST['del_all']) {
-            foreach ($this->request->_POST['i'] as $item)
-            {
-                if (!$item)
+        /*if ($this->isActionRequest('del_all')) {
+            foreach ($this->_POST['i'] as $id) {
+                if (!$id) {
                     continue;
+                }
+                
+                $res = DB::table(TABLE_PREPOD_MATERIAL)
+                    ->where('id', '=', $id)
+                    ->where('user_id', '=', User::user()->getUID())
+                    ->first();
 
-                $res = R::findOne($this->table_material, 'id = :id AND user_id = :uid ', array(
-                            ':id' => $item,
-                            ':uid' => UUser::user()->getUID()
-                ));
+                dump($res);die;
 
                 @unlink(ROOT . $res['filepath']);
-                R::trash($res);
-            }
-            USite::redirect(USite::getUrl());
-        }
 
-        $res = R::find($this->table_subject, 'user_id = ? ORDER BY title', array(UUser::user()->getUID()));
-        foreach ($res as &$item)
-        {
+            }
+            Site::redirect(Site::getUrl());
+        }*/
+
+        $res = DB::table(TABLE_PREPOD_SUBJECT)
+            ->select(
+                TABLE_PREPOD_SUBJECT.'.*',
+                DB::raw('count('.TABLE_PREPOD_MATERIAL.'.id) as material_count')
+            )
+            ->leftJoin(TABLE_PREPOD_MATERIAL, TABLE_PREPOD_MATERIAL.'.subject_id', '=', TABLE_PREPOD_SUBJECT.'.id')
+            ->where(TABLE_PREPOD_SUBJECT.'.user_id', '=', User::user()->getUID())
+            ->groupBy(TABLE_PREPOD_SUBJECT.'.id')
+            ->orderBy(TABLE_PREPOD_SUBJECT.'.title')
+            ->get();
+
+        /*$res = R::find($this->table_subject, 'user_id = ? ORDER BY title', array(User::user()->getUID()));
+        foreach ($res as &$item) {
             $item['material_count'] = R::count($this->table_material, 'subject_id = :sid AND user_id = :uid ', array(
-                        ':sid' => $item['id'],
-                        ':uid' => UUser::user()->getUID()
+                ':sid' => $item['id'],
+                ':uid' => User::user()->getUID()
             ));
         }
 
         if ($this->vars['subject_code']) {
             $parent = R::findOne($this->table_subject, '`alias` = :alias AND user_id = :uid ', array(
-                        ':alias' => $this->vars['subject_code'],
-                        ':uid' => UUser::user()->getUID()
+                ':alias' => $this->vars['subject_code'],
+                ':uid' => User::user()->getUID()
             ));
             $res = R::find($this->table_material, 'subject_id = ? ORDER BY date', array($parent->id));
             if ($parent) {
-                UAppBuilder::addBreadcrumb($parent['title'], USite::getUrl());
-                
-                if ($this->request->_GET['download']) 
-                    $this->fileDownload($this->request->_GET['download']);
-            }
-        }
+                UAppBuilder::addBreadcrumb($parent['title'], Site::getUrl());
 
-        return $this->returnResult($res);
+                if ($this->_GET['download']) {
+                    $this->fileDownload($this->_GET['download']);
+                }
+            }
+        }*/
+
+        $this->setData($res);
+    }
+
+    function myMaterialAction($subjectCode)
+    {
+
     }
 
     public function forAction()
@@ -61,24 +85,24 @@ class PrepodMaterialsModel extends ComponentModel {
 
             // группа найдена
             if ($gparent) {
-                UAppBuilder::addBreadcrumb($gparent['title'], USite::getModurl() . '/for/' . $gparent['alias']);
+                UAppBuilder::addBreadcrumb($gparent['title'], Site::getModurl() . '/for/' . $gparent['alias']);
 
                 // если есть данные о выбранном предмете
                 if ($this->vars['subject_code']) {
                     $sparent = R::findOne($this->table_subject, '`alias` = :alias AND user_id = :uid ', array(
-                                ':alias' => $this->vars['subject_code'],
-                                ':uid' => UUser::user()->getUID()
+                        ':alias' => $this->vars['subject_code'],
+                        ':uid' => User::user()->getUID()
                     ));
 
                     // предмет найден
                     if ($sparent) {
-                        UAppBuilder::addBreadcrumb($sparent['title'], USite::getUrl());
-                        
-                         if ($this->request->_POST['del_all']) {
-                            foreach ($this->request->_POST['i'] as $item)
-                            {
-                                if (!$item)
+                        UAppBuilder::addBreadcrumb($sparent['title'], Site::getUrl());
+
+                        if ($this->_POST['del_all']) {
+                            foreach ($this->_POST['i'] as $item) {
+                                if (!$item) {
                                     continue;
+                                }
 
                                 $sql = "
                                     SELECT s.*
@@ -88,15 +112,15 @@ class PrepodMaterialsModel extends ComponentModel {
                                     WHERE
                                         s.id = {$item}
                                         AND s.comment IS NOT NULL
-                                        AND p.user_id = " . UUser::user()->getUID() . "                                
+                                        AND p.user_id = " . User::user()->getUID() . "                                
                                 ";
                                 $record = R::getAll($sql);
                                 $comment = R::convertToBeans($this->table_student_material, $record);
                                 R::trash(reset($comment));
                             }
-                            USite::redirect(USite::getUrl());
+                            Site::redirect(Site::getUrl());
                         }
-                        
+
                         $sql = "
                             SELECT s.*, p.filename, p.size, p.extension
                             FROM {$this->table_student_material} AS s 
@@ -107,7 +131,7 @@ class PrepodMaterialsModel extends ComponentModel {
                                 AND s.is_hidden = 0
                                 AND s.comment IS NULL
                                 AND p.subject_id = {$sparent['id']}
-                                AND p.user_id = " . UUser::user()->getUID() . "                                
+                                AND p.user_id = " . User::user()->getUID() . "                                
                             ORDER BY p.filename
                         ";
                         $res = R::getAll($sql);
@@ -126,11 +150,11 @@ class PrepodMaterialsModel extends ComponentModel {
                           ':p' => $this->table_material,
                           ':gid' => $gparent['id'],
                           ':sid' => $sparent['id'],
-                          ':uid' => UUser::user()->getUID()
+                          ':uid' => User::user()->getUID()
                           )); */
                         $records = R::getAll($sql);
                         $res = R::convertToBeans($this->table_student_material, $records);
-                        
+
                         $sql = "
                             SELECT DISTINCT s.*
                             FROM {$this->table_student_material} AS s 
@@ -140,18 +164,17 @@ class PrepodMaterialsModel extends ComponentModel {
                                 s.group_id = {$gparent['id']}
                                 AND s.comment IS NOT NULL
                                 AND s.subject_id = {$sparent['id']}
-                                AND p.user_id = " . UUser::user()->getUID() . "                                
+                                AND p.user_id = " . User::user()->getUID() . "                                
                             ORDER BY s.date DESC
                         ";
                         $records = R::getAll($sql);
                         $comments = R::convertToBeans($this->table_student_material, $records);
                     }
+                } else {
+                    $res = R::find($this->table_subject, 'user_id = ? ORDER BY title', array(User::user()->getUID()));
                 }
-                else
-                    $res = R::find($this->table_subject, 'user_id = ? ORDER BY title', array(UUser::user()->getUID()));
             }
-        }
-        // Выбор групп
+        } // Выбор групп
         else {
             $res = R::findAll($this->table_group, 'ORDER BY title');
         }
@@ -166,39 +189,41 @@ class PrepodMaterialsModel extends ComponentModel {
         $this->errors = array();
         if ($this->vars['in']) {
             $r = R::findOne($this->table_subject, 'user_id = :uid AND `alias` = :alias', array(
-                        ':uid' => UUser::user()->getUID(),
-                        ':alias' => $this->vars['in']
+                ':uid' => User::user()->getUID(),
+                ':alias' => $this->vars['in']
             ));
             if ($r) {
                 $v['subject_id'] = $r['id'];
                 $in = '/my/' . $r['alias'];
-                UAppBuilder::addBreadcrumb($r['title'], USite::getModurl() . '/my/' . $r['alias']);
+                UAppBuilder::addBreadcrumb($r['title'], Site::getModurl() . '/my/' . $r['alias']);
             }
         } elseif ($this->vars['id']) {
             $_r = R::load($this->table_material, $this->vars['id']);
             $r = R::load($this->table_subject, $_r['subject_id']);
             if ($r) {
                 $in = '/my/' . $r['alias'];
-                UAppBuilder::addBreadcrumb($r['title'], USite::getModurl() . $in);
+                UAppBuilder::addBreadcrumb($r['title'], Site::getModurl() . $in);
             }
         }
-        if ($this->request->_POST['a']) {
-            $v = $this->request->_POST;
+        if ($this->_POST['a']) {
+            $v = $this->_POST;
 
-            if (!$v['filename'])
+            if (!$v['filename']) {
                 $this->errors[] = 'Укажите название документа';
-            if (!$v['id'] && empty($_FILES['material']['name']))
+            }
+            if (!$v['id'] && empty($_FILES['material']['name'])) {
                 $this->errors[] = 'Выберите файл';
+            }
 
             if (empty($this->errors)) {
-                if ($v['id'])
+                if ($v['id']) {
                     $dataRow = R::findOne($this->table_material, 'user_id = :uid AND id = :id', array(
-                                ':uid' => UUser::user()->getUID(),
-                                ':id' => $v['id']
+                        ':uid' => User::user()->getUID(),
+                        ':id' => $v['id']
                     ));
-                else {
+                } else {
                     $dataRow = R::dispense($this->table_material);
-                    $dataRow->user_id = UUser::user()->getUID();
+                    $dataRow->user_id = User::user()->getUID();
                 }
 
                 $dataRow->filename = $v['filename'];
@@ -209,14 +234,16 @@ class PrepodMaterialsModel extends ComponentModel {
                 $fileExt = $pathInfo['extension'];
 
                 $dirMaterials = ROOT . $this->dir;
-                if (!is_dir($dirMaterials))
+                if (!is_dir($dirMaterials)) {
                     mkdir($dirMaterials, 0755);
+                }
 
-                $dirMatPrepod = $dirMaterials . '/p-' . UUser::user()->getUID();
-                if (!is_dir($dirMatPrepod))
+                $dirMatPrepod = $dirMaterials . '/p-' . User::user()->getUID();
+                if (!is_dir($dirMatPrepod)) {
                     mkdir($dirMatPrepod, 0755);
+                }
 
-                $filePath = $this->dir . '/p-' . UUser::user()->getUID() . '/' . $fileName . '.' . $fileExt;
+                $filePath = $this->dir . '/p-' . User::user()->getUID() . '/' . $fileName . '.' . $fileExt;
                 $rootFilePath = ROOT . $filePath;
                 if (!empty($_FILES['material']['name'])) {
                     if (is_uploaded_file($_FILES['material']['tmp_name'])) {
@@ -226,29 +253,29 @@ class PrepodMaterialsModel extends ComponentModel {
                             $dataRow->filepath = $filePath;
                             $dataRow->size = $_FILES['material']['size'];
                             $dataRow->extension = $fileExt;
-                        }
-                        else
+                        } else {
                             $this->errors[] = 'Ошибка при перемещении загруженного файла';
-                    }
-                    else
+                        }
+                    } else {
                         $this->errors[] = 'Ошибка при загрузке файла';
+                    }
                 }
 
                 if (empty($this->errors)) {
-                    if (R::store($dataRow))
-                        USite::redirect(USite::getModurl() . $in);
+                    if (R::store($dataRow)) {
+                        Site::redirect(Site::getModurl() . $in);
+                    }
                 }
             }
         }
-        $_list = R::find($this->table_subject, 'user_id = ?', array(UUser::user()->getUID()));
+        $_list = R::find($this->table_subject, 'user_id = ?', array(User::user()->getUID()));
         $sList = array();
-        foreach ($_list as $k => $j)
-        {
+        foreach ($_list as $k => $j) {
             $sList[$k] = $j['title'];
         }
         return $this->returnResult(array(
-                    'form' => $v,
-                    'subject_list' => $sList
+            'form' => $v,
+            'subject_list' => $sList
         ));
     }
 
@@ -259,19 +286,19 @@ class PrepodMaterialsModel extends ComponentModel {
 
             // группа найдена
             if ($gparent) {
-                UAppBuilder::addBreadcrumb($gparent['title'], USite::getModurl() . '/for/' . $gparent['alias']);
+                UAppBuilder::addBreadcrumb($gparent['title'], Site::getModurl() . '/for/' . $gparent['alias']);
 
                 // если есть данные о выбранном предмете
                 if ($this->vars['subject_code']) {
                     $sparent = R::findOne($this->table_subject, '`alias` = :alias AND user_id = :uid ', array(
-                                ':alias' => $this->vars['subject_code'],
-                                ':uid' => UUser::user()->getUID()
+                        ':alias' => $this->vars['subject_code'],
+                        ':uid' => User::user()->getUID()
                     ));
 
                     // предмет найден
                     if ($sparent) {
                         $in = '/for/' . $gparent['alias'] . '/' . $sparent['alias'];
-                        UAppBuilder::addBreadcrumb($sparent['title'], USite::getModurl() . $in);
+                        UAppBuilder::addBreadcrumb($sparent['title'], Site::getModurl() . $in);
 
                         // Находим спсисок тех документов, что выложенны в данный момент для группы
                         $sql = "
@@ -284,39 +311,37 @@ class PrepodMaterialsModel extends ComponentModel {
                                 AND s.is_hidden = 0
                                 AND s.comment IS NULL
                                 AND p.subject_id = {$sparent['id']}
-                                AND p.user_id = " . UUser::user()->getUID() . "                                
+                                AND p.user_id = " . User::user()->getUID() . "                                
                             ORDER BY p.filename
                         ";
                         $records = R::getAll($sql);
                         $_list = R::convertToBeans($this->table_student_material, $records);
                         $activeList = array();
-                        foreach ($_list as $k => $j)
-                        {
+                        foreach ($_list as $k => $j) {
                             $activeList[] = $j['material_id'];
                         }
 
                         // Находим массив всех доступных документов по выбранному предмету
                         $_list = R::find($this->table_material, 'user_id = :uid AND subject_id = :sid', array(
-                                    ':uid' => UUser::user()->getUID(),
-                                    ':sid' => $sparent['id']
+                            ':uid' => User::user()->getUID(),
+                            ':sid' => $sparent['id']
                         ));
                         $sList = array();
-                        foreach ($_list as $k => $j)
-                        {
+                        foreach ($_list as $k => $j) {
                             $sList[$k] = $j['filename'] . '.' . $j['extension'] . ' (' . UAppBuilder::bytesToSize($j['size']) . ')';
                         }
 
                         // Запрос на сохранение
-                        if ($this->request->_POST['a']) {
-                            $curList = $this->request->_POST['materials'];
-                            $diffList = $curList === null ? $sList : array_diff($activeList, $curList);  
-                            foreach ($curList as $id)                                                        
-                            {                                
-                                $r = R::findOrDispense($this->table_student_material, 'material_id = :mid AND group_id = :gid', array(
-                                    ':mid' => $id,
-                                    ':gid' => $gparent['id']
-                                ));  
-                                $dataRow = reset($r);                                
+                        if ($this->_POST['a']) {
+                            $curList = $this->_POST['materials'];
+                            $diffList = $curList === null ? $sList : array_diff($activeList, $curList);
+                            foreach ($curList as $id) {
+                                $r = R::findOrDispense($this->table_student_material,
+                                    'material_id = :mid AND group_id = :gid', array(
+                                        ':mid' => $id,
+                                        ':gid' => $gparent['id']
+                                    ));
+                                $dataRow = reset($r);
                                 if (!$dataRow->id) {
                                     $dataRow->group_id = $gparent['id'];
                                     $dataRow->subject_id = $sparent['id'];
@@ -326,22 +351,23 @@ class PrepodMaterialsModel extends ComponentModel {
                                 } elseif ($dataRow->is_hidden) {
                                     $dataRow->date = UAppBuilder::getDateTime();
                                     $dataRow->is_hidden = 0;
-                                } else
+                                } else {
                                     $dataRow->is_hidden = 0;
-                                
+                                }
+
                                 R::store($dataRow);
                             }
-                            foreach ($diffList as $k => $j)                            
-                            {
+                            foreach ($diffList as $k => $j) {
                                 $id = $curList === null ? $k : $j;
-                                $dataRow = R::findOne($this->table_student_material, 'material_id = :mid AND group_id = :gid', array(
-                                    ':mid' => $id,
-                                    ':gid' => $gparent['id']
-                                ));
+                                $dataRow = R::findOne($this->table_student_material,
+                                    'material_id = :mid AND group_id = :gid', array(
+                                        ':mid' => $id,
+                                        ':gid' => $gparent['id']
+                                    ));
                                 $dataRow->is_hidden = 1;
                                 R::store($dataRow);
                             }
-                            USite::redirect(USite::getModurl() . $in);
+                            Site::redirect(Site::getModurl() . $in);
                         }
                     }
                 }
@@ -351,9 +377,9 @@ class PrepodMaterialsModel extends ComponentModel {
         return $this->returnResult(array(
             'active_list' => $activeList,
             'all_list' => $sList
-        ));        
+        ));
     }
-    
+
     public function newCommentAction($v = array())
     {
         $this->errors = array();
@@ -361,35 +387,36 @@ class PrepodMaterialsModel extends ComponentModel {
             $res = $v;
             $this->vars['group_code'] = $v['group_code'];
             $this->vars['subject_code'] = $v['subject_code'];
-        }         
+        }
         if ($this->vars['group_code']) {
             $gparent = R::findOne($this->table_group, '`alias` = ?', array($this->vars['group_code']));
 
             // группа найдена
             if ($gparent) {
-                UAppBuilder::addBreadcrumb($gparent['title'], USite::getModurl() . '/for/' . $gparent['alias']);
+                UAppBuilder::addBreadcrumb($gparent['title'], Site::getModurl() . '/for/' . $gparent['alias']);
 
                 // если есть данные о выбранном предмете
                 if ($this->vars['subject_code']) {
                     $sparent = R::findOne($this->table_subject, '`alias` = :alias AND user_id = :uid ', array(
-                                ':alias' => $this->vars['subject_code'],
-                                ':uid' => UUser::user()->getUID()
+                        ':alias' => $this->vars['subject_code'],
+                        ':uid' => User::user()->getUID()
                     ));
 
                     // предмет найден
                     if ($sparent) {
                         $in = '/for/' . $gparent['alias'] . '/' . $sparent['alias'];
-                        UAppBuilder::addBreadcrumb($sparent['title'], USite::getModurl() . $in);
-                        
+                        UAppBuilder::addBreadcrumb($sparent['title'], Site::getModurl() . $in);
+
                         // Запрос на изменение
-                        if ($this->request->_POST['a']) {                            
-                            $v = $this->request->_POST;
-                            
-                            if (!$v['comment'])
+                        if ($this->_POST['a']) {
+                            $v = $this->_POST;
+
+                            if (!$v['comment']) {
                                 $this->errors[] = "Заполните текст комментария";
-                            
+                            }
+
                             if (empty($this->errors)) {
-                                $r = R::findOrDispense($this->table_student_material, 'id = ?', array($v['id']));                    
+                                $r = R::findOrDispense($this->table_student_material, 'id = ?', array($v['id']));
                                 $dataRow = reset($r);
                                 $dataRow->comment = $v['comment'];
                                 if (!$dataRow->id) {
@@ -397,33 +424,36 @@ class PrepodMaterialsModel extends ComponentModel {
                                     $dataRow->group_id = $gparent['id'];
                                     $dataRow->subject_id = $sparent['id'];
                                 }
-                                if (R::store($dataRow))
-                                    USite::redirect(USite::getModurl() . $in);
+                                if (R::store($dataRow)) {
+                                    Site::redirect(Site::getModurl() . $in);
+                                }
                             }
-                        }                         
+                        }
                     }
                 }
             }
         }
-        return $this->returnResult($res);        
+        return $this->returnResult($res);
     }
 
     public function editMyAction($id)
     {
-        if (!$id)
+        if (!$id) {
             return;
+        }
 
         $v = R::findOne($this->table_material, 'id = :id AND user_id = :uid ', array(
-                    ':id' => $id,
-                    ':uid' => UUser::user()->getUID()
+            ':id' => $id,
+            ':uid' => User::user()->getUID()
         ));
         return $this->newMyAction($v);
     }
 
     public function editCommentAction($id)
     {
-        if (!$id)
+        if (!$id) {
             return;
+        }
 
         $sql = "
             SELECT s.*, g.alias as group_code, j.alias as subject_code
@@ -437,24 +467,25 @@ class PrepodMaterialsModel extends ComponentModel {
             WHERE
                 s.id = {$id}
                 AND s.comment IS NOT NULL
-                AND p.user_id = " . UUser::user()->getUID() . "
+                AND p.user_id = " . User::user()->getUID() . "
         ";
         $record = R::getAll($sql);
         $comment = R::convertToBeans($this->table_student_material, $record);
-        $v = reset($comment);        
+        $v = reset($comment);
 
         return $this->newCommentAction($v);
     }
 
     public function deleteAction($type, $id)
     {
-        if (!($type && $id))
+        if (!($type && $id)) {
             return;
+        }
 
         if ($type == 'my') {
             $bean = R::findOne($this->table_material, 'id = :id AND user_id = :uid ', array(
-                        ':id' => $id,
-                        ':uid' => UUser::user()->getUID()
+                ':id' => $id,
+                ':uid' => User::user()->getUID()
             ));
             $subject = R::load($this->table_subject, $bean['subject_id']);
             $toback = '/my/' . $subject['alias'];
@@ -471,7 +502,7 @@ class PrepodMaterialsModel extends ComponentModel {
                 WHERE
                     s.id = {$id}
                     AND s.comment IS NOT NULL
-                    AND p.user_id = " . UUser::user()->getUID() . "
+                    AND p.user_id = " . User::user()->getUID() . "
             ";
             $record = R::getAll($sql);
             $comment = R::convertToBeans($this->table_student_material, $record);
@@ -483,18 +514,18 @@ class PrepodMaterialsModel extends ComponentModel {
         if ($bean) {
             @unlink(ROOT . $bean['filepath']);
             R::trash($bean);
-            USite::redirect(USite::getModurl() . $toback);
+            Site::redirect(Site::getModurl() . $toback);
+        } else {
+            Site::redirect(Site::getModurl());
         }
-        else
-            USite::redirect(USite::getModurl());
     }
-    
+
     function fileDownload($docId)
     {
         $docId = intval($docId);
         $result = R::findOne($this->table_material, 'id = :id AND user_id = :uid ', array(
-                    ':id' => $docId,
-                    ':uid' => UUser::user()->getUID()
+            ':id' => $docId,
+            ':uid' => User::user()->getUID()
         ));
 
         if (!$result) {
@@ -511,9 +542,9 @@ class PrepodMaterialsModel extends ComponentModel {
             }
 
             $f = str_replace(' ', '_', $result['filename']) . '.' . $result['extension'];
-            if (stristr($_SERVER['HTTP_USER_AGENT'], 'MSIE 8.0') 
+            if (stristr($_SERVER['HTTP_USER_AGENT'], 'MSIE 8.0')
                 || stristr($_SERVER['HTTP_USER_AGENT'], 'MSIE 7.0')) {
-                
+
                 $f = str_replace('+', '_', urlencode($result['filename'])) . '.' . $result['extension'];
             }
 
