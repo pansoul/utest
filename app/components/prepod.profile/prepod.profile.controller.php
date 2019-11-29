@@ -1,15 +1,11 @@
 <?php
 
-class PrepodProfileController extends USiteController {
+namespace UTest\Components;
 
+class PrepodProfileController extends \UTest\Kernel\Component\Controller
+{
     protected $routeMap = array(
-        'setTitle' => 'Личные данные'
+        'title' => 'Личные данные',
+        'add_breadcrumb' => true
     );
-
-    public function run()
-    {           
-        $result = $this->model->doAction($this->action);        
-        $html = $this->loadView('', $result);        
-        $this->putContent($html);
-    }
 }

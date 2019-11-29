@@ -1,42 +1,34 @@
 <?php
 
-class PrepodProfileModel extends ComponentModel {
-    
-    private $arAvailableEdit = array(
-        'last_name',
-        'name',
-        'surname',
-        'post',
-        'phone',
-        'email'
-    );
-    
-    private $arPost = array(
-        'old_prepod'    => 'старший преподаватель',
-        'docent'        => 'доцент',
-        'prof'          => 'профессор',
-        'prepod'        => 'преподаватель',
-    );
-    
+namespace UTest\Components;
+
+use UTest\Kernel\User\User;
+use UTest\Kernel\Site;
+
+class PrepodProfileModel extends \UTest\Kernel\Component\Model
+{
     public function indexAction()
-    {   
-        $v = UUser::user()->getFields($this->arAvailableEdit);
-        
-        if ($this->request->_POST['a']) {             
-            $v = array_intersect_key($this->request->_POST, $v);              
-            
-            if (UUser::user()->doAction('admin', 'edit', array($v, UUser::user()->getUID()))) {
-                $_SESSION['update'] = 'Y';
-                USite::redirect (USite::getModurl());
-            }
-            
-            $this->errors = UUser::$last_errors;
-        }
-        return $this->returnResult($v);
-    }
-    
-    public function getArPost()
     {
-        return $this->arPost;
+        $v = User::user()->getFields([
+            'last_name',
+            'name',
+            'surname',
+            'post',
+            'phone',
+            'email'
+        ]);
+
+        if ($this->isActionRequest()) {
+            $v = array_intersect_key($this->_POST, $v);
+
+            if (User::user()->doAction('admin', 'edit', $v, User::user()->getUID())) {
+                $_SESSION['update'] = 'Y';
+                Site::redirect(Site::getModurl());
+            }
+
+            $this->setErrors(User::$last_errors);
+        }
+
+        $this->setData($v);
     }
 }
