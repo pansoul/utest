@@ -2,6 +2,7 @@
 
 namespace UTest\Kernel\Component;
 
+use UTest\Kernel\AppRouter;
 use UTest\Kernel\Base;
 use UTest\Kernel\Site;
 use UTest\Kernel\AppBuilder;
@@ -185,22 +186,16 @@ class Controller
      * @param string $componentName - может быть либо частью строки url, либо точным названием запрашиваемого компонета     
      * @param bool|string $action - имя экшена, что будет запущен при вызове компонента
      * @param array $actionArgs - массив переданных параметров для $action
-     * @param array $paramsRow - строка параметров
      * @param array $routeMap
      *
      * @return void
      */
-    private function __construct($componentName = '', $action = false, $actionArgs = array(), $paramsRow = null, $routeMap = array())
+    private function __construct($componentName = '', $action = false, $actionArgs = array(), $routeMap = array())
     {
-        if (!$action) {
-            Site::setModName($componentName);
-            Site::setModUrl('/' . str_replace('.', '/', $componentName));
-        }
-
         $this->componentName = $componentName;        
         $this->action = $action;
         $this->actionArgs = $actionArgs;
-        $this->paramsRow = $paramsRow ? '/' . $paramsRow : null;
+        $this->paramsRow = Site::getModParamsRow();
 
         $actionsParams = array_merge_recursive(
             $this->routeMapDefault['actions_params'],
@@ -233,7 +228,8 @@ class Controller
     /**
      * Загружает запрашиваемый компонент и возвращает результат его работы.
      *
-     * @param string $args - может быть либо частью строки url, либо точным названием запрашиваемого компонета (если указан параметр $action)
+     * @param string $args - может быть либо строкой url (/group/modName/action/...) главного компонента страницы,
+     * либо точным названием запрашиваемого компонета (при указанном параметре $action)
      * @param bool|string $action - имя акшна, что будет запущен при вызове компонента
      * @param array $actionArgs - массив переданных параметров для $action 
      * @param array $routeMap - переопределение части или всего маршрутизатора загружаемого компонента
@@ -245,13 +241,9 @@ class Controller
         if ($action) {                        
             $componentName = $args;
         } else {
-            $componentName = Site::getGroup() ? Site::getGroup() : 'index';            
-            AppBuilder::addBreadcrumb('Информер', '/'.Site::getGroup());            
-            if (!empty($args)) {                
-                $componentPiece = explode('/', $args, 2);                                
-                $componentName .= '.' . $componentPiece[0];                   
-                $paramsRow = $componentPiece[1];                
-            }
+            AppRouter::setModData($args);
+            AppBuilder::addBreadcrumb('Информер', '/'.Site::getGroup());
+            $componentName = Site::getModName();
         }
         
         $includeResult = self::includeComponentFiles($componentName);
@@ -283,7 +275,7 @@ class Controller
             return Form::warning("Класс модели {$componentModel} компонента '{$componentName}' не найден");
         }
         
-        $component = new $componentController($componentName, $action, $actionArgs, $paramsRow, $routeMap);                
+        $component = new $componentController($componentName, $action, $actionArgs, $routeMap);
         $component->init($componentModel);
 
         if (Base::getConfig('debug > component_debug') && $componentName != 'component_debug') {
@@ -350,7 +342,9 @@ class Controller
             $this->model->debugInfo =& $this->debugInfo;
         }
 
-        $title = $actionParams['title'] ? $actionParams['title'] : self::DEFAULT_TITLE;
+        $title = $actionParams['title']
+            ? $actionParams['title']
+            : ($this->routeMap['title'] ? $this->routeMap['title'] : self::DEFAULT_TITLE);
 
         if ($this->routeMap['add_breadcrumb']) {
             AppBuilder::addBreadcrumb($this->routeMap['title'] ? $this->routeMap['title'] : self::DEFAULT_TITLE, Site::getModUrl());

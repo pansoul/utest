@@ -2,6 +2,9 @@
 
 namespace UTest\Kernel;
 
+use UTest\Kernel\User\User;
+use UTest\Kernel\Site;
+
 class Utilities
 {
     private function __construct()
@@ -113,5 +116,14 @@ class Utilities
         while ($res = DB::table($table)->where('alias', '=', $alias)->first()) {
             $alias .= '-1';
         }
+    }
+
+    public static function getUserUploadedDir($relative = false)
+    {
+        $dir = UPLOADS_PATH . '/' . Site::getGroup() . '-' . User::user()->getUID() . '/' . Site::getModName();
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755);
+        }
+        return $relative ? substr($dir, strlen(ROOT)) : $dir;
     }
 }

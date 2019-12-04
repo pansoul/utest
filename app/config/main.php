@@ -16,6 +16,11 @@ define('APP_PATH', ROOT . '/app');
 define('THEMES_PATH', ROOT . '/themes');
 
 /**
+ * Путь к разделу с загружаемыми файлами
+ */
+define('UPLOADS_PATH', ROOT . '/uploads');
+
+/**
  * Путь, где находится файл настроек приложения
  */
 define('APP_CONFIG_PATH', __DIR__);

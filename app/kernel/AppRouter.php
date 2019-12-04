@@ -43,31 +43,10 @@ class AppRouter
         elseif (Site::getGroup() && (!User::isAuth() || Site::getGroup() != User::user()->getRoleRootGroup())) {
             $builder->build(false, LAYOUT_404);
         } else {
-            $builder->build(Controller::loadComponent(Site::getModParamsRow()), $layout);
+            $builder->build(Controller::loadComponent(Site::getUrl()), $layout);
         }
 
         $builder->show();
-    }
-
-    private function fillSiteData()
-    {
-        // Сформируем корректный и унифицированный алиас для дальнейшей работы
-        $url = explode('?', $this->request->getServer('REQUEST_URI'), 2);
-        $url = array_filter(explode('/', strtolower($url[0])));
-        $url = '/' . implode('/', $url);
-
-        // Найдём переданную [группу] и [контроллер-акшн-параметры], если таковы имеются
-        $exploded = explode('/', strtolower($url), 3);
-        $group = $exploded[1];
-        $args = @$exploded[2];
-
-        Site::setUrl($url);
-        Site::setGroup($group);
-        Site::setModParamsRow($args);
-
-        if (User::isAuth()) {
-            // @todo установить константы url'ов и др. данных пользователя
-        }
     }
 
     private function getLayoutPage($url)
@@ -79,5 +58,50 @@ class AppRouter
         } else {
             throw new AppException('Не задан шаблон по умолчанию');
         }
+    }
+
+    // @todo продумать над связкой функций [fillSiteData, setModData]
+    private function fillSiteData()
+    {
+        // Сформируем корректный и унифицированный url для дальнейшей работы
+        $url = explode('?', $this->request->getServer('REQUEST_URI'), 2);
+        $url = array_filter(explode('/', strtolower($url[0])));
+        $url = '/' . implode('/', $url);
+
+        // Найдём группу из url
+        $exploded = explode('/', $url, 4);
+        $group = @$exploded[1];
+
+        Site::setUrl($url);
+        Site::setGroup($group);
+
+        self::setModData($url);
+
+        if (User::isAuth()) {
+            // @todo установить константы url'ов и др. данных пользователя
+        }
+    }
+
+    // @todo продумать над связкой функций [fillSiteData, setModData]
+    public static function setModData($url = '')
+    {
+        // Найдём имя компонента и акшн-параметры из url
+        $exploded = explode('/', $url, 4);
+        $group = @$exploded[1];
+        $controller = @$exploded[2];
+        $args = @$exploded[3];
+
+        $componentName = $group ? $group : 'index';
+        if ($controller) {
+            $componentName .= '.' . $controller;
+        }
+
+        if ($args) {
+            $args = '/' . $args;
+        }
+
+        Site::setModParamsRow($args);
+        Site::setModName($componentName);
+        Site::setModUrl('/' . str_replace('.', '/', $componentName));
     }
 }

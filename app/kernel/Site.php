@@ -27,13 +27,14 @@ class Site
     /**
      * Url текущего модуля (компонента).
      * Url именно того модуля, что был вызван через адресную строку.
-     * Представляем из себя запись вида "/group/modName/"
+     * Представляем из себя запись вида "/group/modName"
      * @var string
      */
     private static $modUrl = '';
 
     /**
-     * Часть url, представляющая из себя строку параметров модуля (компонента)
+     * Часть url, представляющая из себя строку параметров модуля (компонента).
+     * Представляем из себя запись вида "{/group/modName}/action/..."
      * @var string
      */
     private static $modParamsRow = '';
@@ -49,35 +50,33 @@ class Site
         header('Status: 404 Not Found');
     }
 
-    public static function setUrl($url)
+    public static function setUrl($url = '')
     {
-        self::$url = (string)$url;
-    }
-
-    public static function setGroup($group)
-    {
-        self::$group = (string)$group;
-    }
-
-    public static function setModName($name)
-    {
-        if (!self::$modName) {
-            self::$modName = (string) $name;
+        if (!self::$url) {
+            self::$url = (string) $url;
         }
     }
 
-    public static function setModUrl($url)
+    public static function setGroup($group = '')
     {
-        if (!self::$modUrl) {
-            self::$modUrl = (string) $url;
+        if (!self::$group) {
+            self::$group = (string) $group;
         }
     }
 
-    public static function setModParamsRow($args)
+    public static function setModName($name = '')
     {
-        if (!self::$modParamsRow) {
-            self::$modParamsRow = (string) $args;
-        }
+        self::$modName = (string) $name;
+    }
+
+    public static function setModUrl($url = '')
+    {
+        self::$modUrl = (string) $url;
+    }
+
+    public static function setModParamsRow($args = '')
+    {
+        self::$modParamsRow = (string) $args;
     }
 
     public static function getUrl()

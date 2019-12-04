@@ -1,2 +1,9 @@
 /nbproject/
 /.idea/
+/uploads/
+/app/composer/*
+!/app/composer/composer.json
+!/app/composer/composer.lock
+/*.txt
+/*.log
+/*.sql

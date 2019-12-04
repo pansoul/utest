@@ -28,7 +28,9 @@ class Model extends TemplateResult
 
     final public function doAction($action = self::ACTION_DEFAULT, $args = array())
     {
-        $method = $action . 'Action';
+        $action = str_replace('-', '_', $action);
+        $exploded = explode('_', $action);
+        $method = join('', $exploded) . 'Action';
         $args = (array) $args;
 
         if (Base::getConfig('debug > component_debug')) {
