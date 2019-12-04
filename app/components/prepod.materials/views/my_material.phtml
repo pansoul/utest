@@ -1,0 +1,64 @@
+<?
+use UTest\Kernel\Form;
+use UTest\Kernel\Site;
+use UTest\Kernel\Utilities;
+
+$arTitles = array(
+    Form::checkbox('check_all', 1, false, 'check-all'),
+    'ID',
+    'Дата загрузки',
+    'Название документа',
+    'Размер',
+    'Формат',
+    'Скачать файл',
+    'Управление'
+);
+
+if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) {
+    echo Form::error($this->getErrors(ERROR_ELEMENT_NOT_FOUND));
+    return;
+}
+
+$items = $data;
+?>
+
+<div class="setting-panel">
+    <?=Form::btnNew('Загрузить новый материал', Site::getUrl() . '/new')?>
+</div>
+
+<?
+if (count($items) == 0) {
+    echo Form::info('Список пуст');
+    return;
+}
+?>
+
+<form action="" method="post" class="formaction">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <?foreach($arTitles as $title):?>
+                    <th><?=$title?></th>
+                <?endforeach?>
+            </tr>
+        </thead>
+        <tbody>
+            <?foreach($items as $k => $v):?>
+                <tr>
+                    <td class="checkbox-column"><?=Form::checkbox("i[]", $v['id'], 'check-one')?></td>
+                    <td><?=$v['id']?></td>
+                    <td><?=date("d.m.Y",strtotime($v['date']))?></td>
+                    <td><?=$v['filename']?></td>
+                    <td><?=Utilities::bytesToSize($v['size'])?></td>
+                    <td><?=$v['extension']?></td>
+                    <td>[<a href="?download=<?=$v['id']?>">скачать</a>]</td>
+                    <td class="last-column">
+                        <?=Form::btnEdit(Site::getUrl() . '/edit/' . $v['id'])?>
+                        <?=Form::btnDelete(Site::getModurl() . '/delete/my/' . $v['id'])?>
+                    </td>
+                </tr>
+            <?endforeach?>
+        </tbody>
+    </table>
+    <?=Form::button('Удалить выбранные', 'btn btn-danger delete-selected', 'del_all', 'Y', 'submit', true)?>
+</form>

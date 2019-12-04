@@ -5,36 +5,13 @@ namespace UTest\Components;
 use UTest\Kernel\DB;
 use UTest\Kernel\User\User;
 use UTest\Kernel\Site;
+use UTest\Kernel\Utilities;
+use \Verot\Upload\Upload;
 
 class PrepodMaterialsModel extends \UTest\Kernel\Component\Model
 {
-    private $dir = '/uploads/materials';
-    private $table_subject = 'u_prepod_subject';
-    private $table_material = 'u_prepod_material';
-    private $table_student_material = 'u_student_material';
-    private $table_group = 'u_univer_group';
-
     public function myAction()
     {
-        /*if ($this->isActionRequest('del_all')) {
-            foreach ($this->_POST['i'] as $id) {
-                if (!$id) {
-                    continue;
-                }
-                
-                $res = DB::table(TABLE_PREPOD_MATERIAL)
-                    ->where('id', '=', $id)
-                    ->where('user_id', '=', User::user()->getUID())
-                    ->first();
-
-                dump($res);die;
-
-                @unlink(ROOT . $res['filepath']);
-
-            }
-            Site::redirect(Site::getUrl());
-        }*/
-
         $res = DB::table(TABLE_PREPOD_SUBJECT)
             ->select(
                 TABLE_PREPOD_SUBJECT.'.*',
@@ -46,434 +23,375 @@ class PrepodMaterialsModel extends \UTest\Kernel\Component\Model
             ->orderBy(TABLE_PREPOD_SUBJECT.'.title')
             ->get();
 
-        /*$res = R::find($this->table_subject, 'user_id = ? ORDER BY title', array(User::user()->getUID()));
-        foreach ($res as &$item) {
-            $item['material_count'] = R::count($this->table_material, 'subject_id = :sid AND user_id = :uid ', array(
-                ':sid' => $item['id'],
-                ':uid' => User::user()->getUID()
-            ));
-        }
-
-        if ($this->vars['subject_code']) {
-            $parent = R::findOne($this->table_subject, '`alias` = :alias AND user_id = :uid ', array(
-                ':alias' => $this->vars['subject_code'],
-                ':uid' => User::user()->getUID()
-            ));
-            $res = R::find($this->table_material, 'subject_id = ? ORDER BY date', array($parent->id));
-            if ($parent) {
-                UAppBuilder::addBreadcrumb($parent['title'], Site::getUrl());
-
-                if ($this->_GET['download']) {
-                    $this->fileDownload($this->_GET['download']);
-                }
-            }
-        }*/
-
         $this->setData($res);
     }
 
-    function myMaterialAction($subjectCode)
+    public function myMaterialAction($subjectCode)
     {
+        if ($this->isActionRequest('del_all')) {
+            foreach ($this->_POST['i'] as $id) {
+                if (!$id) {
+                    continue;
+                }
 
+                $res = DB::table(TABLE_PREPOD_MATERIAL)
+                    ->where('id', '=', $id)
+                    ->where('user_id', '=', User::user()->getUID())
+                    ->first();
+
+                if ($res) {
+                    @unlink(ROOT . $res['filepath']);
+                    DB::table(TABLE_PREPOD_MATERIAL)->delete($id);
+                }
+            }
+            Site::redirect(Site::getUrl());
+        }
+
+        $parent = DB::table(TABLE_PREPOD_SUBJECT)
+            ->where('alias', '=', $subjectCode)
+            ->where('user_id', '=', User::user()->getUID())
+            ->first();
+        $res = DB::table(TABLE_PREPOD_MATERIAL)
+            ->where('subject_id', '=', $parent['id'])
+            ->where('user_id', '=', User::user()->getUID())
+            ->orderBy('date')
+            ->get();
+
+        if (!$parent) {
+            $this->setErrors('Предмет не найден', ERROR_ELEMENT_NOT_FOUND);
+        }
+
+        $this->setData($res);
+        return $parent;
+    }
+
+    public function myNewAction($v = array())
+    {
+        $subject = $this->myMaterialAction($this->vars['subject_code']);
+        if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) {
+            $this->setData(null);
+            return;
+        }
+
+        $subjectList = DB::table(TABLE_PREPOD_SUBJECT)
+            ->where('user_id', '=', User::user()->getUID())
+            ->orderBy('title')
+            ->get()
+            ->toArray();
+        $subjectList = array_reduce($subjectList, function($acc, $item){
+            $acc[$item['id']] = $item['title'];
+            return $acc;
+        }, []);
+
+        if ($this->isActionRequest()) {
+            $this->clearErrors();
+            $v = $this->_POST;
+            $required = array(
+                'filename' => 'Укажите название документа',
+                'subject_id' => 'Выберите предмет'
+            );
+
+            foreach ($required as $k => $message) {
+                if (empty($v[$k])) {
+                    $this->setErrors($message);
+                }
+            }
+
+            if (!$v['id'] && empty($_FILES['material']['name'])) {
+                $this->setErrors('Выберите файл');
+            }
+
+            if (!$this->hasErrors()) {
+                $dataRow = [
+                    'filename' => $v['filename'],
+                    'subject_id' => isset($subjectList[$v['subject_id']]) ? $v['subject_id'] : $subject['id']
+                ];
+                if (!$v['id']) {
+                    $dataRow['date'] = Utilities::getDateTime();
+                    $dataRow['user_id'] = User::user()->getUID();
+                }
+
+                $upload = new Upload($_FILES['material']);
+                if ($upload->uploaded) {
+                    $upload->file_new_name_body = md5($upload->file_src_name_body . microtime(true));
+                    $upload->process(Utilities::getUserUploadedDir());
+                    if (!$upload->processed) {
+                        $this->setErrors($upload->error);
+                    } else {
+                        $dataRow['extension'] = $upload->file_src_name_ext;
+                        $dataRow['size'] = $upload->file_src_size;
+                        $dataRow['filename_original'] = $upload->file_src_name_body;
+                        $dataRow['filepath'] = Utilities::getUserUploadedDir(true) . '/' . $upload->file_dst_name;
+                        $upload->clean();
+                    }
+                }
+
+                // @todo прочекать у всех компонентов верные атрибуты для обновления/создания элемента
+                if (DB::table(TABLE_PREPOD_MATERIAL)->updateOrInsert(['id' => $v['id'], 'user_id' => User::user()->getUID()], $dataRow)) {
+                    Site::redirect(Site::getModurl() . '/my/' . $this->vars['subject_code']);
+                } else {
+                    @unlink($upload->file_dst_pathname);
+                }
+            }
+        } else {
+            $v['subject_id'] = $subject['id'];
+        }
+
+        $this->setData([
+            'form' => $v,
+            'subject_list' => $subjectList
+        ]);
+    }
+
+    public function myEditAction($id)
+    {
+        $v = DB::table(TABLE_PREPOD_MATERIAL)
+            ->where('user_id', '=', User::user()->getUID())
+            ->where('id', '=', $id)
+            ->first();
+        if (!$v['id']) {
+            $this->setErrors('Материал не найдена', ERROR_ELEMENT_NOT_FOUND);
+        }
+        return $this->myNewAction($v);
     }
 
     public function forAction()
     {
-        // если есть данные о выбранной группе
-        if ($this->vars['group_code']) {
-            $gparent = R::findOne($this->table_group, '`alias` = ?', array($this->vars['group_code']));
+        $res = DB::table(TABLE_UNIVER_GROUP)
+            ->select(
+                TABLE_UNIVER_GROUP.'.*',
+                TABLE_UNIVER_SPECIALITY.'.title as speciality_title',
+                TABLE_UNIVER_FACULTY.'.title as faculty_title'
+            )
+            ->leftJoin(TABLE_UNIVER_SPECIALITY, TABLE_UNIVER_SPECIALITY.'.id', '=', TABLE_UNIVER_GROUP.'.speciality_id')
+            ->leftJoin(TABLE_UNIVER_FACULTY, TABLE_UNIVER_FACULTY.'.id', '=', TABLE_UNIVER_SPECIALITY.'.faculty_id')
+            ->orderBy(TABLE_UNIVER_GROUP.'.title')
+            ->get();
 
-            // группа найдена
-            if ($gparent) {
-                UAppBuilder::addBreadcrumb($gparent['title'], Site::getModurl() . '/for/' . $gparent['alias']);
-
-                // если есть данные о выбранном предмете
-                if ($this->vars['subject_code']) {
-                    $sparent = R::findOne($this->table_subject, '`alias` = :alias AND user_id = :uid ', array(
-                        ':alias' => $this->vars['subject_code'],
-                        ':uid' => User::user()->getUID()
-                    ));
-
-                    // предмет найден
-                    if ($sparent) {
-                        UAppBuilder::addBreadcrumb($sparent['title'], Site::getUrl());
-
-                        if ($this->_POST['del_all']) {
-                            foreach ($this->_POST['i'] as $item) {
-                                if (!$item) {
-                                    continue;
-                                }
-
-                                $sql = "
-                                    SELECT s.*
-                                    FROM {$this->table_student_material} AS s 
-                                    LEFT JOIN {$this->table_material} AS p 
-                                        ON (s.subject_id = p.subject_id)
-                                    WHERE
-                                        s.id = {$item}
-                                        AND s.comment IS NOT NULL
-                                        AND p.user_id = " . User::user()->getUID() . "                                
-                                ";
-                                $record = R::getAll($sql);
-                                $comment = R::convertToBeans($this->table_student_material, $record);
-                                R::trash(reset($comment));
-                            }
-                            Site::redirect(Site::getUrl());
-                        }
-
-                        $sql = "
-                            SELECT s.*, p.filename, p.size, p.extension
-                            FROM {$this->table_student_material} AS s 
-                            LEFT JOIN {$this->table_material} AS p 
-                                ON (s.material_id = p.id)
-                            WHERE
-                                s.group_id = {$gparent['id']}
-                                AND s.is_hidden = 0
-                                AND s.comment IS NULL
-                                AND p.subject_id = {$sparent['id']}
-                                AND p.user_id = " . User::user()->getUID() . "                                
-                            ORDER BY p.filename
-                        ";
-                        $res = R::getAll($sql);
-                        /* $sql = "
-                          SELECT s.*
-                          FROM :s AS s
-                          LEFT JOIN `:p` AS p
-                          ON (s.material_id = p.id)
-                          WHERE
-                          s.group_id = :gid
-                          AND p.subject_id = :sid
-                          AND p.user_id = :uid
-                          ";
-                          $res = R::getAll($sql, array(
-                          ':s' => 'test',
-                          ':p' => $this->table_material,
-                          ':gid' => $gparent['id'],
-                          ':sid' => $sparent['id'],
-                          ':uid' => User::user()->getUID()
-                          )); */
-                        $records = R::getAll($sql);
-                        $res = R::convertToBeans($this->table_student_material, $records);
-
-                        $sql = "
-                            SELECT DISTINCT s.*
-                            FROM {$this->table_student_material} AS s 
-                            LEFT JOIN {$this->table_material} AS p 
-                                ON (s.subject_id = p.subject_id)
-                            WHERE
-                                s.group_id = {$gparent['id']}
-                                AND s.comment IS NOT NULL
-                                AND s.subject_id = {$sparent['id']}
-                                AND p.user_id = " . User::user()->getUID() . "                                
-                            ORDER BY s.date DESC
-                        ";
-                        $records = R::getAll($sql);
-                        $comments = R::convertToBeans($this->table_student_material, $records);
-                    }
-                } else {
-                    $res = R::find($this->table_subject, 'user_id = ? ORDER BY title', array(User::user()->getUID()));
-                }
-            }
-        } // Выбор групп
-        else {
-            $res = R::findAll($this->table_group, 'ORDER BY title');
-        }
-        return $this->returnResult(array(
-            'form' => $res,
-            'comments' => $comments
-        ));
+        $this->setData($res);
     }
 
-    public function newMyAction($v = array())
+    public function forSubjectAction($groupCode)
     {
-        $this->errors = array();
-        if ($this->vars['in']) {
-            $r = R::findOne($this->table_subject, 'user_id = :uid AND `alias` = :alias', array(
-                ':uid' => User::user()->getUID(),
-                ':alias' => $this->vars['in']
-            ));
-            if ($r) {
-                $v['subject_id'] = $r['id'];
-                $in = '/my/' . $r['alias'];
-                UAppBuilder::addBreadcrumb($r['title'], Site::getModurl() . '/my/' . $r['alias']);
-            }
-        } elseif ($this->vars['id']) {
-            $_r = R::load($this->table_material, $this->vars['id']);
-            $r = R::load($this->table_subject, $_r['subject_id']);
-            if ($r) {
-                $in = '/my/' . $r['alias'];
-                UAppBuilder::addBreadcrumb($r['title'], Site::getModurl() . $in);
-            }
+        $group = DB::table(TABLE_UNIVER_GROUP)->where('alias', '=', $groupCode)->first();
+
+        $res = DB::table(TABLE_PREPOD_SUBJECT)
+            ->select(
+                TABLE_PREPOD_SUBJECT.'.*',
+                DB::raw('count('.TABLE_STUDENT_MATERIAL.'.id) as material_count')
+            )
+            ->leftJoin(TABLE_STUDENT_MATERIAL, function($join) use ($group) {
+                $join->on(TABLE_STUDENT_MATERIAL.'.subject_id', '=', TABLE_PREPOD_SUBJECT.'.id')
+                    ->where(TABLE_STUDENT_MATERIAL.'.group_id', '=', $group['id'])
+                    ->where(TABLE_STUDENT_MATERIAL.'.is_hidden', '=', 0);
+            })
+            ->where(TABLE_PREPOD_SUBJECT.'.user_id', '=', User::user()->getUID())
+            ->groupBy(TABLE_PREPOD_SUBJECT.'.id')
+            ->orderBy(TABLE_PREPOD_SUBJECT.'.title')
+            ->get();
+
+        if (!$group) {
+            $this->setErrors('Группа не найдена', ERROR_ELEMENT_NOT_FOUND);
         }
-        if ($this->_POST['a']) {
-            $v = $this->_POST;
 
-            if (!$v['filename']) {
-                $this->errors[] = 'Укажите название документа';
-            }
-            if (!$v['id'] && empty($_FILES['material']['name'])) {
-                $this->errors[] = 'Выберите файл';
-            }
+        $this->setData($res);
+        return $group;
+    }
 
-            if (empty($this->errors)) {
-                if ($v['id']) {
-                    $dataRow = R::findOne($this->table_material, 'user_id = :uid AND id = :id', array(
-                        ':uid' => User::user()->getUID(),
-                        ':id' => $v['id']
-                    ));
-                } else {
-                    $dataRow = R::dispense($this->table_material);
-                    $dataRow->user_id = User::user()->getUID();
+    public function forMaterialAction($groupCode, $subjectCode)
+    {
+        $group = $this->forSubjectAction($groupCode);
+        if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) {
+            $this->setData(null);
+            return;
+        }
+
+        $subject = DB::table(TABLE_PREPOD_SUBJECT)
+            ->where('alias', '=', $subjectCode)
+            ->where('user_id', '=', User::user()->getUID())
+            ->first();
+        $res = DB::table(TABLE_STUDENT_MATERIAL)
+            ->select(
+                TABLE_STUDENT_MATERIAL.'.*',
+                TABLE_PREPOD_MATERIAL.'.extension',
+                TABLE_PREPOD_MATERIAL.'.size',
+                TABLE_PREPOD_MATERIAL.'.filename'
+            )
+            ->leftJoin(TABLE_PREPOD_MATERIAL, TABLE_PREPOD_MATERIAL.'.id', '=', TABLE_STUDENT_MATERIAL.'.material_id')
+            ->where(TABLE_STUDENT_MATERIAL.'.group_id', '=', $group['id'])
+            ->where(TABLE_STUDENT_MATERIAL.'.subject_id', '=', $subject['id'])
+            ->where(TABLE_STUDENT_MATERIAL.'.is_hidden', '=', 0)
+            ->orderBy(TABLE_STUDENT_MATERIAL.'.date', 'desc')
+            ->get();
+
+        if (!$subject) {
+            $this->setErrors('Дисципина не найдена', ERROR_ELEMENT_NOT_FOUND);
+        }
+
+        if ($this->isActionRequest('del_all')) {
+            foreach ($this->_POST['i'] as $id) {
+                if (!$id) {
+                    continue;
                 }
 
-                $dataRow->filename = $v['filename'];
-                $dataRow->subject_id = $v['subject_id'];
-                // file upload
-                $pathInfo = pathinfo($_FILES['material']['name']);
-                $fileName = time();
-                $fileExt = $pathInfo['extension'];
+                $res = DB::table(TABLE_STUDENT_MATERIAL)
+                    ->where('id', '=', $id)
+                    ->where('group_id', '=', $group['id'])
+                    ->where('subject_id', '=', $subject['id'])
+                    ->first();
 
-                $dirMaterials = ROOT . $this->dir;
-                if (!is_dir($dirMaterials)) {
-                    mkdir($dirMaterials, 0755);
-                }
-
-                $dirMatPrepod = $dirMaterials . '/p-' . User::user()->getUID();
-                if (!is_dir($dirMatPrepod)) {
-                    mkdir($dirMatPrepod, 0755);
-                }
-
-                $filePath = $this->dir . '/p-' . User::user()->getUID() . '/' . $fileName . '.' . $fileExt;
-                $rootFilePath = ROOT . $filePath;
-                if (!empty($_FILES['material']['name'])) {
-                    if (is_uploaded_file($_FILES['material']['tmp_name'])) {
-                        if (move_uploaded_file($_FILES['material']['tmp_name'], $rootFilePath)) {
-                            $dataRow->date = UAppBuilder::getDateTime();
-                            $dataRow->filename_original = $pathInfo['filename'];
-                            $dataRow->filepath = $filePath;
-                            $dataRow->size = $_FILES['material']['size'];
-                            $dataRow->extension = $fileExt;
-                        } else {
-                            $this->errors[] = 'Ошибка при перемещении загруженного файла';
-                        }
+                if ($res) {
+                    if (!empty($res['comment'])) {
+                        DB::table(TABLE_STUDENT_MATERIAL)->delete($id);
                     } else {
-                        $this->errors[] = 'Ошибка при загрузке файла';
-                    }
-                }
-
-                if (empty($this->errors)) {
-                    if (R::store($dataRow)) {
-                        Site::redirect(Site::getModurl() . $in);
+                        DB::table(TABLE_STUDENT_MATERIAL)->updateOrInsert(['id' => $id], ['is_hidden' => 1]);
                     }
                 }
             }
+            Site::redirect(Site::getUrl());
         }
-        $_list = R::find($this->table_subject, 'user_id = ?', array(User::user()->getUID()));
-        $sList = array();
-        foreach ($_list as $k => $j) {
-            $sList[$k] = $j['title'];
-        }
-        return $this->returnResult(array(
-            'form' => $v,
-            'subject_list' => $sList
-        ));
+
+        $this->setData($res);
+
+        return [
+            'group' => $group,
+            'subject' => $subject
+        ];
     }
 
-    public function newForAction()
+    public function forNewAction()
     {
-        if ($this->vars['group_code']) {
-            $gparent = R::findOne($this->table_group, '`alias` = ?', array($this->vars['group_code']));
-
-            // группа найдена
-            if ($gparent) {
-                UAppBuilder::addBreadcrumb($gparent['title'], Site::getModurl() . '/for/' . $gparent['alias']);
-
-                // если есть данные о выбранном предмете
-                if ($this->vars['subject_code']) {
-                    $sparent = R::findOne($this->table_subject, '`alias` = :alias AND user_id = :uid ', array(
-                        ':alias' => $this->vars['subject_code'],
-                        ':uid' => User::user()->getUID()
-                    ));
-
-                    // предмет найден
-                    if ($sparent) {
-                        $in = '/for/' . $gparent['alias'] . '/' . $sparent['alias'];
-                        UAppBuilder::addBreadcrumb($sparent['title'], Site::getModurl() . $in);
-
-                        // Находим спсисок тех документов, что выложенны в данный момент для группы
-                        $sql = "
-                            SELECT s.*, p.filename, p.size, p.extension
-                            FROM {$this->table_student_material} AS s 
-                            LEFT JOIN {$this->table_material} AS p 
-                                ON (s.material_id = p.id)
-                            WHERE
-                                s.group_id = {$gparent['id']}
-                                AND s.is_hidden = 0
-                                AND s.comment IS NULL
-                                AND p.subject_id = {$sparent['id']}
-                                AND p.user_id = " . User::user()->getUID() . "                                
-                            ORDER BY p.filename
-                        ";
-                        $records = R::getAll($sql);
-                        $_list = R::convertToBeans($this->table_student_material, $records);
-                        $activeList = array();
-                        foreach ($_list as $k => $j) {
-                            $activeList[] = $j['material_id'];
-                        }
-
-                        // Находим массив всех доступных документов по выбранному предмету
-                        $_list = R::find($this->table_material, 'user_id = :uid AND subject_id = :sid', array(
-                            ':uid' => User::user()->getUID(),
-                            ':sid' => $sparent['id']
-                        ));
-                        $sList = array();
-                        foreach ($_list as $k => $j) {
-                            $sList[$k] = $j['filename'] . '.' . $j['extension'] . ' (' . UAppBuilder::bytesToSize($j['size']) . ')';
-                        }
-
-                        // Запрос на сохранение
-                        if ($this->_POST['a']) {
-                            $curList = $this->_POST['materials'];
-                            $diffList = $curList === null ? $sList : array_diff($activeList, $curList);
-                            foreach ($curList as $id) {
-                                $r = R::findOrDispense($this->table_student_material,
-                                    'material_id = :mid AND group_id = :gid', array(
-                                        ':mid' => $id,
-                                        ':gid' => $gparent['id']
-                                    ));
-                                $dataRow = reset($r);
-                                if (!$dataRow->id) {
-                                    $dataRow->group_id = $gparent['id'];
-                                    $dataRow->subject_id = $sparent['id'];
-                                    $dataRow->material_id = $id;
-                                    $dataRow->date = UAppBuilder::getDateTime();
-                                    $dataRow->is_hidden = 0;
-                                } elseif ($dataRow->is_hidden) {
-                                    $dataRow->date = UAppBuilder::getDateTime();
-                                    $dataRow->is_hidden = 0;
-                                } else {
-                                    $dataRow->is_hidden = 0;
-                                }
-
-                                R::store($dataRow);
-                            }
-                            foreach ($diffList as $k => $j) {
-                                $id = $curList === null ? $k : $j;
-                                $dataRow = R::findOne($this->table_student_material,
-                                    'material_id = :mid AND group_id = :gid', array(
-                                        ':mid' => $id,
-                                        ':gid' => $gparent['id']
-                                    ));
-                                $dataRow->is_hidden = 1;
-                                R::store($dataRow);
-                            }
-                            Site::redirect(Site::getModurl() . $in);
-                        }
-                    }
-                }
-            }
+        list('group' => $group, 'subject' => $subject) = $this->forMaterialAction($this->vars['group_code'], $this->vars['subject_code']);
+        if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) {
+            $this->setData(null);
+            return;
         }
 
-        return $this->returnResult(array(
+        // Общий список файлов
+        $docList = DB::table(TABLE_PREPOD_MATERIAL)
+            ->where('user_id', '=', User::user()->getUID())
+            ->where('subject_id', '=', $subject['id'])
+            ->get()
+            ->toArray();
+        $docList = array_reduce($docList, function($acc, $item){
+            $acc[$item['id']] = $item['filename'] . '.' . $item['extension'];
+            return $acc;
+        }, []);
+
+        // Текущий список файлов для группы
+        $curActiveList = DB::table(TABLE_STUDENT_MATERIAL)
+            ->select('material_id')
+            ->where('group_id', '=', $group['id'])
+            ->where('subject_id', '=', $subject['id'])
+            ->where('is_hidden', '=', 0)
+            ->get()
+            ->toArray();
+        $curActiveList = $activeList = array_reduce($curActiveList, function($acc, $item){
+            $acc[] = $item['material_id'];
+            return $acc;
+        }, []);
+
+        if ($this->isActionRequest()) {
+            $this->clearErrors();
+
+            $materials = $activeList = (array) array_values(array_intersect(array_keys($docList), $this->_POST['materials']));
+            $unchanged = array_intersect($curActiveList, $materials);
+            $fullMaterials = array_keys(array_flip($curActiveList) + array_flip($materials));
+            $fullMaterials = array_diff($fullMaterials, $unchanged);
+
+            $seekRow = [
+                'group_id' => $group['id'],
+                'subject_id' => $subject['id']
+            ];
+
+            foreach ($fullMaterials as $materialId) {
+                $dataRow = [];
+                $seekRow['material_id'] = $materialId;
+                $isExists = DB::table(TABLE_STUDENT_MATERIAL)->where($seekRow)->exists();
+
+                // Обновление
+                if ($isExists) {
+                    $dataRow['is_hidden'] = intval(in_array($materialId, $curActiveList));
+                }
+                // Создание
+                else {
+                    $dataRow += $seekRow;
+                    $dataRow['is_hidden'] = 0;
+                }
+
+                $dataRow['date'] = Utilities::getDateTime();
+                DB::table(TABLE_STUDENT_MATERIAL)->updateOrInsert($seekRow, $dataRow);
+            }
+
+            Site::redirect(Site::getModurl() . '/for/' . $group['alias'] . '/' . $subject['alias']);
+        }
+
+        $this->setData([
             'active_list' => $activeList,
-            'all_list' => $sList
-        ));
+            'doc_list' => $docList
+        ]);
     }
 
-    public function newCommentAction($v = array())
+    public function forNewCommentAction($v = array())
     {
-        $this->errors = array();
-        if ($this->vars['id']) {
-            $res = $v;
-            $this->vars['group_code'] = $v['group_code'];
-            $this->vars['subject_code'] = $v['subject_code'];
+        list('group' => $group, 'subject' => $subject) = $this->forMaterialAction($this->vars['group_code'], $this->vars['subject_code']);
+        if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) {
+            $this->setData(null);
+            return;
         }
-        if ($this->vars['group_code']) {
-            $gparent = R::findOne($this->table_group, '`alias` = ?', array($this->vars['group_code']));
 
-            // группа найдена
-            if ($gparent) {
-                UAppBuilder::addBreadcrumb($gparent['title'], Site::getModurl() . '/for/' . $gparent['alias']);
+        if ($this->isActionRequest()) {
+            $this->clearErrors();
+            $v = $this->_POST;
+            if (empty($v['comment'])) {
+                $this->setErrors('Заполните комментарий');
+            }
 
-                // если есть данные о выбранном предмете
-                if ($this->vars['subject_code']) {
-                    $sparent = R::findOne($this->table_subject, '`alias` = :alias AND user_id = :uid ', array(
-                        ':alias' => $this->vars['subject_code'],
-                        ':uid' => User::user()->getUID()
-                    ));
+            if (!$this->hasErrors()) {
+                $seekRow = [
+                    'group_id' => $group['id'],
+                    'subject_id' => $subject['id'],
+                    'id' => $v['id']
+                ];
+                $dataRow = [
+                    'group_id' => $group['id'],
+                    'subject_id' => $subject['id'],
+                    'comment' => $v['comment'],
+                    'date' => Utilities::getDateTime(),
+                    'is_hidden' => 0
+                ];
 
-                    // предмет найден
-                    if ($sparent) {
-                        $in = '/for/' . $gparent['alias'] . '/' . $sparent['alias'];
-                        UAppBuilder::addBreadcrumb($sparent['title'], Site::getModurl() . $in);
-
-                        // Запрос на изменение
-                        if ($this->_POST['a']) {
-                            $v = $this->_POST;
-
-                            if (!$v['comment']) {
-                                $this->errors[] = "Заполните текст комментария";
-                            }
-
-                            if (empty($this->errors)) {
-                                $r = R::findOrDispense($this->table_student_material, 'id = ?', array($v['id']));
-                                $dataRow = reset($r);
-                                $dataRow->comment = $v['comment'];
-                                if (!$dataRow->id) {
-                                    $dataRow->date = UAppBuilder::getDateTime();
-                                    $dataRow->group_id = $gparent['id'];
-                                    $dataRow->subject_id = $sparent['id'];
-                                }
-                                if (R::store($dataRow)) {
-                                    Site::redirect(Site::getModurl() . $in);
-                                }
-                            }
-                        }
-                    }
+                if (DB::table(TABLE_STUDENT_MATERIAL)->updateOrInsert($seekRow, $dataRow)) {
+                    Site::redirect(Site::getModurl() . '/for/' . $group['alias'] . '/' . $subject['alias']);
                 }
             }
         }
-        return $this->returnResult($res);
+
+        $this->setData($v);
     }
 
-    public function editMyAction($id)
+    public function forEditCommentAction($id)
     {
         if (!$id) {
             return;
         }
 
-        $v = R::findOne($this->table_material, 'id = :id AND user_id = :uid ', array(
-            ':id' => $id,
-            ':uid' => User::user()->getUID()
-        ));
-        return $this->newMyAction($v);
-    }
+        $v = DB::table(TABLE_STUDENT_MATERIAL)
+            ->select(TABLE_STUDENT_MATERIAL.'.*')
+            ->leftJoin(TABLE_UNIVER_GROUP, TABLE_UNIVER_GROUP.'.id', '=', TABLE_STUDENT_MATERIAL.'.group_id')
+            ->leftJoin(TABLE_PREPOD_SUBJECT, TABLE_PREPOD_SUBJECT.'.id', '=', TABLE_STUDENT_MATERIAL.'.subject_id')
+            ->where(TABLE_PREPOD_SUBJECT.'.user_id', '=', User::user()->getUID())
+            ->where(TABLE_STUDENT_MATERIAL.'.id', '=', $id)
+            ->where(TABLE_UNIVER_GROUP.'.alias', '=', $this->vars['group_code'])
+            ->where(TABLE_PREPOD_SUBJECT.'.alias', '=', $this->vars['subject_code'])
+            ->whereNotNull(TABLE_STUDENT_MATERIAL.'.comment')
+            ->first();
 
-    public function editCommentAction($id)
-    {
-        if (!$id) {
-            return;
+        if (!$v['id']) {
+            $this->setErrors('Комментарий не найден', ERROR_ELEMENT_NOT_FOUND);
         }
 
-        $sql = "
-            SELECT s.*, g.alias as group_code, j.alias as subject_code
-            FROM {$this->table_student_material} AS s 
-            LEFT JOIN {$this->table_material} AS p 
-                ON (s.subject_id = p.subject_id)
-            LEFT JOIN {$this->table_group} AS g 
-                ON (g.id = s.group_id)
-            LEFT JOIN {$this->table_subject} AS j 
-                ON (j.id = s.subject_id)
-            WHERE
-                s.id = {$id}
-                AND s.comment IS NOT NULL
-                AND p.user_id = " . User::user()->getUID() . "
-        ";
-        $record = R::getAll($sql);
-        $comment = R::convertToBeans($this->table_student_material, $record);
-        $v = reset($comment);
-
-        return $this->newCommentAction($v);
+        $this->forNewCommentAction($v);
     }
 
     public function deleteAction($type, $id)
@@ -483,53 +401,59 @@ class PrepodMaterialsModel extends \UTest\Kernel\Component\Model
         }
 
         if ($type == 'my') {
-            $bean = R::findOne($this->table_material, 'id = :id AND user_id = :uid ', array(
-                ':id' => $id,
-                ':uid' => User::user()->getUID()
-            ));
-            $subject = R::load($this->table_subject, $bean['subject_id']);
-            $toback = '/my/' . $subject['alias'];
-        } elseif ($type == 'comment') {
-            $sql = "
-                SELECT s.*, g.alias as group_code, j.alias as subject_code
-                FROM {$this->table_student_material} AS s 
-                LEFT JOIN {$this->table_material} AS p 
-                    ON (s.subject_id = p.subject_id)
-                LEFT JOIN {$this->table_group} AS g 
-                    ON (g.id = s.group_id)
-                LEFT JOIN {$this->table_subject} AS j 
-                    ON (j.id = s.subject_id)
-                WHERE
-                    s.id = {$id}
-                    AND s.comment IS NOT NULL
-                    AND p.user_id = " . User::user()->getUID() . "
-            ";
-            $record = R::getAll($sql);
-            $comment = R::convertToBeans($this->table_student_material, $record);
-            $bean = reset($comment);
+            $res = DB::table(TABLE_PREPOD_MATERIAL)
+                ->select(
+                    TABLE_PREPOD_MATERIAL.'.*',
+                    TABLE_PREPOD_SUBJECT.'.alias as subject_code'
+                )
+                ->leftJoin(TABLE_PREPOD_SUBJECT, TABLE_PREPOD_SUBJECT.'.id', '=', TABLE_PREPOD_MATERIAL.'.subject_id')
+                ->where(TABLE_PREPOD_MATERIAL.'.user_id', '=', User::user()->getUID())
+                ->where(TABLE_PREPOD_MATERIAL.'.id', '=', $id)
+                ->first();
 
-            $toback = '/for/' . $bean['group_code'] . '/' . $bean['subject_code'];
+            if ($res) {
+                @unlink(ROOT . $res['filepath']);
+                DB::table(TABLE_PREPOD_MATERIAL)->delete($id);
+                $back = '/my/' . $res['subject_code'];
+            }
+        }
+        elseif ($type == 'for') {
+
+            $res = DB::table(TABLE_STUDENT_MATERIAL)
+                ->select(
+                    TABLE_STUDENT_MATERIAL.'.comment',
+                    TABLE_UNIVER_GROUP.'.alias as group_code',
+                    TABLE_PREPOD_SUBJECT.'.alias as subject_code'
+                )
+                ->leftJoin(TABLE_PREPOD_MATERIAL, TABLE_PREPOD_MATERIAL.'.id', '=', TABLE_STUDENT_MATERIAL.'.material_id')
+                ->leftJoin(TABLE_UNIVER_GROUP, TABLE_UNIVER_GROUP.'.id', '=', TABLE_STUDENT_MATERIAL.'.group_id')
+                ->leftJoin(TABLE_PREPOD_SUBJECT, TABLE_PREPOD_SUBJECT.'.id', '=', TABLE_STUDENT_MATERIAL.'.subject_id')
+                ->where(TABLE_PREPOD_SUBJECT.'.user_id', '=', User::user()->getUID())
+                ->where(TABLE_STUDENT_MATERIAL.'.id', '=', $id)
+                ->first();
+
+            if ($res) {
+                if (!empty($res['comment'])) {
+                    DB::table(TABLE_STUDENT_MATERIAL)->delete($id);
+                } else {
+                    DB::table(TABLE_STUDENT_MATERIAL)->updateOrInsert(['id' => $id], ['is_hidden' => 1]);
+                }
+                $back = '/for/' . $res['group_code'] . '/' . $res['subject_code'];
+            }
         }
 
-        if ($bean) {
-            @unlink(ROOT . $bean['filepath']);
-            R::trash($bean);
-            Site::redirect(Site::getModurl() . $toback);
-        } else {
-            Site::redirect(Site::getModurl());
-        }
+        Site::redirect(Site::getModurl() . '/' . $back);
     }
 
     function fileDownload($docId)
     {
-        $docId = intval($docId);
-        $result = R::findOne($this->table_material, 'id = :id AND user_id = :uid ', array(
-            ':id' => $docId,
-            ':uid' => User::user()->getUID()
-        ));
+        $result = DB::table(TABLE_PREPOD_MATERIAL)
+            ->where('user_id', '=', User::user()->getUID())
+            ->where('id', '=', $docId)
+            ->first();
 
         if (!$result) {
-            return false;
+            return;
         }
 
         $file = ROOT . $result['filepath'];
@@ -537,25 +461,21 @@ class PrepodMaterialsModel extends \UTest\Kernel\Component\Model
         if (file_exists($file)) {
             // сбрасываем буфер вывода PHP, чтобы избежать переполнения памяти выделенной под скрипт
             // если этого не сделать файл будет читаться в память полностью!
-            if (ob_GET_level()) {
+            if (ob_get_level()) {
                 ob_end_clean();
             }
 
-            $f = str_replace(' ', '_', $result['filename']) . '.' . $result['extension'];
-            if (stristr($_SERVER['HTTP_USER_AGENT'], 'MSIE 8.0')
-                || stristr($_SERVER['HTTP_USER_AGENT'], 'MSIE 7.0')) {
-
-                $f = str_replace('+', '_', urlencode($result['filename'])) . '.' . $result['extension'];
-            }
+            $filename = str_replace(' ', '_', $result['filename']) . '.' . $result['extension'];
 
             // заставляем браузер показать окно сохранения файла
             header('Content-Description: File Transfer');
             header('Content-Type: application/octet-stream');
-            header('Content-Disposition: attachment; filename=' . $f);
-            header('Content-Transfer-Encoding: binary');
+            header("Content-Disposition: attachment; filename=" . $filename);
+            header('Content-Transfer-Encoding: application/octet-stream');
             header('Expires: 0');
             header('Cache-Control: must-revalidate');
             header('Pragma: public');
+            header('Accept-Ranges: bytes');
             header('Content-Length: ' . filesize($file));
 
             // читаем файл и отправляем его пользователю
@@ -563,5 +483,4 @@ class PrepodMaterialsModel extends \UTest\Kernel\Component\Model
             exit;
         }
     }
-
 }

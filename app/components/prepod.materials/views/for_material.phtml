@@ -1,0 +1,73 @@
+<?
+use UTest\Kernel\Form;
+use UTest\Kernel\Site;
+use UTest\Kernel\Utilities;
+
+$arTitles = [
+    Form::checkbox('check_all', 1, false, 'check-all'),
+    'ID',
+    'Тип',
+    'Дата',
+    'Содержимое',
+    'Скачать',
+    'Управление',
+];
+
+if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) {
+    echo Form::error($this->getErrors(ERROR_ELEMENT_NOT_FOUND));
+    return;
+}
+
+$items = $data;
+?>
+
+<div class="setting-panel">
+    <?=Form::btnNew('Оставить комментарий', Site::getUrl() . '/newcomment')?>
+    <?=Form::btnNew('Поделиться материалом', Site::getUrl() . '/new')?>
+</div>
+
+<?
+if (count($items) == 0) {
+    echo Form::info('Список пуст');
+    return;
+}
+?>
+
+<form action="" method="post" class="formaction">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <?foreach($arTitles as $title):?>
+                    <th><?=$title?></th>
+                <?endforeach?>
+            </tr>
+        </thead>
+        <tbody>
+            <?
+            foreach($items as $k => $v):
+                $isComment = !empty($v['comment']);
+                $file = $isComment
+                    ? html_entity_decode($v['comment'])
+                    : $v['filename'] . '.' . $v['extension'] . ' (' . Utilities::bytesToSize($v['size']) . ')'
+            ?>
+                <tr>
+                    <td class="checkbox-column"><?=Form::checkbox("i[]", $v['id'], 'check-one')?></td>
+                    <td><?=$v['id']?></td>
+                    <td><?= $isComment ? 'комментарий' : 'файл' ?></td>
+                    <td><?=date("d.m.Y",strtotime($v['date']))?></td>
+                    <td><?=$file?></td>
+                    <td><?= !$isComment ? "[<a href='?download={$v['material_id']}''>скачать</a>]" : '&mdash;'?></td>
+                    <td class="last-column">
+                        <?
+                        echo $isComment
+                            ? Form::btnEdit(Site::getUrl() . '/editcomment/' . $v['id'])
+                            : Form::btnEdit(Site::getUrl() . '/new');
+                        ?>
+                        <?=Form::btnDelete(Site::getModurl().'/delete/for/' . $v['id'])?>
+                    </td>
+                </tr>
+            <?endforeach?>
+        </tbody>
+    </table>
+    <?=Form::button('Удалить выбранные', 'btn btn-danger delete-selected', 'del_all', 'Y', 'submit', true)?>
+</form>

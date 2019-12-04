@@ -1,4 +1,5 @@
 <?
+use UTest\Kernel\Form;
 use UTest\Kernel\Site;
 
 $arTitles = array(
@@ -22,8 +23,9 @@ if (count($data) == 0) {
     <tbody>
         <?foreach($data as $k => $v):?>
             <tr>
-                <td><a href="<?=Site::getModurl() . '/my/' . $v['alias']?>"><?=$v['title']?></a>
-                    <span rel="tooltip" data-placement="right" data-toggle="tooltip" title="Количество файлов" class="badge"><?=$v['material_count']?></span>
+                <td>
+                    <a href="<?=Site::getUrl() . '/' . $v['alias']?>"><?=$v['title']?></a>
+                    <span rel="tooltip" data-placement="right" data-toggle="tooltip" title="Количество материала" class="badge"><?=$v['material_count']?></span>
                 </td>
             </tr>
         <?endforeach?>
