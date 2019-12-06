@@ -4,13 +4,12 @@ namespace UTest\Components;
 
 use UTest\Kernel\Site;
 use UTest\Kernel\User\User;
+use UTest\Kernel\User\Roles\Prepod;
 use UTest\Kernel\Utilities;
 use UTest\Kernel\DB;
 
 class AdminPrepodsModel extends \UTest\Kernel\Component\Model
 {
-    const PREPOD_ROLE = 'prepod';
-
     public function prepodAction()
     {
         $users = [];
@@ -56,7 +55,7 @@ class AdminPrepodsModel extends \UTest\Kernel\Component\Model
         if ($this->isActionRequest()) {
             $this->clearErrors();
             $v = $this->_POST;
-            $v['role'] = self::PREPOD_ROLE;
+            $v['role'] = Prepod::ROLE;
             if ($v['id']) {
                 $user = User::user()->edit($v, $v['id']);
                 if ($user && empty($v['password'])) {
@@ -77,7 +76,7 @@ class AdminPrepodsModel extends \UTest\Kernel\Component\Model
     public function editAction($id)
     {
         $v = User::getById($id);
-        if (User::getRootGroup($v['role']) !== self::PREPOD_ROLE) {
+        if (User::getRootGroup($v['role']) !== Prepod::ROLE) {
             $this->setErrors('Пользователь не найден', ERROR_ELEMENT_NOT_FOUND);
         }
         return $this->newPrepodAction($v);

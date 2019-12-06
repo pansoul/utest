@@ -1,0 +1,69 @@
+<?
+use UTest\Kernel\Form;
+use UTest\Kernel\Site;
+use UTest\Kernel\Component\Controller;
+
+$v = $data['form_question'];
+$a = $data['form_answer'];
+$r = $data['form_right'];
+
+if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) {
+    echo Form::error($this->getErrors(ERROR_ELEMENT_NOT_FOUND));
+    return;
+}
+
+if ($this->hasErrors()) {
+    echo Form::error($this->getErrors(), true);
+}
+?>
+
+<form class="form-horizontal" method="post" action="">
+    <div class="form-group">
+        <label class="col-lg-3 control-label">Текст вопроса:<?=Form::asterisk()?></label>
+        <div class="col-lg-9">
+            <?=Form::textarea('question[text]', $v['text'], 'form-control ckeditor', false, array('autofocus' => 'autofocus'))?>
+        </div>
+    </div>    
+    <div class="form-group">
+        <label class="col-lg-3 control-label">
+            Тип вопроса:<?=Form::asterisk()?>
+            <?if(!$v['id']):?>
+                <span class="help-block">Будьте внимательны при указании типа вопроса. <br/>После создания вопроса изменить тип будет невозможно.</span>
+            <?endif;?>
+        </label>
+        <div class="col-lg-9">
+            <?=$v['id'] 
+                ?  $data['question_type_list'][ $v['type'] ]
+                : Form::select('question[type]', $data['question_type_list'] , $v['type'], 'Выберите тип', 'form-control', 'answer-type-select')                    
+            ?>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-lg-3 control-label">
+            Индекс сортировки:            
+            <span class="help-block">Чем выше значение, тем выше по списку будет располагаться вопрос.</span>            
+        </label>
+        <div class="col-lg-9">
+            <?=Form::input('text', 'question[ord]', $data['ord'], 'form-control')?>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-lg-3 control-label">Варианты ответов:<?=Form::asterisk()?></label>
+        <div class="col-lg-9" id="answer-list">
+            <?if(!$v['type']):?>
+                Создание вариантов ответов будет доступно после выбора типа вопроса.
+            <?else:?>                
+                <?=Controller::loadComponent('prepod.tests', 'answer_display', array($v['type'], $v, $a, $r));?>
+            <?endif;?>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-lg-offset-3 col-lg-9">
+            <?=Form::button($vars['id'] ? 'Изменить' : 'Создать', 'btn btn-default')?>            
+        </div>
+    </div>
+    <?=Form::input('hidden', 'question[id]', $v['id'])?>
+    <?=$v['id'] ? Form::input('hidden', 'question[type]', $v['type']) : ''?>
+    <?=Form::input('hidden', 'url', Site::getModurl())?>
+    <?=Form::input('hidden', 'a', 'Y')?>
+</form>

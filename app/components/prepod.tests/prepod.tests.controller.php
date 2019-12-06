@@ -1,200 +1,201 @@
 <?php
 
-class PrepodTestsController extends USiteController {
-    
-    public $arTabs;
-    
-    /*
-     * 'mySubjects' => '/my',
-            'myTests' => '/my/<subject_code>',
-            'myTestNew' => '/my/<subject_code>/new',
-            'myTestEdit' => '/my/<subject_code>/<my_test_edit>',
-            'myTestDelete' => '/my/<subject_code>/<my_test_delete>',
-            'myTestQuestions' => '/my/<subject_code>/<tid>',
-            'myTestQuestionNew' => '/my/<subject_code>/<tid>/new',
-            'myTestQuestionEdit' => '/my/<subject_code>/<tid>/<my_question_edit>',
-            'myTestQuestionDelete' => '/my/<subject_code>/<tid>/<my_question_delete>',
-     * 
-     * 
-     * 'mySubjects' => '/my',
-'myTests' => '/my/<subject_code>',
-'myTestNew' => '/my/<subject_code>/new',
-'myTestEdit' => '/my/<subject_code>/<my_test_edit>',
-'myTestDelete' => '/my/<subject_code>/<my_test_delete>',
-'myTestQuestions' => '/my/<subject_code>/<tid>',
-'myTestQuestionNew' => '/my/<subject_code>/<tid>/new',
-'myTestQuestionEdit' => '/my/<subject_code>/<tid>/<my_question_edit>',
-'myTestQuestionDelete' => '/my/<subject_code>/<tid>/<my_question_delete>',
-     */
+namespace UTest\Components;
 
+use UTest\Kernel\Site;
+
+class PrepodTestsController extends \UTest\Kernel\Component\Controller
+{
     protected $routeMap = array(
-        'setTitle' => 'Тесты',
-        'actionDefault' => 'my',
-        'paramsPath' => array(
+        'title' => 'Тесты',
+        'add_breadcrumb' => true,
+        'action_main' => 'my',
+        'actions_params' => array(
+            '/my' => [
+                'action' => 'my'
+            ],
+            '/my/<subject_code>' => [
+                'action' => 'my_tests',
+                'title' => 'Список тестов',
+                'add_breadcrumb' => true
+            ],
+            '/my/<subject_code>/new' => [
+                'action' => 'my_new_test',
+                'title' => 'Создание нового теста',
+                'add_breadcrumb' => true
+            ],
+            '/my/<subject_code>/edit/<id>' => [
+                'action' => 'my_edit_test',
+                'title' => 'Редактирование теста',
+                'add_breadcrumb' => true
+            ],
+            '/my/<subject_code>/test-<tid>' => [
+                'action' => 'my_test_questions',
+                'title' => 'Список вопросов',
+                'add_breadcrumb' => true
+            ],
+            '/my/<subject_code>/test-<tid>/new' => [
+                'action' => 'my_new_question',
+                'title' => 'Создание нового вопроса', // Редактирование вопроса
+                'add_breadcrumb' => true
+            ],
+
+
+
+
             'my' => '/<subject_code>/<tid>',
-            'for' => '/<group_code>/<subject_code>',            
+            'for' => '/<group_code>/<subject_code>',
             'newmytest' => '/<in>',
             'newmyquestion' => '/<in_tid>',
-            'newtype' => '/<qtype>',            
+            'newtype' => '/<qtype>',
             'newfor' => '/<group_code>/<subject_code>',
             'editmytest' => '/<id>',
             'editfortest' => '/<id>',
-            'editmyquestion' => '/<in_tid>/<id>',            
+            'editmyquestion' => '/<in_tid>/<id>',
             'delete' => '/<type>/<id>',
             'delquestion' => '/<tid>/<qid>',
             'delanswer' => '/<tid>/<qid>/<id>'
         ),
-        'params' => array(
-            'subject_code' => array(
-                'mask' => '',
-                'rule' => '[-_a-zA-Z0-9]',
-                'default' => 0
-            ),
-            'group_code' => array(
-                'mask' => '',
-                'rule' => '[-_a-zA-Z0-9]',
-                'default' => 0
-            ),
-            'in' => array(
-                'mask' => '',
-                'rule' => '[-_a-zA-Z0-9]',
-                'default' => 0
-            ),
-            'qtype' => array(
-                'mask' => '',
-                'rule' => '[-_a-zA-Z]',
-                'default' => 'one'
-            ),
-            'id' => array(
-                'mask' => '',
-                'rule' => '[0-9]',
-                'default' => 0
-            ),
-            'qid' => array(
-                'mask' => '',
-                'rule' => '[0-9]',
-                'default' => 0
-            ),
-            'tid' => array(
-                'mask' => 'test-<?>',
-                'rule' => '[0-9]',
-                'default' => 0
-            ),
-            'in_tid' => array(
-                'mask' => 'in-<?>',
-                'rule' => '[0-9]',
-                'default' => 0
-            ),
-            'type' => array(
-                'mask' => '',
-                'rule' => '[a-zA-Z]',
-                'default' => 0
-            )
-        )
-    );
-    
-    // Список контроллеров, для которых не нужно обрабатывать "общий" result
-    private $arNotResult = array(
-        'editmytest',
-        'editfortest',
-        'editmyquestion',
-        'delquestion',
-        'delanswer',
-        'delete',
-        'answerdisplay'
+        'vars_rules' => [
+            'subject_code' => '[-_a-zA-Z0-9]',
+            'group_code' => '[-_a-zA-Z0-9]',
+            'in' => '[-_a-zA-Z0-9]',
+            'qtype' => '[-_a-zA-Z]',
+            'id' => '[0-9]',
+            'qid' => '[0-9]',
+            'tid' => '[0-9]',
+            'type' => '[a-zA-Z]'
+        ]
     );
 
     public function run()
     {
-        $this->arTabs = array(
-            1 => array(
+        // Данные для построения табов
+        $arTabs = array(
+            'my' => array(
                 'name' => 'Мои тесты',
-                'href' => USite::getModurl() . '/my'
+                'href' => Site::getModurl() . '/my'
             ),
-            2 => array(
+            'for' => array(
                 'name' => 'Назначенные тесты',
-                'href' => USite::getModurl() . '/for'
+                'href' => Site::getModurl() . '/for'
             )
         );
-        
-        if (!in_array($this->action, $this->arNotResult)) {
-            $result = $this->model->doAction($this->action);              
-        }
-        
+        $exploded = explode('/', Site::getModParamsRow(), 3);
+        $tabSelected = $exploded[1] ? $exploded[1] : 'my';
+
         switch ($this->action) {
-            case 'my':
-                if ($this->model->vars['tid'])
-                    $html = $this->loadView('myquestions', $result);
-                elseif ($this->model->vars['subject_code'])
-                    $html = $this->loadView('mytests', $result);
-                else
-                    $html = $this->loadView($this->action, $result);
+            case 'my_tests':
+                $this->doAction($this->action, $this->getVars('subject_code'));
+                $html = $this->loadView($this->action);
                 break;
-            
+
+            case 'my_edit_test':
+                $this->doAction($this->action, $this->getVars('tid'));
+                $html = $this->loadView('my_new_test');
+                break;
+
+            case 'my_test_questions':
+            case 'my_new_question':
+                $this->doAction($this->action, $this->getVars(['subject_code', 'tid']));
+                $html = $this->loadView($this->action);
+                break;
+
+
+            /*case 'my':
+                if ($this->vars['tid']) {
+                    $html = $this->loadView('myquestions');
+                } elseif ($this->vars['subject_code']) {
+                    $html = $this->loadView('mytests');
+                } else {
+                    $html = $this->loadView($this->action);
+                }
+                break;
+
             case 'for':
-                UAppBuilder::editBreadcrumpItem(array('name' => 'Назначенные тесты', 'url' => USite::getModurl().'/for'));
-                if ($this->model->vars['subject_code'])
-                    $html = $this->loadView('fortests', $result);
-                elseif ($this->model->vars['group_code'])
-                    $html = $this->loadView('forsubject', $result);
-                else
-                    $html = $this->loadView($this->action, $result);
+                UAppBuilder::editBreadcrumpItem(array(
+                    'name' => 'Назначенные тесты',
+                    'url' => USite::getModurl() . '/for'
+                ));
+                if ($this->vars['subject_code']) {
+                    $html = $this->loadView('fortests');
+                } elseif ($this->vars['group_code']) {
+                    $html = $this->loadView('forsubject');
+                } else {
+                    $html = $this->loadView($this->action);
+                }
                 break;
-                
+
             case 'newfor':
-                UAppBuilder::editBreadcrumpItem(array('name' => 'Назначенные тесты', 'url' => USite::getModurl().'/for'));
-                $html = $this->loadView($this->action, $result);
+                UAppBuilder::editBreadcrumpItem(array(
+                    'name' => 'Назначенные тесты',
+                    'url' => USite::getModurl() . '/for'
+                ));
+                $html = $this->loadView($this->action);
                 break;
-            
+
             case 'editmytest':
-                $result = $this->model->doAction($this->action, (array)$this->model->vars['id']);
-                $html = $this->loadView('newmytest', $result);
+                $this->doAction($this->action, (array)$this->vars['id']);
+                $html = $this->loadView('newmytest');
                 break;
-            
+
             case 'editmyquestion':
-                $result = $this->model->doAction($this->action, array($this->model->vars['in_tid'], $this->model->vars['id']));                
-                $html = $this->loadView('newmyquestion', $result);
+                $this->doAction($this->action,
+                    array($this->vars['in_tid'], $this->vars['id']));
+                $html = $this->loadView('newmyquestion');
                 break;
-            
+
             case 'editfortest':
-                UAppBuilder::editBreadcrumpItem(array('name' => 'Назначенные тесты', 'url' => USite::getModurl().'/for'));
-                $result = $this->model->doAction($this->action, (array)$this->model->vars['id']);                
-                $html = $this->loadView('newfor', $result);
+                UAppBuilder::editBreadcrumpItem(array(
+                    'name' => 'Назначенные тесты',
+                    'url' => USite::getModurl() . '/for'
+                ));
+                $this->doAction($this->action, (array)$this->vars['id']);
+                $html = $this->loadView('newfor');
                 break;
-            
+
             // for ajax
             case 'newtype':
-                $html = $this->loadView('answer_' . $this->model->vars['qtype'], $result);
+                $html = $this->loadView('answer_' . $this->vars['qtype']);
                 echo $html;
                 exit;
                 break;
-            
+
             // for ajax
-            case 'delanswer':                
-                $result = $this->model->doAction($this->action, array($this->model->vars['tid'], $this->model->vars['qid'], $this->model->vars['id']));
+            case 'delanswer':
+                $this->doAction($this->action,
+                    array($this->vars['tid'], $this->vars['qid'], $this->vars['id']));
                 echo $result;
                 exit;
                 break;
-            
+
             case 'delquestion':
-                $result = $this->model->doAction($this->action, array($this->model->vars['tid'], $this->model->vars['qid']));
+                $this->doAction($this->action,
+                    array($this->vars['tid'], $this->vars['qid']));
                 break;
-            
+
             case 'delete':
-                $result = $this->model->doAction($this->action, array($this->model->vars['type'], $this->model->vars['id']));
+                $this->doAction($this->action,
+                    array($this->vars['type'], $this->vars['id']));
                 break;
-            
+
             case 'answerdisplay':
-                $result = $this->model->doAction($this->action, $this->actionArgs);     
-                $html = $this->loadView('answer_'.$this->actionArgs[0], $result);
-                break;
-            
+                $this->doAction($this->action, $this->actionArgs);
+                $html = $this->loadView('answer_' . $this->actionArgs[0]);
+                break;*/
+
             default:
-                $html = $this->loadView($this->action, $result);
+                $this->doAction($this->action);
+                $html = $this->loadView($this->action);
                 break;
-        }        
-        
+        }
+
+        $tabs = $this->loadView('tabs', [
+            'tabs' => $arTabs,
+            'selected' => $tabSelected
+        ]);
+
+        $this->putContent($tabs);
         $this->putContent($html);
     }
-
 }

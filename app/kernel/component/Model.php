@@ -2,24 +2,13 @@
 
 namespace UTest\Kernel\Component;
 
-use UTest\Kernel\HttpRequest;
 use UTest\Kernel\Base;
 use UTest\Kernel\Errors\DoActionException;
 
 class Model extends TemplateResult
 {
-    use ModelTrait;
-
     const ACTION_DEFAULT = 'index';
     const ERROR_CODE_MAIN = 'main';
-
-    public function __construct()
-    {
-        $this->request = new HttpRequest();
-        $this->_GET = $this->request->getValue(HttpRequest::GET);
-        $this->_POST = $this->request->getValue(HttpRequest::POST);
-        $this->_REQUEST = $this->request->getValue(HttpRequest::REQUEST);
-    }
 
     public function indexAction()
     {

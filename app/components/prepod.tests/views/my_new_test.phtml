@@ -1,0 +1,36 @@
+<?
+use UTest\Kernel\Form;
+
+$v = $data['form'];
+
+if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) {
+    echo Form::error($this->getErrors(ERROR_ELEMENT_NOT_FOUND));
+    return;
+}
+
+if ($this->hasErrors()) {
+    echo Form::error($this->getErrors(), true);
+}
+?>
+
+<form class="form-horizontal" method="post" action="">
+    <div class="form-group">
+        <label class="col-lg-2 control-label">Название теста:<?=Form::asterisk()?></label>
+        <div class="col-lg-10">
+            <?=Form::input('text', 'title', $v['title'] , 'form-control', false, array('autofocus' => 'autofocus'))?>            
+        </div>
+    </div>    
+    <div class="form-group">
+        <label class="col-lg-2 control-label">По предмету:<?=Form::asterisk()?></label>
+        <div class="col-lg-10">
+            <?=Form::select('subject_id', $data['subject_list'] , $v['subject_id'], null, 'form-control')?>            
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-lg-offset-2 col-lg-10">
+            <?=Form::button($arResult['vars']['id'] ? 'Изменить' : 'Создать', 'btn btn-default')?>            
+        </div>
+    </div>
+    <?=Form::input('hidden', 'id', $v['id'])?>
+    <?=Form::input('hidden', 'a', 'Y')?>
+</form>

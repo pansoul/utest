@@ -6,11 +6,10 @@ use UTest\Kernel\Site;
 use UTest\Kernel\DB;
 use UTest\Kernel\Utilities;
 use UTest\Kernel\User\User;
+use UTest\Kernel\User\Roles\Student;
 
 class AdminStudentsModel extends \UTest\Kernel\Component\Model
 {
-    const STUDENT_ROLE = 'student';
-
     public function groupAction()
     {
         if ($this->isActionRequest('del_all')) {
@@ -146,7 +145,7 @@ class AdminStudentsModel extends \UTest\Kernel\Component\Model
         if ($this->isActionRequest()) {
             $this->clearErrors();
             $v = $this->_POST;
-            $v['role'] = self::STUDENT_ROLE;
+            $v['role'] = Student::ROLE;
             $v['group_id'] = isset($groupList[$v['group_id']]) ? $v['group_id'] : $parent['id'];
             if ($v['id']) {
                 $user = User::user()->edit($v, $v['id']);
@@ -180,7 +179,7 @@ class AdminStudentsModel extends \UTest\Kernel\Component\Model
     public function editStudentAction($id)
     {
         $v = User::getById($id);
-        if (User::getRootGroup($v['role']) !== self::STUDENT_ROLE) {
+        if (User::getRootGroup($v['role']) !== Student::ROLE) {
             $this->setErrors('Пользователь не найден', ERROR_ELEMENT_NOT_FOUND);
         }
         return $this->newStudentAction($v);

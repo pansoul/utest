@@ -16,11 +16,25 @@ class AppBuilder
 
     private $html = null;
     private $arSysTplVars = array(
+        'theme_url',
         'content',
         'menu',
         'title',
         'h'
     );
+
+    public function __construct()
+    {
+        $theme = Base::getConfig('theme');
+        $themePath = THEMES_PATH . '/' . $theme;
+        if (!is_dir($themePath)) {
+            throw new AppException("Тема '{$theme}' не найдена");
+        }
+
+        // Определяем константы по работе с текущей темой
+        define('CURRENT_THEME_PATH', $themePath);
+        define('CURRENT_THEME_URL', substr($themePath, strlen(ROOT)));
+    }
 
     public function build($content, $layout)
     {
@@ -31,20 +45,15 @@ class AppBuilder
         self::$content = (string) $content;
 
         $tplVars = $this->loadVars();
-        $this->html = $this->loadLayout(Base::getConfig('theme'), $layout, $tplVars);
+        $this->html = $this->loadLayout($layout, $tplVars);
     }
 
-    private function loadLayout($theme, $layout, $tplVars)
+    private function loadLayout($layout, $tplVars)
     {
         $arFind = $arReplace = array();
 
-        $themePath = THEMES_PATH . '/' . $theme;
-        if (!is_dir($themePath)) {
-            throw new AppException("Тема '{$theme}' не найдена");
-        }
-
         $includedLayout = pathinfo($layout, PATHINFO_EXTENSION) ? true : false;
-        $layoutPath = $themePath . '/' . $layout . ($includedLayout ? '' : '.html');
+        $layoutPath = CURRENT_THEME_PATH . '/' . $layout . ($includedLayout ? '' : '.html');
         if (!file_exists($layoutPath)) {
             if ($includedLayout) {
                 return Form::notice("Подключаемый шаблон '{$layout}' не найден");
@@ -59,7 +68,7 @@ class AppBuilder
 
         foreach ($arInc as $item) {
             $arFind[] = $item[0];
-            $arReplace[] = $this->loadLayout($theme, $item[1], $tplVars);
+            $arReplace[] = $this->loadLayout($item[1], $tplVars);
         }
 
         foreach ($arVars as $item) {
@@ -78,11 +87,13 @@ class AppBuilder
     {
         $tplVars = array();
         foreach ($this->arSysTplVars as $v) {
-            $func = 'get' . ucfirst($v);
+            $v = str_replace('-', '_', $v);
+            $exploded = explode('_', $v);
+            $func = 'get' . join('', $exploded);
             $tplVars[$v] = self::$func();
         }
 
-        $incFile = THEMES_PATH . '/' . Base::getConfig('theme') . '/' . self::INC_FILE_NAME;
+        $incFile = CURRENT_THEME_PATH . '/' . self::INC_FILE_NAME;
         if (file_exists($incFile)) {
             $incTplVars = require_once $incFile;
             $tplVars = array_merge($tplVars, (array) $incTplVars);
@@ -165,6 +176,11 @@ class AppBuilder
     public static function clearBreadcrumb()
     {
         self::$arBreadcrumb = array();
+    }
+
+    public static function getThemeUrl()
+    {
+        return CURRENT_THEME_URL;
     }
 
     // @todo заменить везде вызовы компонентов через данный алиас

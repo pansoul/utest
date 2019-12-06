@@ -12,7 +12,7 @@ class User
      * Данную роль нельзя переопределять.
      * Список пользовательских ролей содержится в файле roles.php в папке конфигурации
      */
-    const ADMIN_ROLE = 'admin';
+    const ADMIN_ROLE = Roles\Admin::ROLE;
 
     /**
      * Предопределённый Id админа

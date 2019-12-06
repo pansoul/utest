@@ -4,81 +4,99 @@ namespace UTest\Kernel\User\Roles;
 
 use UTest\Kernel\Utilities;
 use UTest\Kernel\DB;
+use UTest\Kernel\Traits\FieldsValidateTraitHelper;
 
 class Admin extends \UTest\Kernel\User\User
 {
-    const FIELDS_GROUP_ADD = 'add';
-    const FIELDS_GROUP_EDIT = 'edit';
-    const FIELDS_TYPE_AVAILABLE = 'available';
-    const FIELDS_TYPE_REQUIRED = 'required';
+    use \UTest\Kernel\Traits\FieldsValidateTrait;
 
-    private $arFields = [
-        'role' => [
-            'name' => 'Роль пользователя',
-            self::FIELDS_TYPE_AVAILABLE => [self::FIELDS_GROUP_ADD],
-            self::FIELDS_TYPE_REQUIRED => [self::FIELDS_GROUP_ADD]
-        ],
-        'password' => [
-            'name' => 'Пароль',
-            self::FIELDS_TYPE_AVAILABLE => [self::FIELDS_GROUP_ADD, self::FIELDS_GROUP_EDIT],
-            self::FIELDS_TYPE_REQUIRED => [self::FIELDS_GROUP_ADD]
-        ],
-        'name' => [
-            'name' => 'Имя',
-            self::FIELDS_TYPE_AVAILABLE => [self::FIELDS_GROUP_ADD, self::FIELDS_GROUP_EDIT],
-            self::FIELDS_TYPE_REQUIRED => [self::FIELDS_GROUP_ADD, self::FIELDS_GROUP_EDIT]
-        ],
-        'last_name' => [
-            'name' => 'Фамилия',
-            self::FIELDS_TYPE_AVAILABLE => [self::FIELDS_GROUP_ADD, self::FIELDS_GROUP_EDIT],
-            self::FIELDS_TYPE_REQUIRED => [self::FIELDS_GROUP_ADD, self::FIELDS_GROUP_EDIT]
-        ],
-        'surname' => [
-            'name' => 'Отчество',
-            self::FIELDS_TYPE_AVAILABLE => [self::FIELDS_GROUP_ADD, self::FIELDS_GROUP_EDIT],
-        ],
-        'phone' => [
-            'name' => 'Пароль',
-            self::FIELDS_TYPE_AVAILABLE => [self::FIELDS_GROUP_ADD, self::FIELDS_GROUP_EDIT],
-        ],
-        'email' => [
-            'name' => 'E-mail',
-            self::FIELDS_TYPE_AVAILABLE => [self::FIELDS_GROUP_ADD, self::FIELDS_GROUP_EDIT],
-        ],
-        'group_id' => [
-            'name' => 'Группа',
-            self::FIELDS_TYPE_AVAILABLE => [self::FIELDS_GROUP_ADD, self::FIELDS_GROUP_EDIT],
-        ],
-        'post' => [
-            'name' => 'Должность',
-            self::FIELDS_TYPE_AVAILABLE => [self::FIELDS_GROUP_ADD, self::FIELDS_GROUP_EDIT],
-        ],
-    ];
+    const ROLE = 'admin';
 
-    public function getGroupFields($groups = null, $types = self::FIELDS_TYPE_AVAILABLE)
+    private function fieldsMap()
     {
-        if (empty($groups) || empty($types)) {
-            return array_keys($this->arFields);
-        }
-
-        $groups = (array) $groups;
-        $types = (array) $types;
-        $arFields = array_filter($this->arFields, function($item) use ($groups, $types) {
-            foreach ($types as $type) {
-                if (array_diff($groups, (array) @$item[$type])) {
-                    return false;
-                }
-            }
-            return true;
-        });
-
-        return array_keys($arFields);
+        return [
+            'role' => [
+                FieldsValidateTraitHelper::_NAME => 'Роль пользователя',
+                FieldsValidateTraitHelper::_AVAILABLE => [FieldsValidateTraitHelper::_ADD],
+                FieldsValidateTraitHelper::_REQUIRED => true,
+            ],
+            'password' => [
+                FieldsValidateTraitHelper::_NAME => 'Пароль',
+                FieldsValidateTraitHelper::_AVAILABLE => [
+                    FieldsValidateTraitHelper::_ADD,
+                    FieldsValidateTraitHelper::_EDIT
+                ],
+                FieldsValidateTraitHelper::_REQUIRED => function ($v, $group) {
+                    return in_array(FieldsValidateTraitHelper::_ADD, $group);
+                },
+            ],
+            FieldsValidateTraitHelper::_NAME => [
+                FieldsValidateTraitHelper::_NAME => 'Имя',
+                FieldsValidateTraitHelper::_AVAILABLE => [
+                    FieldsValidateTraitHelper::_ADD,
+                    FieldsValidateTraitHelper::_EDIT
+                ],
+                FieldsValidateTraitHelper::_REQUIRED => true,
+            ],
+            'last_name' => [
+                FieldsValidateTraitHelper::_NAME => 'Фамилия',
+                FieldsValidateTraitHelper::_AVAILABLE => [
+                    FieldsValidateTraitHelper::_ADD,
+                    FieldsValidateTraitHelper::_EDIT
+                ],
+                FieldsValidateTraitHelper::_REQUIRED => true,
+            ],
+            'surname' => [
+                FieldsValidateTraitHelper::_NAME => 'Отчество',
+                FieldsValidateTraitHelper::_AVAILABLE => [
+                    FieldsValidateTraitHelper::_ADD,
+                    FieldsValidateTraitHelper::_EDIT
+                ],
+            ],
+            'phone' => [
+                FieldsValidateTraitHelper::_NAME => 'Пароль',
+                FieldsValidateTraitHelper::_AVAILABLE => [
+                    FieldsValidateTraitHelper::_ADD,
+                    FieldsValidateTraitHelper::_EDIT
+                ],
+            ],
+            'email' => [
+                FieldsValidateTraitHelper::_NAME => 'E-mail',
+                FieldsValidateTraitHelper::_AVAILABLE => [
+                    FieldsValidateTraitHelper::_ADD,
+                    FieldsValidateTraitHelper::_EDIT
+                ],
+            ],
+            'group_id' => [
+                FieldsValidateTraitHelper::_NAME => 'Группа',
+                FieldsValidateTraitHelper::_AVAILABLE => [
+                    FieldsValidateTraitHelper::_ADD,
+                    FieldsValidateTraitHelper::_EDIT
+                ],
+                FieldsValidateTraitHelper::_REQUIRED => function ($v, $group) {
+                    return $v['role'] == 'student';
+                },
+                // @todo
+                FieldsValidateTraitHelper::_VALIDATE => [
+                    'type' => 'integer',
+                    'limit' => 11,
+                    'link' => [TABLE_UNIVER_GROUP, 'id']
+                ]
+            ],
+            'post' => [
+                FieldsValidateTraitHelper::_NAME => 'Должность',
+                FieldsValidateTraitHelper::_AVAILABLE => [
+                    FieldsValidateTraitHelper::_ADD,
+                    FieldsValidateTraitHelper::_EDIT
+                ]
+            ],
+        ];
     }
 
     // @todo
     public function add($arFields = array())
     {
-        $arFields = $this->checkFields($arFields, self::FIELDS_GROUP_ADD);
+        $arFields = $this->checkFields($this->fieldsMap(), $arFields, FieldsValidateTraitHelper::_ADD, self::$last_errors);
         if ($arFields === false) {
             return false;
         }
@@ -129,7 +147,7 @@ class Admin extends \UTest\Kernel\User\User
             return false;
         }
 
-        $arFields = $this->checkFields($arFields, self::FIELDS_GROUP_EDIT);
+        $arFields = $this->checkFields($this->fieldsMap(), $arFields, FieldsValidateTraitHelper::_EDIT, self::$last_errors);
         if ($arFields === false) {
             return false;
         }
@@ -167,44 +185,5 @@ class Admin extends \UTest\Kernel\User\User
 
         DB::table(TABLE_USER)->delete($user['id']);
         return true;
-    }
-
-    private function checkFields($arFields = [], $group = null)
-    {
-        $e = [];
-        $arAvailableFields = $this->getGroupFields($group);
-        $arRequiredFields = $this->getGroupFields($group, [self::FIELDS_TYPE_AVAILABLE, self::FIELDS_TYPE_REQUIRED]);
-
-        $arFields = array_filter($arFields, function($key) use ($arAvailableFields) {
-            return in_array($key, $arAvailableFields);
-        }, ARRAY_FILTER_USE_KEY);
-
-        if (empty($arFields)) {
-            $e[] = 'Входной массив параметров для редактирования пользователя пуст';
-            self::$last_errors = $e;
-            return false;
-        }
-
-        if ($group == self::FIELDS_GROUP_EDIT) {
-            foreach ($arRequiredFields as $field) {
-                if (isset($arFields[$field]) && empty($arFields[$field])) {
-                    $e[] = "Заполните поле '{$this->arFields[$field]['name']}'";
-                }
-            }
-        } else {
-            foreach ($arRequiredFields as $field) {
-                if (!key_exists($field, $arFields) || empty($arFields[$field])) {
-                    $e[] = "Заполните поле '{$this->arFields[$field]['name']}'";
-                }
-            }
-        }
-
-
-        if (!empty($e)) {
-            self::$last_errors = $e;
-            return false;
-        }
-
-        return $arFields;
     }
 }

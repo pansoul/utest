@@ -1,6 +1,7 @@
 /nbproject/
 /.idea/
-/uploads/
+/uploads/*
+!/uploads/.htaccess
 /app/composer/*
 !/app/composer/composer.json
 !/app/composer/composer.lock

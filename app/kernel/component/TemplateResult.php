@@ -8,7 +8,15 @@ use UTest\Kernel\Form;
 
 class TemplateResult
 {
-    use ModelTrait;
+    protected $errors = [];
+    protected $vars = [];
+    protected $request = null;
+    protected $data = null; // Данные, которые будут переданы в шаблон
+
+    public $_POST = [];
+    public $_GET = [];
+    public $_REQUEST = [];
+    public $debugInfo = [];
 
     protected $componentName = '';
 
@@ -64,5 +72,44 @@ class TemplateResult
         $view = ob_get_clean();
 
         return $view;
+    }
+
+    final public function isActionRequest($var = 'a', $value = 'Y')
+    {
+        return $this->_REQUEST[$var] == $value;
+    }
+
+    final public function getData()
+    {
+        return $this->data;
+    }
+
+    final public function getErrors($errorCode = Model::ERROR_CODE_MAIN)
+    {
+        return $errorCode ? $this->errors[$errorCode] : $this->errors;
+    }
+
+    final public function hasErrors($errorCode = Model::ERROR_CODE_MAIN)
+    {
+        return isset($this->errors[$errorCode]) && !empty($this->errors[$errorCode]);
+    }
+
+    final public function getVars($key = null, $default = null)
+    {
+        if (is_array($key)) {
+            return array_reduce($key, function($acc, $k){
+                $acc[] = $this->getVars($k);
+                return $acc;
+            }, []);
+        }
+        if (null === $key) {
+            return $this->vars;
+        }
+        return isset($this->vars[$key]) ? $this->vars[$key] : $default;
+    }
+
+    final public function getRequest()
+    {
+        return $this->request;
     }
 }

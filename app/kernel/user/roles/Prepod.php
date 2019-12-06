@@ -6,13 +6,15 @@ use UTest\Kernel\DB;
 
 class Prepod extends \UTest\Kernel\User\User
 {
-//    public function createTest($arFields)
-//    {
-//        $test = new UTest();
-//        $result = $test->create($arFields, self::$uid);
-//        self::$last_errors = $test->last_errors;
-//        return $result;
-//    }
+    const ROLE = 'prepod';
+
+    public function createTest($arFields)
+    {
+        $test = new UTest();
+        $result = $test->create($arFields, self::$uid);
+        self::$last_errors = $test->last_errors;
+        return $result;
+    }
 //
 //    public function editTest($tid, $arFields)
 //    {

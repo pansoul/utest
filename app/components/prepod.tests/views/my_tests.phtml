@@ -1,0 +1,59 @@
+<?
+use UTest\Kernel\Form;
+use UTest\Kernel\Site;
+
+$arTitles = array(
+    Form::checkbox('check_all', 1, false, 'check-all'),
+    'ID',
+    'Название теста',
+    'Управление'
+);
+
+if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) {
+    echo Form::error($this->getErrors(ERROR_ELEMENT_NOT_FOUND));
+    return;
+}
+
+$items = $data;
+?>
+
+<div class="setting-panel">
+    <?=Form::btnNew('Создать новый тест', Site::getUrl() . '/new')?>
+</div>
+
+<?
+if (count($items) == 0) {
+    echo Form::info('Список пуст');
+    return;
+}
+?>
+    
+<div class="bs-callout bs-callout-warning">    
+    Для создания вопросов и вариантов ответов необходимо перейти в тест.
+</div>
+
+<form action="" method="post" class="formaction">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <?foreach($arTitles as $title):?>
+                    <th><?=$title?></th>
+                <?endforeach?>
+            </tr>
+        </thead>
+        <tbody>
+            <?foreach($items as $k => $v):?>
+                <tr>
+                    <td class="checkbox-column"><?=Form::checkbox("i[]", $v['id'], 'check-one')?></td>
+                    <td><?=$v['id']?></td>
+                    <td><a href="<?=Site::getUrl() . '/test-' . $v['id']?>"><?=$v['title']?></a></td>
+                    <td class="last-column">
+                        <?=Form::btnEdit(Site::getUrl() . '/edit/' . $v['id'])?>
+                        <?=Form::btnDelete(Site::getModurl().'/delete/', 'mytest/'.$v['id'])?>
+                    </td>
+                </tr>
+            <?endforeach?>
+        </tbody>
+    </table>
+    <?=Form::button('Удалить выбранные', 'btn btn-danger delete-selected', 'del_all', 'Y', 'submit', true)?>
+</form>

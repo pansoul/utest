@@ -85,6 +85,8 @@ class Controller
     
     /**
      * Маршрутизатор для компонентов
+     *
+     * @todo ПЕРЕПИСАТЬ
      * 
      * Может принимать следующие параметры:
      * <ul>
@@ -202,13 +204,13 @@ class Controller
             (array) @$this->routeMap()['actions_params'],
             (array) @$routeMap['actions_params']
         );
-        $this->routeMap = array_merge($this->routeMapDefault, (array) $this->routeMap(), (array) $routeMap);
+        $this->routeMap = array_merge($this->routeMapDefault, $this->routeMap(), (array) $routeMap);
         $this->routeMap['actions_params'] = $actionsParams;
     }
 
     protected function routeMap()
     {
-        return $this->routeMap;
+        return (array) $this->routeMap;
     }
 
     /**
@@ -317,7 +319,7 @@ class Controller
    
     private function init($componentModel)
     {
-        $this->model = new $componentModel();
+        $this->model = new $componentModel($this->componentName);
         $isMainAction = $this->action === true || (!$this->paramsRow && !$this->action);
 
         if ($isMainAction) {
