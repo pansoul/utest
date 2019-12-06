@@ -199,13 +199,17 @@ class Controller
         $this->actionArgs = $actionArgs;
         $this->paramsRow = Site::getModParamsRow();
 
-        $actionsParams = array_merge_recursive(
-            $this->routeMapDefault['actions_params'],
-            (array) @$this->routeMap()['actions_params'],
-            (array) @$routeMap['actions_params']
-        );
-        $this->routeMap = array_merge($this->routeMapDefault, $this->routeMap(), (array) $routeMap);
-        $this->routeMap['actions_params'] = $actionsParams;
+        if (!is_array($routeMap)) {
+            $this->routeMap = $this->routeMapDefault;
+        } else {
+            $actionsParams = array_merge_recursive(
+                $this->routeMapDefault['actions_params'],
+                (array) @$this->routeMap()['actions_params'],
+                (array) @$routeMap['actions_params']
+            );
+            $this->routeMap = array_merge($this->routeMapDefault, $this->routeMap(), (array) $routeMap);
+            $this->routeMap['actions_params'] = $actionsParams;
+        }
     }
 
     protected function routeMap()

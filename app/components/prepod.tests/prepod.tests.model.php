@@ -201,8 +201,8 @@ class PrepodTestsModel extends \UTest\Kernel\Component\Model
         }
 
         $arQuestionTypes = Test::getQuestionTypes();
-        $arQuestionTypes = array_map(function($v){
-            return $v['name'];
+        $arQuestionTypes = array_map(function($value){
+            return $value['name'];
         }, $arQuestionTypes);
 
         $this->setData([
@@ -572,11 +572,11 @@ class PrepodTestsModel extends \UTest\Kernel\Component\Model
 
     public function answerDisplayAction($type, $q, $a, $r)
     {
-        return $this->returnResult(array(
+        $this->setData([
             'form_question' => $q,
             'form_answer' => $a,
             'form_right' => $r
-        ));
+        ]);
     }
 
 }

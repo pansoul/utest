@@ -53,7 +53,7 @@ if ($this->hasErrors()) {
             <?if(!$v['type']):?>
                 Создание вариантов ответов будет доступно после выбора типа вопроса.
             <?else:?>                
-                <?=Controller::loadComponent('prepod.tests', 'answer_display', array($v['type'], $v, $a, $r));?>
+                <?=Controller::loadComponent('prepod.tests', 'answer_display', array($v['type'], $v, $a, $r), false);?>
             <?endif;?>
         </div>
     </div>

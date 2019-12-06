@@ -40,6 +40,10 @@ class PrepodTestsController extends \UTest\Kernel\Component\Controller
                 'add_breadcrumb' => true
             ],
 
+            '/newtype/<qtype>' => [
+                'action' => 'new_type'
+            ],
+
 
 
 
@@ -96,7 +100,6 @@ class PrepodTestsController extends \UTest\Kernel\Component\Controller
                 break;
 
             case 'my_test_questions':
-            case 'my_new_question':
                 $this->doAction($this->action, $this->getVars(['subject_code', 'tid']));
                 $html = $this->loadView($this->action);
                 break;
