@@ -1,16 +1,18 @@
 <?
+use UTest\Kernel\Form;
+
 $arTitles = array(
     'Название варианта ответа',
     'Укажите верную позицию ответа',
     'Управление'
 );
 
-$v = $arResult['data']['form_question'];
-$a = $arResult['data']['form_answer'];
-$r = $arResult['data']['form_right'];
+$v = $data['form_question'];
+$a = $data['form_answer'];
+$r = $data['form_right'];
 
 $arOptions = array();
-$allCount = $a ? count($a) : $arResult['request']->_GET['count'] + 1;
+$allCount = $a ? count($a) : $get['count'] + 1;
 for ($i = 1; $i <= $allCount; $i++)
 {
     $arOptions[$i] = $i;
@@ -19,13 +21,13 @@ for ($i = 1; $i <= $allCount; $i++)
 
 <?
 // запрос на создание нового варианта ответа
-if($arResult['request']->_GET['new'] == 'Y') :
+if($get['new'] == 'Y') :
     $count = microtime(true); ?>
 
     <tr>
-        <td><?=UForm::input('text', "answer[a_{$count}][title]", '', 'form-control answer-text') ?></td>
-        <td><?=UForm::select("right_answer[a_{$count}]", $arOptions , $needCount, null, 'form-control answer-select-order')?></td>
-        <td class="last-column"><?=UForm::btnDelete('#')?></td>
+        <td><?=Form::input('text', "answer[a_{$count}][title]", '', 'form-control answer-text') ?></td>
+        <td><?=Form::select("right_answer[a_{$count}]", $arOptions , $needCount, null, 'form-control answer-select-order')?></td>
+        <td class="last-column"><?=Form::btnDelete('#')?></td>
     </tr>
 
 <? else: ?>
@@ -49,11 +51,11 @@ if($arResult['request']->_GET['new'] == 'Y') :
             ?>
             
                     <tr>
-                        <td><?=UForm::input('text', "answer[{$k}][title]", $item['title'] , 'form-control answer-text')?></td>
-                        <td><?=UForm::select("right_answer[{$k}]", $arOptions , $arResult['request']->_POST['a'] ? $r[$k] : $item['right_answer'], null, 'form-control answer-select-order')?></td>
+                        <td><?=Form::input('text', "answer[{$k}][title]", $item['title'] , 'form-control answer-text')?></td>
+                        <td><?=Form::select("right_answer[{$k}]", $arOptions , $post['a'] ? $r[$k] : $item['right_answer'], null, 'form-control answer-select-order')?></td>
                         <td class="last-column">
-                            <?=UForm::input('hidden', "answer[{$k}][id]", $item['id'])?>
-                            <?=$isFirst ? '' : UForm::btnDelete('#', '', array('data-ids' => $item['id'] ? "{$v['test_id']}/{$v['id']}/{$item['id']}" : ''))?>
+                            <?=Form::input('hidden', "answer[{$k}][id]", $item['id'])?>
+                            <?=$isFirst ? '' : Form::btnDelete('#', '', array('data-ids' => $item['id'] ? "{$v['test_id']}/{$v['id']}/{$item['id']}" : ''))?>
                         </td>
                     </tr>
             
@@ -66,8 +68,8 @@ if($arResult['request']->_GET['new'] == 'Y') :
             ?>
             
                 <tr>
-                    <td><?=UForm::input('text', 'answer[a_1][title]', '' , 'form-control answer-text')?></td>
-                    <td><?=UForm::select("right_answer[a_1]", array(1=>1) , 1, null, 'form-control answer-select-order')?></td>
+                    <td><?=Form::input('text', 'answer[a_1][title]', '' , 'form-control answer-text')?></td>
+                    <td><?=Form::select("right_answer[a_1]", array(1=>1) , 1, null, 'form-control answer-select-order')?></td>
                     <td class="last-column"></td>
                 </tr>
                     
@@ -75,6 +77,6 @@ if($arResult['request']->_GET['new'] == 'Y') :
                           
         </tbody>
     </table>
-    <?=UForm::button('создать новый вариант ответа', 'btn btn-add-answer')?>
+    <?=Form::button('создать новый вариант ответа', 'btn btn-add-answer')?>
 
 <? endif; ?>

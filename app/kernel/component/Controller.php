@@ -11,6 +11,9 @@ use UTest\Kernel\Errors\DoActionException;
 
 class Controller
 {
+    const AJAX_MODE_JSON = 'json';
+    const AJAX_MODE_HTML = 'html';
+
     /**
      * Имя дефолтного шаблона компонетов
      */
@@ -484,6 +487,37 @@ class Controller
     protected function getContent()
     {
         return join('', $this->content);
+    }
+
+    /**
+     * Возвращает контент для ajax-запроса.
+     *
+     * @param null $content - при null значении возьмётся весь текущий контент работы компонента
+     * @param bool|string $ajaxOutputMode
+     */
+    protected function outputForAjax($content = null, $ajaxOutputMode = false)
+    {
+        if (is_null($content)) {
+            $content = $ajaxOutputMode == self::AJAX_MODE_JSON ? $this->content : $this->getContent();
+        }
+
+        switch ($ajaxOutputMode) {
+            case self::AJAX_MODE_JSON:
+                header('Content-Type: application/json; charset=utf-8');
+                $content = json_encode($content);
+                break;
+
+            case self::AJAX_MODE_HTML:
+                header('Content-Type: text/html; charset=utf-8');
+                break;
+
+            default:
+                header('Content-Type: text/plain; charset=utf-8');
+                break;
+        }
+
+        echo $content;
+        exit;
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace UTest\Kernel\User\Roles;
 
 use UTest\Kernel\DB;
+use UTest\Kernel\Test\Test;
 
 class Prepod extends \UTest\Kernel\User\User
 {

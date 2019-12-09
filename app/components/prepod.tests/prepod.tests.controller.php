@@ -40,7 +40,7 @@ class PrepodTestsController extends \UTest\Kernel\Component\Controller
                 'add_breadcrumb' => true
             ],
 
-            '/newtype/<qtype>' => [
+            '/ajax/newtype/<qtype>' => [
                 'action' => 'new_type'
             ],
 
@@ -102,6 +102,11 @@ class PrepodTestsController extends \UTest\Kernel\Component\Controller
             case 'my_test_questions':
                 $this->doAction($this->action, $this->getVars(['subject_code', 'tid']));
                 $html = $this->loadView($this->action);
+                break;
+
+            case 'new_type':
+                $html = $this->loadView('answer_' . $this->getVars('qtype'));
+                $this->outputForAjax($html, self::AJAX_MODE_HTML);
                 break;
 
 

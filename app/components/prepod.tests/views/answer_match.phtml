@@ -1,7 +1,7 @@
 <?
-$a = $request->_POST['a'] 
-    ? $arResult['data']['form_answer'] 
-    : reset($arResult['data']['form_answer']);
+use UTest\Kernel\Form;
+
+$a = $post['a'] ? $data['form_answer']: reset($data['form_answer']);
 ?>
 
 <table class="table table-hover answer-table">
@@ -12,8 +12,8 @@ $a = $request->_POST['a']
     </thead>
     <tbody>
         <tr>
-            <td><?=UForm::input('text', "answer[right_answer]", $a['right_answer'], 'form-control answer-text')?></td>
+            <td><?=Form::input('text', "answer[right_answer]", $a['right_answer'], 'form-control answer-text')?></td>
         </tr>    
     </tbody>
 </table>
-<?=UForm::input('hidden', "answer[id]", $a['id'])?>
+<?=Form::input('hidden', "answer[id]", $a['id'])?>

@@ -5,6 +5,7 @@ namespace UTest\Kernel\Test;
 use UTest\Kernel\DB;
 use UTest\Kernel\User\User;
 use UTest\Kernel\Traits\FieldsValidateTraitHelper;
+use UTest\Kernel\Base;
 
 class Test
 {
@@ -17,31 +18,7 @@ class Test
     private $testData = [];
     private $subjectData = [];
     private $questionData = [];
-    private $questions = [];
-
-    /**
-     * Массив доступных для создания типов вопросов.
-     * Ключами являются имена классов, которые реализуют обработку выбранного типа вопроса.
-     * @var array
-     */
-    private static $arQuestionTypes = array(
-        'one' => array(
-            'name' => 'единственный ответ',
-            'desc' => 'Из числа возможных вариантов верным является только один'
-        ),
-        'multiple' => array(
-            'name' => 'несколько ответов',
-            'desc' => 'Из числа возможных вариантов верными могут быть несколько'
-        ),
-        'order' => array(
-            'name' => 'порядок значимости',
-            'desc' => 'Выставление вариантов ответов в верной последовательности'
-        ),
-        'match' => array(
-            'name' => 'точность написания',
-            'desc' => 'Необходимо будет написать в текстовом виде верный ответ'
-        )
-    );
+    private $questionsList = [];
 
     public function __construct($uid, $tid = 0, $qid = 0)
     {
@@ -53,6 +30,10 @@ class Test
 
         if ($tid) {
             $this->loadTest($tid);
+        }
+
+        if ($qid) {
+            $this->loadQuestion($qid);
         }
     }
 
@@ -122,7 +103,7 @@ class Test
                 FieldsValidateTraitHelper::_REQUIRED => true
             ],
             'parent_id' => [
-                FieldsValidateTraitHelper::_NAME => '???'
+                FieldsValidateTraitHelper::_NAME => '???' // @todo
             ],
         ];
     }
@@ -193,10 +174,7 @@ class Test
 
     public function delete($id = 0)
     {
-        return DB::table(TABLE_TEST)
-            ->where('id', '=', $id)
-            ->where('user_id', '=', $this->uid)
-            ->delete();
+        return DB::table(TABLE_TEST)->where(['id' => $id, 'user_id' => $this->uid])->delete();
     }
 
     public function loadTest($id = 0)
@@ -212,14 +190,27 @@ class Test
         return $res;
     }
 
-    public function loadQuestions()
+    public function loadQuestionsList()
     {
-        $this->questions = DB::table(TABLE_TEST_QUESTION)->where('test_id', '=', $this->tid)->orderBy('ord')->get();
+        $this->questionsList = DB::table(TABLE_TEST_QUESTION)->where('test_id', '=', $this->tid)->orderBy('ord')->get();
     }
 
-    public function getQuestions()
+    public function loadQuestion($id = 0)
     {
-        return $this->questions;
+        $this->clearErrors();
+        $res = DB::table(TABLE_TEST_QUESTION)->where(['id' => $id, 'test_id' => $this->tid])->first();
+        if (!$res) {
+            $this->setErrors('Вопрос не найден');
+        } else {
+            $this->questionData = $res;
+            $this->qid = $id;
+        }
+        return $res;
+    }
+
+    public function getQuestionsList()
+    {
+        return $this->questionsList;
     }
 
     public function getTestData()
@@ -227,19 +218,50 @@ class Test
         return $this->testData;
     }
 
+    public function getQuestionData()
+    {
+        return $this->questionData;
+    }
+
     public function getTestId()
     {
         return $this->tid;
     }
 
-    public function getBySubject($sid = 0)
+    public function getQuestionId()
     {
-        return self::getList(['subject_id' => $sid, 'user_id' => $this->uid], 'title');
+        return $this->qid;
     }
 
-    public static function getList($v = [], $orderColumn = 'id', $orderDirection = 'asc')
+    public function createQuestion()
     {
-        return DB::table(TABLE_TEST)->where($v)->orderBy($orderColumn, $orderDirection)->get();
+
+    }
+
+    public function editQuestion()
+    {
+
+    }
+
+    public function createOrEditQuestion()
+    {
+
+    }
+
+    public function deleteQuestion()
+    {
+
+    }
+
+    public function getBySubject($sid = 0)
+    {
+        return self::getList(TABLE_TEST, ['subject_id' => $sid, 'user_id' => $this->uid], 'title');
+    }
+
+    // @todo ???
+    public static function getList($table, $v = [], $orderColumn = 'id', $orderDirection = 'asc')
+    {
+        return DB::table($table)->where($v)->orderBy($orderColumn, $orderDirection)->get();
     }
 
     /**
@@ -248,6 +270,6 @@ class Test
      */
     public static function getQuestionTypes()
     {
-        return self::$arQuestionTypes;
+        return Base::getConfig('question_types');
     }
 }

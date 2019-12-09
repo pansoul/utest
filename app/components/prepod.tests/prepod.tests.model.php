@@ -2,6 +2,7 @@
 
 namespace UTest\Components;
 
+use UTest\Kernel\Base;
 use UTest\Kernel\DB;
 use UTest\Kernel\User\User;
 use UTest\Kernel\Test\Test;
@@ -185,10 +186,10 @@ class PrepodTestsModel extends \UTest\Kernel\Component\Model
         if (!$this->test->loadTest($testId)) {
             $this->setErrors($this->test->getErrors(), ERROR_ELEMENT_NOT_FOUND);
         } else {
-            $this->test->loadQuestions();
+            $this->test->loadQuestionsList();
         }
 
-        $this->setData($this->test->getQuestions());
+        $this->setData($this->test->getQuestionsList());
     }
 
     // @todo
@@ -483,15 +484,6 @@ class PrepodTestsModel extends \UTest\Kernel\Component\Model
         $v = reset($res);
 
         return $this->newForAction($v);
-    }
-
-    public function newTypeAction()
-    {
-        if (!$this->request->isAjaxRequest()) {
-            return false;
-        } else {
-            return $this->returnResult();
-        }
     }
 
     public function delAnswerAction($tid, $qid, $aid)

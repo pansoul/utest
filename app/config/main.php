@@ -143,6 +143,9 @@ return array(
     'roles' => require 'roles.php',
 
     // Список должностей
-    'positions' => require 'positions.php'
+    'positions' => require 'positions.php',
+
+    // Список типов вопросов
+    'question_types' => require 'question_types.php'
 );
 

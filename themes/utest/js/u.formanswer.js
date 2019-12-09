@@ -12,7 +12,7 @@ $(document).ready(function() {
             
         $.ajax({
             dataType: 'html',
-            url: url + '/newtype/' + type,
+            url: url + '/ajax/newtype/' + type,
             success: function(data)
             {
                 $al.html(data);
@@ -38,7 +38,7 @@ $(document).ready(function() {
         $.ajax({
             dataType: 'html',
             type: "GET",
-            url: url + '/newtype/' + type,
+            url: url + '/ajax/newtype/' + type,
             data: {
                 new: 'Y',
                 count: curCount
