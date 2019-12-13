@@ -18,8 +18,8 @@ if($get['new'] == 'Y') :
     $count = microtime(true); ?>
 
     <tr>
-        <td><?= Form::input('text', "answer[a_{$count}][title]", '', 'form-control answer-text') ?></td>
-        <td><label><?=Form::radio("right_answer", "a_{$count}", 'answer-radio')?> отметить</label></td>
+        <td><?= Form::input('text', "variant[a_{$count}][title]", '', 'form-control answer-text') ?></td>
+        <td><label><?=Form::radio("right", "a_{$count}", 'answer-radio')?> отметить</label></td>
         <td class="last-column"><?=Form::btnDelete('#')?></td>
     </tr>
 
@@ -47,11 +47,11 @@ if($get['new'] == 'Y') :
             ?>
             
                     <tr>
-                        <td><?=Form::input('text', "answer[{$k}][title]", $item['title'] , 'form-control answer-text')?></td>
-                        <td><label><?=Form::radio("right_answer", $k, 'answer-radio', false, $post['a'] ? ($k==$r) : $item['right_answer'])?> отметить</label></td>
+                        <td><?=Form::input('text', "variant[{$k}][title]", $item['title'] , 'form-control answer-text')?></td>
+                        <td><label><?=Form::radio("right", $k, 'answer-radio', false, $k == $r)?> отметить</label></td>
                         <td class="last-column">
-                            <?=Form::input('hidden', "answer[{$k}][id]", $item['id'])?>
-                            <?=$isFirst ? '' : Form::btnDelete('#', '', array('data-ids' => $item['id'] ? "{$v['test_id']}/{$v['id']}/{$item['id']}" : ''))?>
+                            <?=Form::input('hidden', "variant[{$k}][id]", $item['id'])?>
+                            <?=$isFirst ? '' : Form::btnDelete('#', '', array('data-params' => $item['id'] ? "test-{$v['test_id']}/question-{$v['id']}/{$item['id']}" : ''))?>
                         </td>
                     </tr> 
             
@@ -64,8 +64,8 @@ if($get['new'] == 'Y') :
             ?>
             
                 <tr>
-                    <td><?=Form::input('text', 'answer[a_1][title]', '' , 'form-control answer-text')?></td>
-                    <td><label><?=Form::radio('right_answer', 'a_1', 'answer-radio')?> отметить</label></td>
+                    <td><?=Form::input('text', 'variant[a_1][title]', '' , 'form-control answer-text')?></td>
+                    <td><label><?=Form::radio('right', 'a_1', 'answer-radio')?> отметить</label></td>
                     <td class="last-column"></td>
                 </tr>
                     

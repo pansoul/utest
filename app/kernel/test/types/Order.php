@@ -1,65 +1,65 @@
 <?php
 
-class Order extends AbstractType {
-    
-    public function __construct($qid = 0)
+namespace UTest\Kernel\Test\Types;
+
+class Order extends AbstractType
+{
+    protected function filterRights($r = null)
     {
-        parent::__construct($qid);
+        return array_unique($r);
     }
-    
-    public function validate(array $v = array(), $r = null)
+
+    public function validateComplect($v = [], $r = [])
     {
-        $_e = array();
-        
-        foreach ($v as $k => $item)
-        {
-            if (empty($item['title'])) {
-                $_e[] = 'Необходимо заполнить варианты ответов';    
-                break;
+        $this->clearErrors();
+
+        $v = $this->filterVariants($v);
+        $r = $this->filterRights($r);
+
+        if (!count($v)) {
+            $this->setErrors('Необходимо заполнить варианты ответов');
+        } elseif (count($v) == 1) {
+            $this->setErrors('Мин. количество вариантов должно быть не меньше 2');
+        } elseif (count($r) != count($v)) {
+            if (max($r) != count($r)) {
+                $this->setErrors('Верные позиции должны быть уникальны и не могут повторяться');
+            } else {
+                $this->setErrors('Заполните все данные вариантов ответоа');
             }
         }
-        
-        $this->validVariant = $v;        
-        $r = array_unique($r);
-        
-        if (count($r) != count($this->validVariant)) {
-            $_e[] = 'Верные позиции должны быть уникальны и не могут повторяться';
-        }
-        
-        if (!empty($_e)) {
-            $this->last_error = $_e;
+
+        if ($this->hasErrors()) {
             return false;
         }
-        
-        $this->validRight = $r;
+
+        $this->validVariants = $v;
+        $this->validRights = $r;
+
         return true;
     }
-    
-    public function save()
-    {    
-        if (!$this->checkQuestionExists()) {
+
+    public function saveComplect()
+    {
+        $this->clearErrors();
+
+        if (!$this->checkQuestionExists() || !$this->checkVariantsCompleted()) {
             return false;
         }
-        
-        foreach ($this->validVariant as $k => $item)
-        {
-            $res = R::findOrDispense(TABLE_TEST_ANSWER, 'id = :id AND question_id = :qid', array(
-                ':id' => $item['id'],
-                ':qid' => $this->qid
-            ));
-            
-            $dataRow = reset($res);
-            
-            if (!$dataRow->id) {
-                $dataRow->question_id = $this->qid;
+
+        foreach ($this->validVariants as $k => $item) {
+            $dataRow = [
+                'title' => $item['title'],
+                'question_id' => $this->qid,
+                'right_answer' => $this->validRights[$k]
+            ];
+
+            $this->createOrEdit($dataRow, $item['id']);
+
+            if ($this->hasErrors()) {
+                return false;
             }
-            
-            $dataRow->title = $item['title'];
-            $dataRow->right_answer = $this->validRight[$k];
-            R::store($dataRow);
         }
-        
+
         return true;
     }
-    
 }

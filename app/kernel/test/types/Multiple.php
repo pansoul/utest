@@ -1,69 +1,65 @@
 <?php
 
-class Multiple extends AbstractType {
-    
-    public function __construct($qid = 0)
+namespace UTest\Kernel\Test\Types;
+
+class Multiple extends AbstractType
+{
+    protected function filterRights($r = [])
     {
-        parent::__construct($qid);
+        return array_filter($r, function($value){
+            return $value == 1;
+        });
     }
-    
-    public function validate($v = array(), $r = null)
+
+    public function validateComplect($v = [], $r = [])
     {
-        $_e = array();
-        
-        foreach ($v as $k => $item)
-        {
-            if (!empty($item['title'])) {
-                $this->validVariant[ $k ] = $item;                                
-                if ($r[ $k ] == 1) {
-                    $this->validRight[ $k ] = 1;
-                }
+        $this->clearErrors();
+
+        $v = $this->filterVariants($v);
+        $r = $this->filterRights($r);
+
+        if (!count($v)) {
+            $this->setErrors('Необходимо заполнить варианты ответов');
+        } elseif (count($v) == 1) {
+            $this->setErrors('Мин. количество вариантов должно быть не меньше 2');
+        }
+
+        if (!count($r)) {
+            $this->setErrors('Не указаны верные ответы');
+        }
+
+        if ($this->hasErrors()) {
+            return false;
+        }
+
+        $this->validVariants = $v;
+        $this->validRights = $r;
+
+        return true;
+    }
+
+    public function saveComplect()
+    {
+        $this->clearErrors();
+
+        if (!$this->checkQuestionExists() || !$this->checkVariantsCompleted()) {
+            return false;
+        }
+
+        foreach ($this->validVariants as $k => $item) {
+            $dataRow = [
+                'title' => $item['title'],
+                'question_id' => $this->qid,
+                'right_answer' => intval(isset($this->validRights[$k]))
+            ];
+
+            $this->createOrEdit($dataRow, $item['id']);
+
+            if ($this->hasErrors()) {
+                return false;
             }
         }
-        
-        if (!count($this->validVariant)) {
-            $_e[] = 'Необходимо заполнить варианты ответов';    
-            list($key, $value) = each($v);
-            $this->validVariant = array($k => $value);
-        }
-        
-        if (!count($this->validRight)) {
-            $_e[] = 'Не указаны верные ответы';        
-        }
-        
-        if (!empty($_e)) {
-            $this->last_error = $_e;
-            return false;
-        }
-        
+
         return true;
     }
-    
-    public function save()
-    {
-        if (!$this->checkQuestionExists()) {
-            return false;
-        }
-        
-        foreach ($this->validVariant as $k => $item)
-        {
-            $res = R::findOrDispense(TABLE_TEST_ANSWER, 'id = :id AND question_id = :qid', array(
-                ':id' => $item['id'],
-                ':qid' => $this->qid
-            ));
-            
-            $dataRow = reset($res); 
-            
-            if (!$dataRow->id) {
-                $dataRow->question_id = $this->qid;
-            }            
-            
-            $dataRow->title = $item['title'];
-            $dataRow->right_answer = intval(isset($this->validRight[$k]));
-            R::store($dataRow);
-        }
-        
-        return true;
-    }
-    
 }

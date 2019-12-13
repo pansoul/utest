@@ -40,7 +40,6 @@ trait FieldsValidateTrait
 
     protected function checkFields($fieldsMap = [], $arFields = [], $inGroups = null, &$errors = [])
     {
-        $e = [];
         $inGroups = (array) $inGroups;
         $arAvailableFields = $this->getGroupFields($fieldsMap, $arFields, $inGroups);
         $arRequiredFields = $this->getGroupFields($fieldsMap, $arFields, $inGroups, true);
@@ -51,29 +50,23 @@ trait FieldsValidateTrait
         $arFields = array_map('trim', $arFields);
 
         if (empty($arFields)) {
-            $e[] = 'Входной массив параметров пуст';
-            $errors = $e;
+            $errors[] = 'Входной массив параметров пуст';
             return false;
         }
 
         foreach ($arRequiredFields as $field) {
-            if (in_array('edit', $inGroups)) {
-                if (!key_exists($field, $arFields) || empty($arFields[$field])) {
-                    $e[] = "Заполните поле '{$fieldsMap[$field][FieldsValidateTraitHelper::_NAME]}'";
+            if (in_array(FieldsValidateTraitHelper::_EDIT, $inGroups)) {
+                if (isset($arFields[$field]) && strlen($arFields[$field]) == 0) {
+                    $errors[] = "Заполните поле '{$fieldsMap[$field][FieldsValidateTraitHelper::_NAME]}'";
                 }
             } else {
-                if (!key_exists($field, $arFields) || empty($arFields[$field])) {
-                    $e[] = "Заполните поле '{$fieldsMap[$field][FieldsValidateTraitHelper::_NAME]}'";
+                if (!isset($arFields[$field]) || strlen($arFields[$field]) == 0) {
+                    $errors[] = "Заполните поле '{$fieldsMap[$field][FieldsValidateTraitHelper::_NAME]}'";
                 }
             }
             if (isset($fieldsMap[$field][FieldsValidateTraitHelper::_VALIDATE])) {
                 // @todo
             }
-        }
-
-        if (!empty($e)) {
-            $errors = $e;
-            return false;
         }
 
         return $arFields;

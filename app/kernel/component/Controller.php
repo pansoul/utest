@@ -543,4 +543,13 @@ class Controller
     {
         return $this->model->getVars($key, $default);
     }
+
+    /**
+     * По сути алиас для доступа к методу getData() модели компонента
+     * @return mixed
+     */
+    protected function getActionData()
+    {
+        return $this->model->getData();
+    }
 }

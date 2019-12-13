@@ -33,8 +33,8 @@ if ($this->hasErrors()) {
         </label>
         <div class="col-lg-9">
             <?=$v['id'] 
-                ?  $data['question_type_list'][ $v['type'] ]
-                : Form::select('question[type]', $data['question_type_list'] , $v['type'], 'Выберите тип', 'form-control', 'answer-type-select')                    
+                ?  $data['question_type_list'][$v['type']]
+                : Form::select('question[type]', $data['question_type_list'] , $v['type'], ['', 'Выберите тип'], 'form-control', 'answer-type-select')
             ?>
         </div>
     </div>
@@ -44,7 +44,7 @@ if ($this->hasErrors()) {
             <span class="help-block">Чем выше значение, тем выше по списку будет располагаться вопрос.</span>            
         </label>
         <div class="col-lg-9">
-            <?=Form::input('text', 'question[ord]', $data['ord'], 'form-control')?>
+            <?=Form::input('text', 'question[ord]', isset($v['ord']) ? $v['ord'] : 100, 'form-control')?>
         </div>
     </div>
     <div class="form-group">

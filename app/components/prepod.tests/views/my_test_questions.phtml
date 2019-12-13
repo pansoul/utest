@@ -1,10 +1,12 @@
 <?
 use UTest\Kernel\Form;
 use UTest\Kernel\Site;
+use UTest\Kernel\Test\Test;
 
 $arTitles = array(
     Form::checkbox('check_all', 1, false, 'check-all'),
     'ID',
+    '№',
     'Индекс сортировки',
     'Вопрос',
     'Тип вопроса',    
@@ -17,7 +19,6 @@ if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) {
 }
 
 $items = $data;
-//$arQType = UTest::getTypeQuestion();
 ?>
 
 <div class="setting-panel">
@@ -52,9 +53,13 @@ if (count($items) == 0) {
                 <td class="checkbox-column"><?=Form::checkbox("i[]", $v['id'], 'check-one')?></td>
                 <td><?=$v['id']?></td>
                 <td>#<?=$count?></td>
+                <td><?=$v['ord']?></td>
                 <td><?= html_entity_decode($v['text']) ?></td>
-                <td><?=$arQType[ $v['type'] ]['name']?></td>                    
-                <td class="last-column"><?=Form::btnEdit(Site::getModurl().'/editmyquestion/', 'in-'.$this->model->vars['tid'].'/'.$v['id'])?><?=Form::btnDelete(Site::getModurl().'/delquestion/', 'test-'.$this->model->vars['tid'].'/'.$v['id'])?></td>
+                <td><?=Test::getQuestionTypes()[$v['type']]['name']?></td>
+                <td class="last-column">
+                    <?=Form::btnEdit(Site::getUrl() . '/edit/' . $v['id'])?>
+                    <?=Form::btnDelete(Site::getModurl().'/delquestion/', 'test-'.$this->model->vars['tid'].'/'.$v['id'])?>
+                </td>
             </tr>
         <?
         $count++;

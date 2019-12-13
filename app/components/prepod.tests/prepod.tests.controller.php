@@ -36,12 +36,20 @@ class PrepodTestsController extends \UTest\Kernel\Component\Controller
             ],
             '/my/<subject_code>/test-<tid>/new' => [
                 'action' => 'my_new_question',
-                'title' => 'Создание нового вопроса', // Редактирование вопроса
+                'title' => 'Создание нового вопроса',
+                'add_breadcrumb' => true
+            ],
+            '/my/<subject_code>/test-<tid>/edit/<id>' => [
+                'action' => 'my_edit_question',
+                'title' => 'Редактирование вопроса',
                 'add_breadcrumb' => true
             ],
 
             '/ajax/newtype/<qtype>' => [
-                'action' => 'new_type'
+                'action' => 'ajax_new_type'
+            ],
+            '/ajax/delanswer/test-<tid>/question-<qid>/<id>' => [
+                'action' => 'ajax_delete_answer'
             ],
 
 
@@ -88,6 +96,9 @@ class PrepodTestsController extends \UTest\Kernel\Component\Controller
         $exploded = explode('/', Site::getModParamsRow(), 3);
         $tabSelected = $exploded[1] ? $exploded[1] : 'my';
 
+        // Управление выводом табов
+        $hideTabs = false;
+
         switch ($this->action) {
             case 'my_tests':
                 $this->doAction($this->action, $this->getVars('subject_code'));
@@ -104,11 +115,26 @@ class PrepodTestsController extends \UTest\Kernel\Component\Controller
                 $html = $this->loadView($this->action);
                 break;
 
-            case 'new_type':
+            case 'answer_display':
+                $hideTabs = true;
+                $this->doAction($this->action, $this->actionArgs);
+                $html = $this->loadView('answer_' . $this->actionArgs[0]);
+                break;
+
+            case 'my_edit_question':
+                $this->doAction($this->action, $this->getVars(['tid', 'id']));
+                $html = $this->loadView('my_new_question');
+                break;
+
+            case 'ajax_new_type':
                 $html = $this->loadView('answer_' . $this->getVars('qtype'));
                 $this->outputForAjax($html, self::AJAX_MODE_HTML);
                 break;
 
+            case 'ajax_delete_answer':
+                $this->doAction($this->action, $this->getVars(['tid', 'qid', 'id']));
+                $this->outputForAjax($this->getActionData(), self::AJAX_MODE_JSON);
+                break;
 
             /*case 'my':
                 if ($this->vars['tid']) {
@@ -198,12 +224,14 @@ class PrepodTestsController extends \UTest\Kernel\Component\Controller
                 break;
         }
 
-        $tabs = $this->loadView('tabs', [
-            'tabs' => $arTabs,
-            'selected' => $tabSelected
-        ]);
+        if (!$hideTabs) {
+            $tabs = $this->loadView('tabs', [
+                'tabs' => $arTabs,
+                'selected' => $tabSelected
+            ]);
+            $this->putContent($tabs);
+        }
 
-        $this->putContent($tabs);
         $this->putContent($html);
     }
 }

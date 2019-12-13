@@ -39,10 +39,10 @@ class PrepodTestsModel extends \UTest\Kernel\Component\Model
         $this->setData($res);
 
         // Запрос на удаление
-        /*if ($this->request->_POST['del_all']) {
+        /*if ($this->_POST['del_all']) {
             // Удаление вопросов в выбранном тесте
             if ($this->vars['tid']) {
-                foreach ($this->request->_POST['i'] as $item) {
+                foreach ($this->_POST['i'] as $item) {
                     if (!$item) {
                         continue;
                     }
@@ -50,7 +50,7 @@ class PrepodTestsModel extends \UTest\Kernel\Component\Model
                 }
             } // Удаление тестов в выбранном предмете
             elseif ($this->vars['subject_code']) {
-                foreach ($this->request->_POST['i'] as $item) {
+                foreach ($this->_POST['i'] as $item) {
                     if (!$item) {
                         continue;
                     }
@@ -205,12 +205,24 @@ class PrepodTestsModel extends \UTest\Kernel\Component\Model
         $arQuestionTypes = array_map(function($value){
             return $value['name'];
         }, $arQuestionTypes);
+        
+        if ($this->isActionRequest()) {
+            $v = $this->_POST;
+
+            $this->test->createOrEditQuestion($v['question'], $v['variant'], $v['right'], $v['question']['id']);
+
+            if ($this->test->hasErrors()) {
+                $this->setErrors($this->test->getErrors());
+            } else {
+                Site::redirect(Site::getModurl() . '/my/' . $this->vars['subject_code'] . '/test-' . $this->vars['tid']);
+            }
+        }
 
         $this->setData([
             'question_type_list' => $arQuestionTypes,
             'form_question' => $v['question'],
-            'form_answer' => $v['answer'],
-            'form_right' => $v['right_answer']
+            'form_answer' => $v['variant'],
+            'form_right' => $v['right']
         ]);
 
         /*$this->errors = array();
@@ -246,8 +258,8 @@ class PrepodTestsModel extends \UTest\Kernel\Component\Model
         }
 
         // Есть запрос отправки формы
-        if ($this->request->_POST['a']) {
-            $v = $this->request->_POST;
+        if ($this->_POST['a']) {
+            $v = $this->_POST;
 
             if ($v['question']['id']) {
                 $result = UUser::user()->editQuestion(
@@ -314,8 +326,8 @@ class PrepodTestsModel extends \UTest\Kernel\Component\Model
                     if ($sparent) {
                         UAppBuilder::addBreadcrumb($sparent['title'], USite::getUrl());
 
-                        if ($this->request->_POST['del_all']) {
-                            foreach ($this->request->_POST['i'] as $item) {
+                        if ($this->_POST['del_all']) {
+                            foreach ($this->_POST['i'] as $item) {
                                 if (!$item) {
                                     continue;
                                 }
@@ -412,8 +424,8 @@ class PrepodTestsModel extends \UTest\Kernel\Component\Model
                         }
 
                         // Запрос на изменение/добавление
-                        if ($this->request->_POST['a']) {
-                            $v = $this->request->_POST;
+                        if ($this->_POST['a']) {
+                            $v = $this->_POST;
 
                             if (!$this->vars['id']) {
                                 if (!$v['test_id']) {
@@ -453,13 +465,18 @@ class PrepodTestsModel extends \UTest\Kernel\Component\Model
         ));
     }
 
-    public function editMyQuestionAction($tid, $id)
+    public function myEditQuestionAction($tid, $id)
     {
-        if (!($id && $tid)) {
-            return;
+        $v = [];
+        if (!$this->test->loadTest($tid) || !$this->test->loadQuestion($id)) {
+            $this->setErrors($this->test->getErrors(), ERROR_ELEMENT_NOT_FOUND);
+        } elseif ($this->test->loadAnswersList()) {
+            $v['id'] = $this->test->getQuestionId();
+            $v['question'] = $this->test->getQuestionData();
+            $v['variant'] = $this->test->getAnswersList(Test::ANSWERS_MODE_VARIANTS);
+            $v['right'] = $this->test->getAnswersList(Test::ANSWERS_MODE_RIGHTS);
         }
-        $v = UUser::user()->_prepareEditQuestion($tid, $id);
-        return $this->newMyQuestionAction($v);
+        $this->myNewQuestionAction($v);
     }
 
     public function editForTestAction($id)
@@ -486,28 +503,27 @@ class PrepodTestsModel extends \UTest\Kernel\Component\Model
         return $this->newForAction($v);
     }
 
-    public function delAnswerAction($tid, $qid, $aid)
+    public function ajaxDeleteAnswerAction($tid, $qid, $id)
     {
-        $res = array();
+        $res = [];
 
-        if (!$this->request->isAjaxRequest()) {
-            return false;
-        }
+        $this->test->loadTest($tid);
+        $this->test->loadQuestion($qid);
 
-        $delResult = UUser::user()->deleteAnswer($tid, $qid, $aid);
+        $res['test'] = $this->test->getTestData();
+        $res['question'] = $this->test->getQuestionData();
 
-        if ($delResult) {
+        if ($this->test->deleteAnswer($id)) {
             $res['status'] = 'OK';
         } else {
             $res['status'] = 'ERROR';
-            $res['status_message'] = UUser::$last_errors;
+            $res['errors'] = $this->test->getErrors();
         }
 
-        header('Content-Type: application/json');
-        return json_encode($res);
+        $this->setData($res);
     }
 
-    public function delQuestionAction($tid, $qid)
+    public function delQuestionAction($tid, $id)
     {
         UUser::user()->deleteQuestion($tid, $qid);
 

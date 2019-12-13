@@ -1,46 +1,59 @@
 <?php
 
-class Match extends AbstractType {
-    
-    public function __construct($qid = 0)
-    {
-        parent::__construct($qid);
-    }
-    
-    public function validate(array $r = array())
-    {   
-        $this->validVariant = $r;
-        
-        if (empty($r['right_answer'])) {
-            $this->last_error = array('Не указано точное написание верного ответа');
-            return false;
-        }
-        
-        $this->validRight = $r;
-        return true;
-    }
-    
-    public function save()
-    {
-        if (!$this->checkQuestionExists()) {
-            return false;
-        }
-        
-        $res = R::findOrDispense(TABLE_TEST_ANSWER, 'id = :id AND question_id = :qid', array(
-            ':id' => $this->validRight['id'],
-            ':qid' => $this->qid
-        ));
+namespace UTest\Kernel\Test\Types;
 
-        $dataRow = reset($res);
-        
-        if (!$dataRow->id) {
-            $dataRow->question_id = $this->qid;
+class Match extends AbstractType
+{
+    protected function filterRights($r = null)
+    {
+        if (is_array($r)) {
+            return array_shift($r);
+        } else {
+            return trim(strval($r));
         }
-        
-        $dataRow->right_answer = $this->validRight['right_answer'];
-        R::store($dataRow);
-        
+    }
+
+    public function validateComplect($v = [], $r = '')
+    {
+        $this->clearErrors();
+
+        $r = $this->filterRights($r);
+        $v['title'] = $r;
+
+        if (empty($r)) {
+            $this->setErrors('Не указано точное написание верного ответа');
+        }
+
+        if ($this->hasErrors()) {
+            return false;
+        }
+
+        $this->validVariants = $v;
+        $this->validRights = $r;
+
         return true;
     }
-    
+
+    public function saveComplect()
+    {
+        $this->clearErrors();
+
+        if (!$this->checkQuestionExists() || !$this->checkVariantsCompleted()) {
+            return false;
+        }
+
+        $dataRow = [
+            'title' => $this->validRights,
+            'question_id' => $this->qid,
+            'right_answer' => $this->validRights
+        ];
+
+        $this->createOrEdit($dataRow, $this->validVariants['id']);
+
+        if ($this->hasErrors()) {
+            return false;
+        }
+
+        return true;
+    }
 }
