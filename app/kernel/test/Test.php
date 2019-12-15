@@ -418,14 +418,38 @@ class Test
         $questionFields = $this->checkFields($this->questionFieldsMap(), $questionFields, FieldsValidateTraitHelper::_EDIT, $this->errors);
 
         if (!$this->hasErrors()) {
+            DB::beginTransaction();
+
             if ($this->loadQuestion($id) && $this->qTypeEntity) {
-                if (!$this->qTypeEntity->validateComplect($arVariants, $arRights) || !$this->qTypeEntity->saveComplect()) {
+                $this->loadAnswersList();
+                $oldAnswerIds = array_reduce($this->getAnswersList(), function($acc, $item){
+                    $acc[] = intval($item['id']);
+                    return $acc;
+                }, []);
+                $newAnswerIds = array_reduce($arVariants, function($acc, $item){
+                    $acc[] = intval($item['id']);
+                    return $acc;
+                }, []);
+                $delAnswerIds = array_diff($oldAnswerIds, $newAnswerIds);
+
+                $deleted = true;
+                foreach ($delAnswerIds as $answerId) {
+                    if (!$this->qTypeEntity->delete($answerId)) {
+                        $deleted = false;
+                        break;
+                    }
+                }
+
+                if (!$deleted || !$this->qTypeEntity->validateComplect($arVariants, $arRights) || !$this->qTypeEntity->saveComplect()) {
                     $this->setErrors($this->qTypeEntity->getErrors());
                 }
             };
 
-            if (!$this->hasErrors()) {
+            if ($this->hasErrors()) {
+                DB::rollBack();
+            } else {
                 $rows = DB::table(TABLE_TEST_QUESTION)->where(['id' => $id, 'test_id' => $this->tid])->update($questionFields);
+                DB::commit();
             }
         }
 

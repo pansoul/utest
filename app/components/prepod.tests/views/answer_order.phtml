@@ -8,14 +8,16 @@ $arTitles = array(
 );
 
 $v = $data['form_question'];
-$a = $data['form_answer'];
+$a =  $data['form_answer'];
 $r = $data['form_right'];
 
-$arOptions = array();
-$allCount = $a ? count($a) : $get['count'] + 1;
-for ($i = 1; $i <= $allCount; $i++)
-{
-    $arOptions[$i] = $i;
+$maxCount = $a ? count($a) : intval($get['count']) + 1;
+$range = range(1, $maxCount);
+$arOptions = array_combine($range, $range);
+
+// Фиктивные варианты ответов при первом показе формы
+if (empty($a) && !$post['a']) {
+    $a = [1 => 1];
 }
 ?>
 
@@ -26,7 +28,7 @@ if($get['new'] == 'Y') :
 
     <tr>
         <td><?=Form::input('text', "variant[a_{$count}][title]", '', 'form-control answer-text') ?></td>
-        <td><?=Form::select("right[a_{$count}]", $arOptions , $needCount, null, 'form-control answer-select-order')?></td>
+        <td><?=Form::select("right[a_{$count}]", $arOptions , [], false, 'form-control answer-select-order')?></td>
         <td class="last-column"><?=Form::btnDelete('#')?></td>
     </tr>
 
@@ -42,38 +44,18 @@ if($get['new'] == 'Y') :
         </thead>
         <tbody>
             
-            <?
-            // Вывод существующих вопросов
-            if($a) {
-                foreach($a as $k => $item)
-                {
-                    static $isFirst = true;
-            ?>
-            
-                    <tr>
-                        <td><?=Form::input('text', "variant[{$k}][title]", $item['title'] , 'form-control answer-text')?></td>
-                        <td><?=Form::select("right[{$k}]", $arOptions , $r[$k], false, 'form-control answer-select-order')?></td>
-                        <td class="last-column">
-                            <?=Form::input('hidden', "variant[{$k}][id]", $item['id'])?>
-                            <?=$isFirst ? '' : Form::btnDelete('#', '', array('data-params' => $item['id'] ? "test-{$v['test_id']}/question-{$v['id']}/{$item['id']}" : ''))?>
-                        </td>
-                    </tr>
-            
-            <?
-                    $isFirst = false;
-                }            
-            }  
-            // Первый показ формы при создании
-            else {
-            ?>
+            <? foreach($a as $k => $item): ?>
             
                 <tr>
-                    <td><?=Form::input('text', 'variant[a_1][title]', '' , 'form-control answer-text')?></td>
-                    <td><?=Form::select("right[a_1]", array(1=>1) , 1, null, 'form-control answer-select-order')?></td>
-                    <td class="last-column"></td>
+                    <td><?=Form::input('text', "variant[{$k}][title]", $item['title'] , 'form-control answer-text')?></td>
+                    <td><?=Form::select("right[{$k}]", $arOptions , $r[$k], false, 'form-control answer-select-order')?></td>
+                    <td class="last-column">
+                        <?=Form::input('hidden', "variant[{$k}][id]", $item['id'])?>
+                        <?=Form::btnDelete('#', false, ['data-id' => $item['id']])?>
+                    </td>
                 </tr>
-                    
-            <? } ?>            
+            
+            <? endforeach; ?>
                           
         </tbody>
     </table>

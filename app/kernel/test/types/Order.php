@@ -16,16 +16,15 @@ class Order extends AbstractType
         $v = $this->filterVariants($v);
         $r = $this->filterRights($r);
 
+        // @todo разобратсья с порядком вывода ошибок
         if (!count($v)) {
             $this->setErrors('Необходимо заполнить варианты ответов');
         } elseif (count($v) == 1) {
-            $this->setErrors('Мин. количество вариантов должно быть не меньше 2');
+            $this->setErrors('Мин. количество заполненных вариантов должно быть не меньше 2');
+        } elseif (max($r) != count($v)) {
+            $this->setErrors('Верные позиции должны быть уникальны и не могут повторяться');
         } elseif (count($r) != count($v)) {
-            if (max($r) != count($r)) {
-                $this->setErrors('Верные позиции должны быть уникальны и не могут повторяться');
-            } else {
-                $this->setErrors('Заполните все данные вариантов ответоа');
-            }
+            $this->setErrors('Заполните все данные вариантов ответов');
         }
 
         if ($this->hasErrors()) {

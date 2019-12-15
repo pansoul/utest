@@ -503,26 +503,6 @@ class PrepodTestsModel extends \UTest\Kernel\Component\Model
         return $this->newForAction($v);
     }
 
-    public function ajaxDeleteAnswerAction($tid, $qid, $id)
-    {
-        $res = [];
-
-        $this->test->loadTest($tid);
-        $this->test->loadQuestion($qid);
-
-        $res['test'] = $this->test->getTestData();
-        $res['question'] = $this->test->getQuestionData();
-
-        if ($this->test->deleteAnswer($id)) {
-            $res['status'] = 'OK';
-        } else {
-            $res['status'] = 'ERROR';
-            $res['errors'] = $this->test->getErrors();
-        }
-
-        $this->setData($res);
-    }
-
     public function delQuestionAction($tid, $id)
     {
         UUser::user()->deleteQuestion($tid, $qid);

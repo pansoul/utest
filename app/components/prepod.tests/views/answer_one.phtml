@@ -10,6 +10,11 @@ $arTitles = array(
 $v = $data['form_question'];
 $a = $data['form_answer'];
 $r = $data['form_right'];
+
+// Фиктивные варианты ответов при первом показе формы
+if (empty($a) && !$post['a']) {
+    $a = [1 => 1];
+}
 ?>
 
 <?
@@ -34,42 +39,19 @@ if($get['new'] == 'Y') :
             </tr>
         </thead>
         <tbody>
-            
-            <?
-            // Вывод существующих вопросов
-            if ($a) {
-                foreach($a as $k => $item)
-                {
-                    static $isFirst = true;
-                    if (count($a) > 1 && empty($item['title'])) {
-                        continue;
-                    }
-            ?>
-            
-                    <tr>
-                        <td><?=Form::input('text', "variant[{$k}][title]", $item['title'] , 'form-control answer-text')?></td>
-                        <td><label><?=Form::radio("right", $k, 'answer-radio', false, $k == $r)?> отметить</label></td>
-                        <td class="last-column">
-                            <?=Form::input('hidden', "variant[{$k}][id]", $item['id'])?>
-                            <?=$isFirst ? '' : Form::btnDelete('#', '', array('data-params' => $item['id'] ? "test-{$v['test_id']}/question-{$v['id']}/{$item['id']}" : ''))?>
-                        </td>
-                    </tr> 
-            
-            <?
-                    $isFirst = false;
-                }            
-            }  
-            // Первый показ формы при создании
-            else {
-            ?>
+
+            <? foreach($a as $k => $item): ?>
             
                 <tr>
-                    <td><?=Form::input('text', 'variant[a_1][title]', '' , 'form-control answer-text')?></td>
-                    <td><label><?=Form::radio('right', 'a_1', 'answer-radio')?> отметить</label></td>
-                    <td class="last-column"></td>
+                    <td><?=Form::input('text', "variant[{$k}][title]", $item['title'] , 'form-control answer-text')?></td>
+                    <td><label><?=Form::radio("right", $k, 'answer-radio', false, $k == $r)?> отметить</label></td>
+                    <td class="last-column">
+                        <?=Form::input('hidden', "variant[{$k}][id]", $item['id'])?>
+                        <?=Form::btnDelete('#', false, ['data-id' => $item['id']])?>
+                    </td>
                 </tr>
-                    
-            <? } ?>
+            
+            <? endforeach; ?>
             
         </tbody>
     </table>

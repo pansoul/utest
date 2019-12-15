@@ -49,12 +49,18 @@ if ($this->hasErrors()) {
     </div>
     <div class="form-group">
         <label class="col-lg-3 control-label">Варианты ответов:<?=Form::asterisk()?></label>
-        <div class="col-lg-9" id="answer-list">
-            <?if(!$v['type']):?>
+        <div class="col-lg-9">
+            <div id="unselected-type" style="display: <?= $v['type'] ? 'none' : 'block' ?>">
                 Создание вариантов ответов будет доступно после выбора типа вопроса.
-            <?else:?>                
-                <?=Controller::loadComponent('prepod.tests', 'answer_display', array($v['type'], $v, $a, $r), false);?>
-            <?endif;?>
+            </div>
+            <div id="update-info" style="display: none">
+                <?=Form::info('Для применения изменений не забудьте сохранить форму')?>
+            </div>
+            <div id="answer-list">
+                <?if($v['type']):?>
+                    <?=Controller::loadComponent('prepod.tests', 'answer_display', array($v['type'], $v, $a, $r), false);?>
+                <?endif;?>
+            </div>
         </div>
     </div>
     <div class="form-group">

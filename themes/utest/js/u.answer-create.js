@@ -2,16 +2,17 @@ $(document).ready(function() {
 
     var $answerTypeSelect = $('#answer-type-select'),
         $answerList = $('#answer-list'),
+        $updateInfo = $('#update-info'),
+        $unselectedType = $('#unselected-type'),
         url = $('input[name="url"]').val(),
-        ajaxNewTypeUrl = url + '/ajax/newtype',
-        ajaxDelAnswerUrl = url + '/ajax/delanswer';
+        ajaxNewTypeUrl = url + '/ajax/newtype';
 
     $answerTypeSelect.on('change', function() {
         var type = $(this).val();
 
-        if (type == 0) {
-            $al.html(
-                'Создание вариантов ответов будет доступно после выбора типа вопроса.');
+        if (!type) {
+            $answerList.hide().html('');
+            $unselectedType.show();
             return;
         }
 
@@ -19,7 +20,8 @@ $(document).ready(function() {
             dataType: 'html',
             url: ajaxNewTypeUrl + '/' + type,
             success: function(data) {
-                $answerList.html(data);
+                $unselectedType.hide();
+                $answerList.html(data).show();
                 focusInLastAnswer();
             },
             error: function() {
@@ -74,39 +76,17 @@ $(document).ready(function() {
     $(document).on('click', '.answer-table .btn-delete', function(e) {
         e.preventDefault();
 
-        if (!confirm(
-            'Вы точно хотите удалить данный вариант?\nВариант удалится безвозвратно.')) {
+        if (!confirm('Вы точно хотите удалить данный вариант?')) {
             return false;
         }
 
         var $this = $(this),
             type = $answerTypeSelect.length
                 ? $answerTypeSelect.find('option:selected').val()
-                : $('input[name="question[type]"]').val(),
-            params = $this.data('params');
+                : $('input[name="question[type]"]').val();
 
-        // Удаление нового, ещё не сохранённого ответа
-        if (!params) {
-            removeAnswerRow($this, type);
-            return;
-        }
+        removeAnswerRow($this, type);
 
-        $.ajax({
-            dataType: 'json',
-            type: 'GET',
-            url: ajaxDelAnswerUrl + '/' + params,
-            success: function(data) {
-                if (data.status === 'OK') {
-                    removeAnswerRow($this, type);
-                }
-                else {
-                    alert(data.errors);
-                }
-            },
-            error: function() {
-                alert('Error deleting the answer');
-            },
-        });
     });
 
     function removeAnswerRow($o, type) {
@@ -128,6 +108,10 @@ $(document).ready(function() {
 
                     $last.remove();
                 });
+            }
+
+            if ($o.data('id')) {
+                $updateInfo.show();
             }
 
             $(this).remove();

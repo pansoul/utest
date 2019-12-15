@@ -261,7 +261,10 @@ class PrepodMaterialsModel extends \UTest\Kernel\Component\Model
 
     public function forNewAction()
     {
-        list('group' => $group, 'subject' => $subject) = $this->forMaterialAction($this->vars['group_code'], $this->vars['subject_code']);
+        $data = $this->forMaterialAction($this->vars['group_code'], $this->vars['subject_code']);
+        $group = $data['group'];
+        $subject = $data['subject'];
+
         if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) {
             $this->setData(null);
             return;
@@ -334,7 +337,10 @@ class PrepodMaterialsModel extends \UTest\Kernel\Component\Model
 
     public function forNewCommentAction($v = array())
     {
-        list('group' => $group, 'subject' => $subject) = $this->forMaterialAction($this->vars['group_code'], $this->vars['subject_code']);
+        $data = $this->forMaterialAction($this->vars['group_code'], $this->vars['subject_code']);
+        $group = $data['group'];
+        $subject = $data['subject'];
+
         if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) {
             $this->setData(null);
             return;

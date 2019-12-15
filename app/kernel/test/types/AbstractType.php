@@ -63,7 +63,7 @@ abstract class AbstractType implements TypeInterface
     {
         $v = array_map(function($item){
             $item['title'] = trim($item['title']);
-            $item['id'] = intval($item['id']);
+            $item['id'] = trim(strval($item['id']));
             return $item;
         }, $v);
 

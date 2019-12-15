@@ -48,9 +48,6 @@ class PrepodTestsController extends \UTest\Kernel\Component\Controller
             '/ajax/newtype/<qtype>' => [
                 'action' => 'ajax_new_type'
             ],
-            '/ajax/delanswer/test-<tid>/question-<qid>/<id>' => [
-                'action' => 'ajax_delete_answer'
-            ],
 
 
 
@@ -129,11 +126,6 @@ class PrepodTestsController extends \UTest\Kernel\Component\Controller
             case 'ajax_new_type':
                 $html = $this->loadView('answer_' . $this->getVars('qtype'));
                 $this->outputForAjax($html, self::AJAX_MODE_HTML);
-                break;
-
-            case 'ajax_delete_answer':
-                $this->doAction($this->action, $this->getVars(['tid', 'qid', 'id']));
-                $this->outputForAjax($this->getActionData(), self::AJAX_MODE_JSON);
                 break;
 
             /*case 'my':

@@ -21,7 +21,7 @@ class Multiple extends AbstractType
         if (!count($v)) {
             $this->setErrors('Необходимо заполнить варианты ответов');
         } elseif (count($v) == 1) {
-            $this->setErrors('Мин. количество вариантов должно быть не меньше 2');
+            $this->setErrors('Мин. количество заполненных вариантов должно быть не меньше 2');
         }
 
         if (!count($r)) {
