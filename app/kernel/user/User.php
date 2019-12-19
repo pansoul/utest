@@ -131,7 +131,7 @@ class User
      *
      * @param int $uid
      *
-     * @return mixed|object
+     * @return self
      * @throws AppException
      */
     public static function user($uid = 0)
@@ -347,7 +347,7 @@ class User
             return $this->userData;
         } else {
             foreach ($arFields as $v) {
-                if (!isset($this->userData[$v])) {
+                if (!array_key_exists($v, $this->userData)) {
                     $e[] = "Поле '{$v}' не существует в списке свойств пользователя";
                     self::$last_errors = $e;
                     return false;
