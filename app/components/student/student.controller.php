@@ -1,9 +1,10 @@
 <?php
 
-class StudentController extends USiteController {
+namespace UTest\Components;
 
-    protected $routeMap = array(        
-        'setTitle' => 'Как пользоваться системой?',
-        'addBreadcrumb' => false
+class StudentController extends \UTest\Kernel\Component\Controller
+{
+    protected $routeMap = array(
+        'title' => 'Как пользоваться системой?'
     );
 }
