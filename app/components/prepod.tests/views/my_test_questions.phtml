@@ -52,13 +52,13 @@ if (count($items) == 0) {
             <tr>
                 <td class="checkbox-column"><?=Form::checkbox("i[]", $v['id'], 'check-one')?></td>
                 <td><?=$v['id']?></td>
-                <td>#<?=$count?></td>
+                <td class="column-disabled">#<?=$count?></td>
                 <td><?=$v['ord']?></td>
                 <td><?= html_entity_decode($v['text']) ?></td>
                 <td><?=Test::getQuestionTypes()[$v['type']]['name']?></td>
                 <td class="last-column">
                     <?=Form::btnEdit(Site::getUrl() . '/edit/' . $v['id'])?>
-                    <?=Form::btnDelete(Site::getModurl().'/delquestion/', 'test-'.$this->model->vars['tid'].'/'.$v['id'])?>
+                    <?=Form::btnDelete(Site::getUrl() . '/delete/' . $v['id'])?>
                 </td>
             </tr>
         <?

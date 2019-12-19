@@ -28,7 +28,7 @@ class PrepodMaterialsModel extends \UTest\Kernel\Component\Model
 
     public function myMaterialAction($subjectCode)
     {
-        if ($this->isActionRequest('del_all')) {
+        if ($this->isActionRequest('del_all') && $this->isNativeActionMethod()) {
             foreach ($this->_POST['i'] as $id) {
                 if (!$id) {
                     continue;
@@ -228,7 +228,7 @@ class PrepodMaterialsModel extends \UTest\Kernel\Component\Model
             $this->setErrors('Дисципина не найдена', ERROR_ELEMENT_NOT_FOUND);
         }
 
-        if ($this->isActionRequest('del_all')) {
+        if ($this->isActionRequest('del_all') && $this->isNativeActionMethod()) {
             foreach ($this->_POST['i'] as $id) {
                 if (!$id) {
                     continue;
@@ -406,6 +406,9 @@ class PrepodMaterialsModel extends \UTest\Kernel\Component\Model
             return;
         }
 
+        $back = [];
+        $back[] = $type;
+
         if ($type == 'my') {
             $res = DB::table(TABLE_PREPOD_MATERIAL)
                 ->select(
@@ -420,7 +423,7 @@ class PrepodMaterialsModel extends \UTest\Kernel\Component\Model
             if ($res) {
                 @unlink(ROOT . $res['filepath']);
                 DB::table(TABLE_PREPOD_MATERIAL)->delete($id);
-                $back = '/my/' . $res['subject_code'];
+                $back[] = $res['subject_code'];
             }
         }
         elseif ($type == 'for') {
@@ -444,11 +447,12 @@ class PrepodMaterialsModel extends \UTest\Kernel\Component\Model
                 } else {
                     DB::table(TABLE_STUDENT_MATERIAL)->updateOrInsert(['id' => $id], ['is_hidden' => 1]);
                 }
-                $back = '/for/' . $res['group_code'] . '/' . $res['subject_code'];
+                $back[] = $res['group_code'];
+                $back[] = $res['subject_code'];
             }
         }
 
-        Site::redirect(Site::getModurl() . '/' . $back);
+        Site::redirect(Site::getModurl() . '/' . join('/', $back));
     }
 
     function fileDownload($docId)

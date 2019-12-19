@@ -2,25 +2,23 @@
 
 namespace UTest\Components;
 
-use UTest\Kernel\Base;
 use UTest\Kernel\DB;
 use UTest\Kernel\User\User;
 use UTest\Kernel\Test\Test;
+use UTest\Kernel\Test\Assignment;
 use UTest\Kernel\Site;
+use UTest\Kernel\Utilities;
 
 class PrepodTestsModel extends \UTest\Kernel\Component\Model
 {
-    private $table_subject = 'u_prepod_subject';
-    private $table_test = 'u_test';
-    private $table_group = 'u_univer_group';
-    private $table_student_test = 'u_student_test';
-
     private $test = null;
+    private $assignment = null;
 
-    public function __construct()
+    public function __construct(...$args)
     {
-        parent::__construct();
+        parent::__construct(...$args);
         $this->test = new Test(User::user()->getUID());
+        $this->assignment = new Assignment(User::user()->getUID());
     }
 
     public function myAction()
@@ -37,71 +35,11 @@ class PrepodTestsModel extends \UTest\Kernel\Component\Model
             ->get();
 
         $this->setData($res);
-
-        // Запрос на удаление
-        /*if ($this->_POST['del_all']) {
-            // Удаление вопросов в выбранном тесте
-            if ($this->vars['tid']) {
-                foreach ($this->_POST['i'] as $item) {
-                    if (!$item) {
-                        continue;
-                    }
-                    UUser::user()->deleteQuestion($this->vars['tid'], $item);
-                }
-            } // Удаление тестов в выбранном предмете
-            elseif ($this->vars['subject_code']) {
-                foreach ($this->_POST['i'] as $item) {
-                    if (!$item) {
-                        continue;
-                    }
-                    UUser::user()->deleteTest($item);
-                }
-            }
-            USite::redirect(USite::getUrl());
-        }
-
-        // Если есть данные о выбранном предмете
-        if ($this->vars['subject_code']) {
-            $sparent = R::findOne(TABLE_PREPOD_SUBJECT, '`alias` = :alias AND user_id = :uid ', array(
-                ':alias' => $this->vars['subject_code'],
-                ':uid' => UUser::user()->getUID()
-            ));
-
-            // предмет найден
-            if ($sparent) {
-                UAppBuilder::addBreadcrumb($sparent['title'], USite::getModurl() . '/my/' . $sparent['alias']);
-
-                // если есть данные о выбранном тесте
-                if ($this->vars['tid']) {
-                    $test = new UTest($this->vars['tid'], UUser::user()->getUID());
-                    $tparent = $test->getProperties();
-
-                    // тест найден
-                    if ($tparent) {
-                        UAppBuilder::addBreadcrumb($tparent['title'], USite::getUrl());
-                        $res = UUser::user()->getQuestionList($tparent['id']);
-                    }
-                } else {
-                    $res = UUser::user()->getTestList($sparent['id']);
-                }
-            }
-        } // Вывод предметов
-        else {
-            $res = R::find(TABLE_PREPOD_SUBJECT, 'user_id = ? ORDER BY title', array(UUser::user()->getUID()));
-            foreach ($res as &$item) {
-                $item['test_count'] = R::count(TABLE_TEST, 'subject_id = :sid AND user_id = :uid ', array(
-                    ':sid' => $item['id'],
-                    ':uid' => UUser::user()->getUID()
-                ));
-            }
-        }
-
-        return $this->returnResult($res);*/
     }
 
     public function myTestsAction($subjectCode)
     {
-        if ($this->isActionRequest('del_all')) {
+        if ($this->isActionRequest('del_all') && $this->isNativeActionMethod()) {
             foreach ($this->_POST['i'] as $id) {
                 if (!$id) {
                     continue;
@@ -186,13 +124,22 @@ class PrepodTestsModel extends \UTest\Kernel\Component\Model
         if (!$this->test->loadTest($testId)) {
             $this->setErrors($this->test->getErrors(), ERROR_ELEMENT_NOT_FOUND);
         } else {
+            if ($this->isActionRequest('del_all') && $this->isNativeActionMethod()) {
+                foreach ($this->_POST['i'] as $id) {
+                    if (!$id) {
+                        continue;
+                    }
+                    $this->test->deleteQuestion($id);
+                }
+                Site::redirect(Site::getUrl());
+            }
+
             $this->test->loadQuestionsList();
         }
 
         $this->setData($this->test->getQuestionsList());
     }
 
-    // @todo
     public function myNewQuestionAction($v = array())
     {
         $this->myTestQuestionsAction($this->vars['subject_code'], $this->vars['tid']);
@@ -224,245 +171,6 @@ class PrepodTestsModel extends \UTest\Kernel\Component\Model
             'form_answer' => $v['variant'],
             'form_right' => $v['right']
         ]);
-
-        /*$this->errors = array();
-
-        // Если есть переменная о значении теста, в котором будет создание вопроса
-        if ($this->vars['in_tid']) {
-            $sql = "
-                SELECT t.*, s.alias, s.title as subject_title
-                FROM " . TABLE_TEST . " AS t 
-                LEFT JOIN " . TABLE_PREPOD_SUBJECT . " AS s 
-                    ON (t.subject_id = s.id)
-                WHERE
-                    t.id = {$this->vars['in_tid']}
-                    AND t.user_id = " . UUser::user()->getUID() . "                                
-            ";
-            $r = R::getRow($sql);
-
-            if ($r) {
-                $tid = $r['id'];
-                $in = '/my/' . $r['alias'];
-                UAppBuilder::addBreadcrumb($r['subject_title'], USite::getModurl() . $in);
-                $in .= '/test-' . $tid;
-                UAppBuilder::addBreadcrumb($r['title'], USite::getModurl() . $in);
-            }
-        } // Если же есть Id загруженного вопроса
-        elseif ($this->vars['id']) {
-            $_r = R::load(TABLE_TEST, $this->vars['id']);
-            $r = R::load(TABLE_PREPOD_SUBJECT, $_r['subject_id']);
-            if ($r) {
-                $in = '/my/' . $r['alias'];
-                UAppBuilder::addBreadcrumb($r['title'], USite::getModurl() . $in);
-            }
-        }
-
-        // Есть запрос отправки формы
-        if ($this->_POST['a']) {
-            $v = $this->_POST;
-
-            if ($v['question']['id']) {
-                $result = UUser::user()->editQuestion(
-                    $tid,
-                    $v['question']['id'],
-                    $v['question'],
-                    $v['answer'],
-                    $v['right_answer']
-                );
-
-                if ($result) {
-                    USite::redirect(USite::getModurl() . $in);
-                } else {
-                    $this->errors = UUser::$last_errors;
-                }
-            } else {
-                $result = UUser::user()->createQuestion(
-                    $tid,
-                    $v['question'],
-                    $v['answer'],
-                    $v['right_answer']
-                );
-
-                if ($result) {
-                    USite::redirect(USite::getModurl() . $in);
-                } else {
-                    $this->errors = UUser::$last_errors;
-                }
-            }
-        }
-
-        $qTypeList = UTest::getTypeQuestion();
-        $arQTypeList = array();
-        foreach ($qTypeList as $k => $j) {
-            $arQTypeList[$k] = $j['name'];
-        }
-        return $this->returnResult(array(
-            'form_question' => $v['question'],
-            'question_type_list' => $arQTypeList,
-            'form_answer' => $v['answer'],
-            'form_right' => $v['right_answer']
-        ));*/
-    }
-
-    // @todo
-    public function forAction()
-    {
-        // если есть данные о выбранной группе
-        if ($this->vars['group_code']) {
-            $gparent = R::findOne($this->table_group, '`alias` = ?', array($this->vars['group_code']));
-
-            // группа найдена
-            if ($gparent) {
-                UAppBuilder::addBreadcrumb($gparent['title'], USite::getModurl() . '/for/' . $gparent['alias']);
-
-                // если есть данные о выбранном предмете
-                if ($this->vars['subject_code']) {
-                    $sparent = R::findOne(TABLE_PREPOD_SUBJECT, '`alias` = :alias AND user_id = :uid ', array(
-                        ':alias' => $this->vars['subject_code'],
-                        ':uid' => UUser::user()->getUID()
-                    ));
-
-                    // предмет найден
-                    if ($sparent) {
-                        UAppBuilder::addBreadcrumb($sparent['title'], USite::getUrl());
-
-                        if ($this->_POST['del_all']) {
-                            foreach ($this->_POST['i'] as $item) {
-                                if (!$item) {
-                                    continue;
-                                }
-
-                                $res = R::findOne($this->table_student_test, 'user_id = :uid AND `id` = :id', array(
-                                    ':uid' => UUser::user()->getUID(),
-                                    ':id' => $item
-                                ));
-                                R::trash($res);
-                            }
-                            USite::redirect(USite::getUrl());
-                        }
-
-                        $sql = "
-                            SELECT *
-                            FROM {$this->table_student_test}
-                            WHERE
-                                group_id = {$gparent['id']}
-                                AND subject_id = {$sparent['id']}
-                                AND user_id = " . UUser::user()->getUID() . "                                
-                            ORDER BY date DESC
-                        ";
-                        $records = R::getAll($sql);
-                        $res = R::convertToBeans($this->table_student_material, $records);
-
-                        $_list = R::find(TABLE_TEST, 'subject_id = :sid AND user_id = :uid ', array(
-                            ':sid' => $sparent['id'],
-                            ':uid' => UUser::user()->getUID()
-                        ));
-                        $tList = array();
-                        foreach ($_list as $k => $j) {
-                            $tList[$k] = $j['title'];
-                        }
-                    }
-                } // Выводим список предметов
-                else {
-                    $res = R::find(TABLE_PREPOD_SUBJECT, 'user_id = ? ORDER BY title', array(UUser::user()->getUID()));
-                    foreach ($res as &$item) {
-                        $item['test_count'] = R::count($this->table_student_test,
-                            'subject_id = :sid AND user_id = :uid AND group_id = :gid', array(
-                                ':sid' => $item['id'],
-                                ':uid' => UUser::user()->getUID(),
-                                ':gid' => $gparent['id']
-                            ));
-                    }
-                }
-            }
-        } // Выбор групп
-        else {
-            $res = R::findAll($this->table_group, 'ORDER BY title');
-        }
-        return $this->returnResult(array(
-            'form' => $res,
-            'test_list' => $tList
-        ));
-    }
-
-    // @todo
-    public function newForAction($v = array())
-    {
-        $this->errors = array();
-
-        if ($this->vars['id']) {
-            $this->vars['group_code'] = $v['group_code'];
-            $this->vars['subject_code'] = $v['subject_code'];
-        }
-
-        if ($this->vars['group_code']) {
-            $gparent = R::findOne($this->table_group, '`alias` = ?', array($this->vars['group_code']));
-
-            // группа найдена
-            if ($gparent) {
-                UAppBuilder::addBreadcrumb($gparent['title'], USite::getModurl() . '/for/' . $gparent['alias']);
-
-                // если есть данные о выбранном предмете
-                if ($this->vars['subject_code']) {
-                    $sparent = R::findOne(TABLE_PREPOD_SUBJECT, '`alias` = :alias AND user_id = :uid ', array(
-                        ':alias' => $this->vars['subject_code'],
-                        ':uid' => UUser::user()->getUID()
-                    ));
-
-                    // предмет найден
-                    if ($sparent) {
-                        $in = '/for/' . $gparent['alias'] . '/' . $sparent['alias'];
-                        UAppBuilder::addBreadcrumb($sparent['title'], USite::getModurl() . $in);
-
-                        $_list = R::find(TABLE_TEST, 'subject_id = :sid AND user_id = :uid ', array(
-                            ':sid' => $sparent['id'],
-                            ':uid' => UUser::user()->getUID()
-                        ));
-                        $tList = array();
-                        foreach ($_list as $k => $j) {
-                            $tList[$k] = $j['title'];
-                        }
-
-                        // Запрос на изменение/добавление
-                        if ($this->_POST['a']) {
-                            $v = $this->_POST;
-
-                            if (!$this->vars['id']) {
-                                if (!$v['test_id']) {
-                                    $this->errors[] = "Укажите основу теста";
-                                }
-
-                                $v['count_q'] = abs(intval($v['count_q']));
-                            }
-
-                            if (empty($this->errors)) {
-                                $r = R::findOrDispense($this->table_student_test, 'id = ?', array($v['id']));
-                                $dataRow = reset($r);
-                                $dataRow->title = $v['title'] ? $v['title'] : $tList[$v['test_id']];
-                                $dataRow->is_mixing = $v['is_mixing'];
-                                $dataRow->is_show_true = $v['is_show_true'];
-                                if (!$dataRow->id) {
-                                    $dataRow->date = UAppBuilder::getDateTime();
-                                    $dataRow->group_id = $gparent['id'];
-                                    $dataRow->subject_id = $sparent['id'];
-                                    $dataRow->test_id = $v['test_id'];
-                                    $dataRow->user_id = UUser::user()->getUID();
-                                    $dataRow->count_q = $v['count_q'];
-                                    $dataRow->time = $v['time'];
-                                }
-                                if (R::store($dataRow)) {
-                                    USite::redirect(USite::getModurl() . $in);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return $this->returnResult(array(
-            'form' => $v,
-            'test_list' => $tList
-        ));
     }
 
     public function myEditQuestionAction($tid, $id)
@@ -479,86 +187,185 @@ class PrepodTestsModel extends \UTest\Kernel\Component\Model
         $this->myNewQuestionAction($v);
     }
 
-    public function editForTestAction($id)
+    public function forAction()
     {
-        if (!$id) {
+        $res = DB::table(TABLE_UNIVER_GROUP)
+            ->select(
+                TABLE_UNIVER_GROUP.'.*',
+                TABLE_UNIVER_SPECIALITY.'.title as speciality_title',
+                TABLE_UNIVER_FACULTY.'.title as faculty_title'
+            )
+            ->leftJoin(TABLE_UNIVER_SPECIALITY, TABLE_UNIVER_SPECIALITY.'.id', '=', TABLE_UNIVER_GROUP.'.speciality_id')
+            ->leftJoin(TABLE_UNIVER_FACULTY, TABLE_UNIVER_FACULTY.'.id', '=', TABLE_UNIVER_SPECIALITY.'.faculty_id')
+            ->orderBy(TABLE_UNIVER_GROUP.'.title')
+            ->get();
+
+        $this->setData($res);
+    }
+
+    public function forSubjectAction($groupCode)
+    {
+        $group = DB::table(TABLE_UNIVER_GROUP)->where('alias', '=', $groupCode)->first();
+
+        $res = DB::table(TABLE_PREPOD_SUBJECT)
+            ->select(
+                TABLE_PREPOD_SUBJECT.'.*',
+                DB::raw('count('.TABLE_STUDENT_TEST.'.id) as test_count')
+            )
+            ->leftJoin(TABLE_STUDENT_TEST, function($join) use ($group) {
+                $join->on(TABLE_STUDENT_TEST.'.subject_id', '=', TABLE_PREPOD_SUBJECT.'.id')
+                    ->where(TABLE_STUDENT_TEST.'.group_id', '=', $group['id'])
+                    ->where(TABLE_STUDENT_TEST.'.user_id', '=', User::user()->getUID());
+            })
+            ->where(TABLE_PREPOD_SUBJECT.'.user_id', '=', User::user()->getUID())
+            ->groupBy(TABLE_PREPOD_SUBJECT.'.id')
+            ->orderBy(TABLE_PREPOD_SUBJECT.'.title')
+            ->get();
+
+        if (!$group) {
+            $this->setErrors('Группа не найдена', ERROR_ELEMENT_NOT_FOUND);
+        }
+
+        $this->setData($res);
+        return $group;
+    }
+
+    public function forTestsAction($groupCode, $subjectCode)
+    {
+        $group = $this->forSubjectAction($groupCode);
+        if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) {
+            $this->setData(null);
             return;
         }
 
-        $sql = "
-            SELECT t.*, g.alias as group_code, s.alias as subject_code
-            FROM {$this->table_student_test} AS t 
-            LEFT JOIN {$this->table_group} AS g 
-                ON (g.id = t.group_id)
-            LEFT JOIN " . TABLE_PREPOD_SUBJECT . " AS s 
-                ON (s.id = t.subject_id)
-            WHERE
-                t.id = {$id}
-                AND t.user_id = " . UUser::user()->getUID() . "
-        ";
-        $record = R::getAll($sql);
-        $res = R::convertToBeans($this->table_student_test, $record);
-        $v = reset($res);
-
-        return $this->newForAction($v);
-    }
-
-    public function delQuestionAction($tid, $id)
-    {
-        UUser::user()->deleteQuestion($tid, $qid);
-
-        if (!empty(UUser::$last_errors)) {
-            USite::redirect(USite::getModurl());
+        if ($this->isActionRequest('del_all') && $this->isNativeActionMethod()) {
+            foreach ($this->_POST['i'] as $id) {
+                if (!$id) {
+                    continue;
+                }
+                $this->assignment->delete($id);
+            }
+            Site::redirect(Site::getUrl());
         }
 
-        $sql = "
-            SELECT t.*, s.alias as subject_code
-            FROM " . TABLE_TEST . " AS t 
-            LEFT JOIN " . TABLE_PREPOD_SUBJECT . " AS s 
-                ON (s.id = t.subject_id)
-            WHERE
-                t.id = {$tid}
-        ";
-        $record = R::getRow($sql);
-        $toback = '/my/' . $record['subject_code'] . '/test-' . $record['id'];
-        USite::redirect(USite::getModurl() . $toback);
+        $subject = DB::table(TABLE_PREPOD_SUBJECT)
+            ->where('alias', '=', $subjectCode)
+            ->where('user_id', '=', User::user()->getUID())
+            ->first();
+
+        $res = DB::table(TABLE_STUDENT_TEST)
+            ->select(
+                TABLE_STUDENT_TEST.'.*',
+                TABLE_TEST.'.title as base_title'
+            )
+            ->leftJoin(TABLE_TEST, TABLE_TEST.'.id', '=', TABLE_STUDENT_TEST.'.test_id')
+            ->where([
+                TABLE_STUDENT_TEST.'.group_id' => $group['id'],
+                TABLE_STUDENT_TEST.'.subject_id' => $subject['id'],
+                TABLE_STUDENT_TEST.'.user_id' => User::user()->getUID(),
+            ])
+            ->orderBy(TABLE_STUDENT_TEST.'.date')
+            ->get();
+
+        if (!$subject) {
+            $this->setErrors('Предмет не найден', ERROR_ELEMENT_NOT_FOUND);
+        }
+
+        $this->setData($res);
+
+        return [
+            'group' => $group,
+            'subject' => $subject
+        ];
     }
 
-    // @todo
+    public function forNewTestAction($v = array())
+    {
+        $data = $this->forTestsAction($this->vars['group_code'], $this->vars['subject_code']);
+        $group = $data['group'];
+        $subject = $data['subject'];
+
+        if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) {
+            $this->setData(null);
+            return;
+        }
+
+        $baseList = DB::table(TABLE_TEST)
+            ->where(['subject_id' => $subject['id'], 'user_id' => User::user()->getUID()])
+            ->orderBy('title')
+            ->get()
+            ->toArray();
+        $baseList = array_reduce($baseList, function($acc, $item){
+            $acc[$item['id']] = $item['title'];
+            return $acc;
+        }, []);
+
+        if ($this->isActionRequest()) {
+            $v = $this->_POST;
+            $dataRow = [
+                'title' => $v['title'],
+                'group_id' => $group['id'],
+                'subject_id' => $subject['id'],
+                'test_id' => isset($baseList[$v['test_id']]) ? $v['test_id'] : 0,
+                'count_q' => $v['count_q'],
+                'is_mixing' => $v['is_mixing'],
+                'is_show_true' => $v['is_show_true'],
+                'date' => Utilities::getDateTime()
+            ];
+
+            $this->assignment->createOrEdit($dataRow, $v['id']);
+
+            if ($this->assignment->hasErrors()) {
+                $this->setErrors($this->assignment->getErrors());
+            } else {
+                Site::redirect(Site::getModurl() . '/for/' . $this->vars['group_code'] . '/' . $this->vars['subject_code']);
+            }
+        }
+
+        $this->setData([
+            'form' => $v,
+            'base_list' => $baseList
+        ]);
+    }
+
+    public function forEditTestAction($id)
+    {
+        if (!$this->assignment->loadAssign($id)) {
+            $this->setErrors($this->assignment->getErrors(), ERROR_ELEMENT_NOT_FOUND);
+        }
+        return $this->forNewTestAction($this->assignment->getAssignData());
+    }
+
     public function deleteAction($type, $id)
     {
         if (!($type && $id)) {
             return;
         }
 
-        if ($type == 'mytest') {
-            $beanDeleted = UUser::user()->deleteTest($id);
-            $subject = R::load(TABLE_PREPOD_SUBJECT, $beanDeleted['subject_id']);
-            $toback = '/my/' . $subject['alias'];
-        } elseif ($type == 'fortest') {
-            $sql = "
-                SELECT t.*, g.alias as group_code, s.alias as subject_code
-                FROM {$this->table_student_test} AS t 
-                LEFT JOIN {$this->table_group} AS g 
-                    ON (g.id = t.group_id)
-                LEFT JOIN " . TABLE_PREPOD_SUBJECT . " AS s 
-                    ON (s.id = t.subject_id)
-                WHERE
-                    t.id = {$id}
-                    AND t.user_id = " . UUser::user()->getUID() . "
-            ";
-            $record = R::getAll($sql);
-            $res = R::convertToBeans($this->table_student_test, $record);
-            $bean = reset($res);
-            R::trash($bean);
+        $back = [];
+        $back[] = $type;
 
-            $toback = '/for/' . $bean['group_code'] . '/' . $bean['subject_code'];
+        if ($type == 'my') {
+            $back[] = $this->vars['subject_code'];
+
+            if ($this->vars['tid']) {
+                $this->test->loadTest($this->vars['tid']);
+                $this->test->deleteQuestion($id);
+                $back[] = 'test-' . $this->vars['tid'];
+            } else {
+                $this->test->delete($id);
+            }
+        }
+        elseif ($type == 'for') {
+            $back[] = $this->vars['group_code'];
+            $back[] = $this->vars['subject_code'];
+            $this->assignment->delete($id);
         }
 
-        USite::redirect(USite::getModurl() . $toback);
+        Site::redirect(Site::getModurl() . '/' . join('/', $back));
     }
 
-    public function answerDisplayAction($type, $q, $a, $r)
+    public function answerDisplayAction($q, $a, $r)
     {
         $this->setData([
             'form_question' => $q,
@@ -566,5 +373,4 @@ class PrepodTestsModel extends \UTest\Kernel\Component\Model
             'form_right' => $r
         ]);
     }
-
 }

@@ -2,7 +2,7 @@
 use UTest\Kernel\Form;
 
 $v = $data['form_question'];
-$a = $post['a'] ? $data['form_answer']: reset($data['form_answer']);
+$a = $this->isActionRequest() ? $data['form_answer']: reset($data['form_answer']);
 $r = $data['form_right'];
 ?>
 

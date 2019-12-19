@@ -10,7 +10,7 @@ class AdminUniversityModel extends \UTest\Kernel\Component\Model
 {
     public function facultyAction()
     {
-        if ($this->isActionRequest('del_all')) {
+        if ($this->isActionRequest('del_all') && $this->isNativeActionMethod()) {
             foreach ($this->_POST['i'] as $id) {
                 DB::table(TABLE_UNIVER_FACULTY)->delete($id);
             }
@@ -50,7 +50,7 @@ class AdminUniversityModel extends \UTest\Kernel\Component\Model
 
     public function specialityAction($facultyCode)
     {
-        if ($this->isActionRequest('del_all')) {
+        if ($this->isActionRequest('del_all') && $this->isNativeActionMethod()) {
             foreach ($this->_POST['i'] as $id) {
                 DB::table(TABLE_UNIVER_SPECIALITY)->delete($id);
             }

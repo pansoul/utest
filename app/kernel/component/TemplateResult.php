@@ -19,10 +19,12 @@ class TemplateResult
     public $debugInfo = [];
 
     protected $componentName = '';
+    protected $action = '';
 
-    public function __construct($componentName = '', $data = null, $errors = [], $vars = [], &$debugInfo = [])
+    public function __construct($componentName = '', $action = '', $data = null, $errors = [], $vars = [], &$debugInfo = [])
     {
         $this->componentName = $componentName;
+        $this->action = $action;
         $this->data = $data;
         $this->errors = $errors;
         $this->vars = $vars;

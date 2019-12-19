@@ -591,7 +591,6 @@ textarea{
 }
 
 .btn-result:hover{
-    /*background-color: #3276B1;*/
     background-color: #428BCA;
 }
 
@@ -604,10 +603,52 @@ textarea{
     background-color: #33A2C3;
 }
 
+.last-column{
+    font-size: 0;
+}
+
 .last-column, .checkbox-column{
     width: 1px;
     white-space: nowrap;
     text-align: right;
+}
+
+.column-disabled,
+[class^="column-activity-"]{
+    position: relative;
+    z-index: 1;
+}
+
+.column-disabled{
+    color: #b3b3b3 !important;
+}
+.column-activity-1, .column-activity-true{
+    color: #47A447 !important;
+}
+.column-activity-0, .column-activity-false{
+    color: #B94A48 !important;
+}
+
+.column-disabled:before,
+[class^="column-activity-"]:before{
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    right: 2px;
+    bottom: 2px;
+    z-index: -1;
+    border-radius: 3px;
+}
+
+.column-disabled:before{
+    background: #eee;
+}
+.column-activity-1:before, .column-activity-true:before{
+    background: #D7EDD7;
+}
+.column-activity-0:before, .column-activity-false:before{
+    background: #F2DEDE;
 }
 
 .badge {

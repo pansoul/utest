@@ -19,6 +19,9 @@ class PrepodTestsController extends \UTest\Kernel\Component\Controller
                 'title' => 'Список тестов',
                 'add_breadcrumb' => true
             ],
+            '/my/<subject_code>/delete/<id>' => [
+                'action' => 'delete'
+            ],
             '/my/<subject_code>/new' => [
                 'action' => 'my_new_test',
                 'title' => 'Создание нового теста',
@@ -44,26 +47,46 @@ class PrepodTestsController extends \UTest\Kernel\Component\Controller
                 'title' => 'Редактирование вопроса',
                 'add_breadcrumb' => true
             ],
+            '/my/<subject_code>/test-<tid>/delete/<id>' => [
+                'action' => 'delete'
+            ],
+
+            '/for' => [
+                'action' => 'for',
+                'title' => 'Назначенные тесты',
+                'add_breadcrumb' => true
+            ],
+            '/for/<group_code>' => [
+                'action' => 'for_subject',
+                'title' => 'По дисциплине',
+                'add_breadcrumb' => true
+            ],
+            '/for/<group_code>/<subject_code>' => [
+                'action' => 'for_tests',
+                'title' => 'Список назначенных тестов',
+                'add_breadcrumb' => true
+            ],
+            '/for/<group_code>/<subject_code>/new' => [
+                'action' => 'for_new_test',
+                'title' => 'Назначение нового теста',
+                'add_breadcrumb' => true
+            ],
+            '/for/<group_code>/<subject_code>/edit/<id>' => [
+                'action' => 'for_edit_test',
+                'title' => 'Редактирование назначенного теста',
+                'add_breadcrumb' => true
+            ],
+            '/for/<group_code>/<subject_code>/delete/<id>' => [
+                'action' => 'delete'
+            ],
 
             '/ajax/newtype/<qtype>' => [
                 'action' => 'ajax_new_type'
             ],
 
-
-
-
-            'my' => '/<subject_code>/<tid>',
-            'for' => '/<group_code>/<subject_code>',
-            'newmytest' => '/<in>',
-            'newmyquestion' => '/<in_tid>',
-            'newtype' => '/<qtype>',
-            'newfor' => '/<group_code>/<subject_code>',
-            'editmytest' => '/<id>',
-            'editfortest' => '/<id>',
-            'editmyquestion' => '/<in_tid>/<id>',
-            'delete' => '/<type>/<id>',
-            'delquestion' => '/<tid>/<qid>',
-            'delanswer' => '/<tid>/<qid>/<id>'
+            '/delete/<type>/<id>' => [
+                'action' => 'delete',
+            ],
         ),
         'vars_rules' => [
             'subject_code' => '[-_a-zA-Z0-9]',
@@ -112,12 +135,6 @@ class PrepodTestsController extends \UTest\Kernel\Component\Controller
                 $html = $this->loadView($this->action);
                 break;
 
-            case 'answer_display':
-                $hideTabs = true;
-                $this->doAction($this->action, $this->actionArgs);
-                $html = $this->loadView('answer_' . $this->actionArgs[0]);
-                break;
-
             case 'my_edit_question':
                 $this->doAction($this->action, $this->getVars(['tid', 'id']));
                 $html = $this->loadView('my_new_question');
@@ -128,87 +145,30 @@ class PrepodTestsController extends \UTest\Kernel\Component\Controller
                 $this->outputForAjax($html, self::AJAX_MODE_HTML);
                 break;
 
-            /*case 'my':
-                if ($this->vars['tid']) {
-                    $html = $this->loadView('myquestions');
-                } elseif ($this->vars['subject_code']) {
-                    $html = $this->loadView('mytests');
-                } else {
-                    $html = $this->loadView($this->action);
-                }
-                break;
-
-            case 'for':
-                UAppBuilder::editBreadcrumpItem(array(
-                    'name' => 'Назначенные тесты',
-                    'url' => USite::getModurl() . '/for'
-                ));
-                if ($this->vars['subject_code']) {
-                    $html = $this->loadView('fortests');
-                } elseif ($this->vars['group_code']) {
-                    $html = $this->loadView('forsubject');
-                } else {
-                    $html = $this->loadView($this->action);
-                }
-                break;
-
-            case 'newfor':
-                UAppBuilder::editBreadcrumpItem(array(
-                    'name' => 'Назначенные тесты',
-                    'url' => USite::getModurl() . '/for'
-                ));
+            case 'for_subject':
+                $this->doAction($this->action, $this->getVars('group_code'));
                 $html = $this->loadView($this->action);
                 break;
 
-            case 'editmytest':
-                $this->doAction($this->action, (array)$this->vars['id']);
-                $html = $this->loadView('newmytest');
+            case 'for_tests':
+                $this->doAction($this->action, $this->getVars(['group_code', 'subject_code']));
+                $html = $this->loadView($this->action);
                 break;
 
-            case 'editmyquestion':
-                $this->doAction($this->action,
-                    array($this->vars['in_tid'], $this->vars['id']));
-                $html = $this->loadView('newmyquestion');
+            case 'for_edit_test':
+                $this->doAction($this->action, $this->getVars('id'));
+                $html = $this->loadView('for_new_test');
                 break;
 
-            case 'editfortest':
-                UAppBuilder::editBreadcrumpItem(array(
-                    'name' => 'Назначенные тесты',
-                    'url' => USite::getModurl() . '/for'
-                ));
-                $this->doAction($this->action, (array)$this->vars['id']);
-                $html = $this->loadView('newfor');
-                break;
-
-            // for ajax
-            case 'newtype':
-                $html = $this->loadView('answer_' . $this->vars['qtype']);
-                echo $html;
-                exit;
-                break;
-
-            // for ajax
-            case 'delanswer':
-                $this->doAction($this->action,
-                    array($this->vars['tid'], $this->vars['qid'], $this->vars['id']));
-                echo $result;
-                exit;
-                break;
-
-            case 'delquestion':
-                $this->doAction($this->action,
-                    array($this->vars['tid'], $this->vars['qid']));
+            case 'answer_display':
+                $hideTabs = true;
+                $this->doAction($this->action, [$this->actionArgs['question'], $this->actionArgs['answer'], $this->actionArgs['right']]);
+                $html = $this->loadView('answer_' . $this->actionArgs['type']);
                 break;
 
             case 'delete':
-                $this->doAction($this->action,
-                    array($this->vars['type'], $this->vars['id']));
+                $this->doAction($this->action, [$tabSelected, $this->getVars('id')]);
                 break;
-
-            case 'answerdisplay':
-                $this->doAction($this->action, $this->actionArgs);
-                $html = $this->loadView('answer_' . $this->actionArgs[0]);
-                break;*/
 
             default:
                 $this->doAction($this->action);

@@ -5,7 +5,12 @@ use UTest\Kernel\Site;
 $arTitles = array(
     Form::checkbox('check_all', 1, false, 'check-all'),
     'ID',
-    'Название теста',
+    'Дата создания',
+    'Название назначенного теста',
+    'Основа теста',
+    'Кол-во вопросов',
+    'Перемешивание',
+    'Показ верных ответов',
     'Управление'
 );
 
@@ -14,39 +19,40 @@ if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) {
     return;
 }
 
-$items = $data;
+$items = $data['form'];
 ?>
 
 <div class="setting-panel">
-    <?=Form::btnNew('Создать новый тест', Site::getUrl() . '/new')?>
+    <?=Form::btnNew('Назначить тест', Site::getUrl() . '/new')?>
 </div>
 
 <?
-if (count($items) == 0) {
+if (count($data) == 0) {
     echo Form::info('Список пуст');
     return;
 }
 ?>
     
-<div class="bs-callout bs-callout-warning">    
-    Для создания вопросов и вариантов ответов необходимо перейти в тест.
-</div>
-
 <form action="" method="post" class="formaction">
     <table class="table table-hover">
         <thead>
             <tr>
-                <?foreach($arTitles as $title):?>
-                    <th><?=$title?></th>
-                <?endforeach?>
+            <?foreach($arTitles as $title):?>
+                <th><?=$title?></th>
+            <?endforeach?>
             </tr>
         </thead>
         <tbody>
-            <?foreach($items as $k => $v):?>
+            <?foreach($data as $k => $v):?>
                 <tr>
                     <td class="checkbox-column"><?=Form::checkbox("i[]", $v['id'], 'check-one')?></td>
                     <td><?=$v['id']?></td>
-                    <td><a href="<?=Site::getUrl() . '/test-' . $v['id']?>"><?=$v['title']?></a></td>
+                    <td><?=date("d.m.Y",strtotime($v['date']))?></td>
+                    <td><?=$v['title']?></td>
+                    <td><?=$v['base_title']?></td>
+                    <td><?=$v['count_q']?></td>
+                    <td class="column-activity-<?=$v['is_mixing']?>"><?=$v['is_mixing']?></td>
+                    <td class="column-activity-<?=$v['is_show_true']?>"><?=$v['is_show_true']?></td>
                     <td class="last-column">
                         <?=Form::btnEdit(Site::getUrl() . '/edit/' . $v['id'])?>
                         <?=Form::btnDelete(Site::getUrl() . '/delete/' . $v['id'])?>

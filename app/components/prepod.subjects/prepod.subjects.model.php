@@ -11,7 +11,7 @@ class PrepodSubjectsModel extends \UTest\Kernel\Component\Model
 {
     public function subjectAction()
     {
-        if ($this->isActionRequest('del_all')) {
+        if ($this->isActionRequest('del_all') && $this->isNativeActionMethod()) {
             foreach ($this->_POST['i'] as $id) {
                 DB::table(TABLE_PREPOD_SUBJECT)
                     ->where('id', '=', $id)

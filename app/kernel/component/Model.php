@@ -17,9 +17,7 @@ class Model extends TemplateResult
 
     final public function doAction($action = self::ACTION_DEFAULT, $args = array())
     {
-        $action = str_replace('-', '_', $action);
-        $exploded = explode('_', $action);
-        $method = join('', $exploded) . 'Action';
+        $method = $this->getConvertedActionMethodName($action);
         $args = (array) $args;
 
         if (Base::getConfig('debug > component_debug')) {
@@ -73,5 +71,22 @@ class Model extends TemplateResult
         } else {
             $this->vars[$key] = $value;
         }
+    }
+
+    final public function isNativeActionMethod($methodName = null)
+    {
+        if (is_null($methodName)) {
+            $methodName = debug_backtrace()[1]['function'];
+        }
+
+        return strcasecmp($methodName, $this->getConvertedActionMethodName($this->action)) == 0;
+    }
+
+    private function getConvertedActionMethodName($action = '')
+    {
+        $action = str_replace('-', '_', $action);
+        $exploded = explode('_', $action);
+        $method = join('', $exploded) . 'Action';
+        return $method;
     }
 }

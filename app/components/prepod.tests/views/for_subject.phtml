@@ -30,7 +30,7 @@ if (count($data) == 0) {
             <tr>
                 <td>
                     <a href="<?=Site::getUrl() . '/' . $v['alias']?>"><?=$v['title']?></a>
-                    <span rel="tooltip" data-placement="right" data-toggle="tooltip" title="Количество материала" class="badge"><?=$v['material_count']?></span>
+                    <span rel="tooltip" data-placement="right" data-toggle="tooltip" title="Кол-во назначенных тестов" class="badge"><?=$v['test_count']?></span>
                 </td>
             </tr>
         <?endforeach?>

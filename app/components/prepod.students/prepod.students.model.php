@@ -30,7 +30,7 @@ class PrepodStudentsModel extends \UTest\Kernel\Component\Model
     {
         $users = [];
 
-        if ($this->isActionRequest('newpass_all')) {
+        if ($this->isActionRequest('newpass_all') && $this->isNativeActionMethod()) {
             foreach ($this->_POST['i'] as $id) {
                 if (!intval($id) || $id == User::ADMIN_ID) {
                     continue;

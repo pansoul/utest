@@ -25,10 +25,10 @@ class Test
     const ANSWERS_MODE_VARIANTS = 'variants';
     const ANSWERS_MODE_RIGHTS = 'rights';
 
-    private $uid = 0;
-    private $tid = 0;
-    private $qid = 0;
-    private $aid = 0;
+    private $uid = 0; // {userId} - Id пользователя (автор теста)
+    private $tid = 0; // {testId} - Id теста-основы
+    private $qid = 0; // {questionId} - Id вопроса
+    private $aid = 0; // {answerId} - Id варианта ответа
 
     private $testData = [];
     private $questionData = [];
@@ -177,15 +177,16 @@ class Test
             return false;
         }
 
-        $res = DB::table(TABLE_TEST)->where(['id' => $id, 'user_id' => $this->uid])->first();
-
-        if ($res && $this->tid == $id) {
-            DB::table(TABLE_TEST)->delete($id);
-            $this->clearData(self::TYPE_TEST);
-            return true;
+        $rows = false;
+        if (DB::table(TABLE_TEST)->where(['id' => $id, 'user_id' => $this->uid])->exists()) {
+            $rows = DB::table(TABLE_TEST)->delete($id);
         }
 
-        return false;
+        if ($rows && $this->tid == $id) {
+            $this->clearData(self::TYPE_TEST);
+        }
+
+        return $rows;
     }
 
     public function loadTest($id = 0)
@@ -217,7 +218,7 @@ class Test
             return false;
         }
 
-        $this->questionsList = DB::table(TABLE_TEST_QUESTION)->where('test_id', '=', $this->tid)->orderBy('ord')->get();
+        $this->questionsList = DB::table(TABLE_TEST_QUESTION)->where('test_id', '=', $this->tid)->orderBy('ord', 'desc')->get();
         return true;
     }
 
@@ -268,7 +269,6 @@ class Test
             $res = $this->qTypeEntity->delete($id);
             if ($res && $this->aid == $id) {
                 $this->clearData(self::TYPE_ANSWER);
-                return true;
             }
         }
 
@@ -337,7 +337,6 @@ class Test
             default:
                 $list = $this->answersList;
                 break;
-
         }
 
         return $list;
@@ -470,20 +469,21 @@ class Test
             return false;
         }
 
-        $res = DB::table(TABLE_TEST_QUESTION)->where(['id' => $id, 'test_id' => $this->tid])->first();
-
-        if ($res && $this->qid == $id) {
-            DB::table(TABLE_TEST_QUESTION)->delete($id);
-            $this->clearData(self::TYPE_QUESTION);
-            return true;
+        $rows = false;
+        if (DB::table(TABLE_TEST_QUESTION)->where(['id' => $id, 'test_id' => $this->tid])->exists()) {
+            $rows = DB::table(TABLE_TEST_QUESTION)->delete($id);
         }
 
-        return false;
+        if ($rows && $this->qid == $id) {
+            $this->clearData(self::TYPE_QUESTION);
+        }
+
+        return $rows;
     }
 
     public function getBySubject($sid = 0)
     {
-        return self::getList(TABLE_TEST, ['subject_id' => $sid, 'user_id' => $this->uid], 'title');
+        return DB::table(TABLE_TEST)->where(['subject_id' => $sid, 'user_id' => $this->uid])->orderBy('title')->get();
     }
 
     /**
@@ -570,7 +570,7 @@ class Test
 
                 case self::TYPE_TEST:
                     $this->tid = 0;
-                    $this->testData;
+                    $this->testData = [];
                     $this->questionsList = [];
                     break;
 
@@ -581,12 +581,6 @@ class Test
                 break;
             }
         }
-    }
-
-    // @todo ???
-    public static function getList($table, $v = [], $orderColumn = 'id', $orderDirection = 'asc')
-    {
-        return DB::table($table)->where($v)->orderBy($orderColumn, $orderDirection)->get();
     }
 
     /**

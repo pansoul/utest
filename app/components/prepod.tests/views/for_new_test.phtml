@@ -1,18 +1,19 @@
 <?
-UAppBuilder::setH($arResult['vars']['id'] ? 'Редактирование назначенного теста' : 'Назначение нового теста');
-UAppBuilder::addBreadcrumb (UAppBuilder::getH(), USite::getUrl());
+use UTest\Kernel\Form;
 
-$v = $arResult['data']['form'];
+$v = $data['form'];
 
-if($arResult['vars']['id'] && empty($v['id']) || empty($arResult)) {
-    echo 'тест не найден';
+if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) {
+    echo Form::error($this->getErrors(ERROR_ELEMENT_NOT_FOUND));
     return;
+}
+
+if ($this->hasErrors()) {
+    echo Form::error($this->getErrors(), true);
 }
 ?>
 
-<?=USiteController::loadComponent('utility', 'tabs', array($this->arTabs, 2));?>
-
-<?if(!$arResult['vars']['id']):?>
+<?if(!$vars['id']):?>
     <div class="bs-callout bs-callout-warning">
         <p>
             Будьте внимательны при назначении нового теста.<br/><b>После создания изменить такие параметры как "<i>основа</i>" и "<i>количество вопросов</i>" будет невозможо.</b> Это ограничение связано с целью повысить безопасность и корректность прохождения тестируемыми назначенных тестов.
@@ -20,70 +21,60 @@ if($arResult['vars']['id'] && empty($v['id']) || empty($arResult)) {
     </div>
 <?endif;?>
 
-<?if (!empty($arResult['errors'])):?>
-    <div class="alert alert-danger">
-        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
-        <ul class="noliststyle">
-        <?foreach ($arResult['errors'] as $k => $e):?>
-            <li><?=$e?></li>
-        <?endforeach;?>
-        </ul>
-    </div>
-<?endif;?>
-
 <form class="form-horizontal" method="post" action="">
     <div class="form-group">
-        <label class="col-lg-2 control-label">
-            Название назначаемого теста:
-            <span class="help-block">Если данное поле оставить пустым, то название возьмется из теста-основы.</span>
-        </label>
+        <label class="col-lg-2 control-label">Название назначаемого теста:<?=Form::asterisk()?></label>
         <div class="col-lg-10">
-            <?=UForm::input('text', 'title', $v['title'] , 'form-control', false, array('autofocus' => 'autofocus'))?>            
+            <?=Form::input('text', 'title', $v['title'] , 'form-control', false, array('autofocus' => 'autofocus'))?>            
         </div>
     </div>        
     <div class="form-group">
         <label class="col-lg-2 control-label">
-            Основа:<?=UForm::asterisk()?>
-            <?if(!$arResult['vars']['id']):?>
+            Основа:<?=Form::asterisk()?>
+            <?if(!$vars['id']):?>
                 <span class="help-block">Необходимо выбрать на основе какого теста будет назначаться создаваемый.</span>
             <?endif;?>
         </label>
         <div class="col-lg-10">
-            <?=$arResult['vars']['id'] 
-                ? $arResult['data']['test_list'][ $v['test_id'] ] . UForm::input('hidden', 'test_id', $v['test_id'])
-                : UForm::select('test_id', $arResult['data']['test_list'] , $v['test_id'], 'Укажите основу теста', 'form-control')
+            <?= $vars['id']
+                ? $data['base_list'][$v['test_id']]
+                : Form::select('test_id', $data['base_list'] , $v['test_id'], '- Выберите основу теста -', 'form-control')
             ?>            
         </div>
     </div>
     <div class="form-group">
         <label class="col-lg-2 control-label">
             Количество вопросов:
-            <?if(!$arResult['vars']['id']):?>
+            <?if(!$vars['id']):?>
                 <span class="help-block">Укажите то количество вопросов, которое будет выведено в тесте.<br/>Указание количества вопросов в "0" будет означать выбор всех вопросов.</span>
             <?endif;?>
         </label>
         <div class="col-lg-10">
-            <?=$arResult['vars']['id'] ? (!$v['count_q'] ? 'все': $v['count_q']) : UForm::input('number', 'count_q', $v['count_q'] ? $v['count_q'] : 0 , 'form-control', false, array('min' => 0))?>            
+            <?= $vars['id']
+                ? (!$v['count_q'] ? 'все': $v['count_q'])
+                : Form::input('number', 'count_q', intval($v['count_q']), 'form-control', false, ['min' => 0])?>
         </div>
     </div>
-    <div class="form-group">
+    <!--div class="form-group">
         <label class="col-lg-2 control-label">
             Время на выполнение:
-            <?if(!$arResult['vars']['id']):?>
+            <?if(!$vars['id']):?>
                 <span class="help-block">Указывается в секундах.<br/>Указание времени в "0" будет означать без ограничения.</span>
             <?endif;?>
         </label>
         <div class="col-lg-10">
-            <?=$arResult['vars']['id'] ? (!$v['count_q'] ? 'все': $v['count_q']) : UForm::input('number', 'time', $v['time'] ? $v['time'] : 0 , 'form-control', false, array('min' => 0))?>            
+            <?= $vars['id']
+                ? (!$v['time'] ? 'без ограничений': $v['time'])
+                : Form::input('number', 'time', intval($v['time']), 'form-control', false, array('min' => 0))?>
         </div>
-    </div>
+    </div-->
     <div class="form-group">
         <label class="col-lg-2 control-label">
             Перемешивание:
             <span class="help-block">При включенной опции вопросы будут выводиться в случайном порядке.</span>
         </label>
         <div class="col-lg-10">
-            <?=UForm::checkbox("is_mixing", 1, false, false, $v['is_mixing'])?>        
+            <?=Form::checkbox("is_mixing", 1, false, false, $v['is_mixing'])?>        
         </div>
     </div>
     <div class="form-group">
@@ -92,14 +83,14 @@ if($arResult['vars']['id'] && empty($v['id']) || empty($arResult)) {
             <span class="help-block">При включенной опции после окончании тестирования студент сможет просмотреть результат своего теста с полным разбором ошибок: будут отображены верные ответы и отвеченные студентом.</span>
         </label>
         <div class="col-lg-10">
-            <?=UForm::checkbox("is_show_true", 1, false, false, $v['is_show_true'])?>        
+            <?=Form::checkbox("is_show_true", 1, false, false, $v['is_show_true'])?>        
         </div>
     </div>
     <div class="form-group">
         <div class="col-lg-offset-2 col-lg-10">
-            <?=UForm::button($arResult['vars']['id'] ? 'Изменить' : 'Создать', 'btn btn-default')?>            
+            <?=Form::button($vars['id'] ? 'Изменить' : 'Создать', 'btn btn-default')?>            
         </div>
     </div>
-    <?=UForm::input('hidden', 'id', $v['id'])?>
-    <?=UForm::input('hidden', 'a', 'Y')?>
+    <?=Form::input('hidden', 'id', $v['id'])?>
+    <?=Form::input('hidden', 'a', 'Y')?>
 </form>

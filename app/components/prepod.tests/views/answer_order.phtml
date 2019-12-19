@@ -16,7 +16,7 @@ $range = range(1, $maxCount);
 $arOptions = array_combine($range, $range);
 
 // Фиктивные варианты ответов при первом показе формы
-if (empty($a) && !$post['a']) {
+if (empty($a) && !$this->isActionRequest()) {
     $a = [1 => 1];
 }
 ?>

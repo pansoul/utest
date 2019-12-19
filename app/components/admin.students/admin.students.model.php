@@ -12,7 +12,7 @@ class AdminStudentsModel extends \UTest\Kernel\Component\Model
 {
     public function groupAction()
     {
-        if ($this->isActionRequest('del_all')) {
+        if ($this->isActionRequest('del_all') && $this->isNativeActionMethod()) {
             foreach ($this->_POST['i'] as $id) {
                 DB::table(TABLE_UNIVER_GROUP)->delete($id);
             }
@@ -37,14 +37,14 @@ class AdminStudentsModel extends \UTest\Kernel\Component\Model
     {
         $users = [];
 
-        if ($this->isActionRequest('del_all')) {
+        if ($this->isActionRequest('del_all') && $this->isNativeActionMethod()) {
             foreach ($this->_POST['i'] as $id) {
                 User::user()->delete($id);
             }
             Site::redirect(Site::getUrl());
         }
 
-        if ($this->isActionRequest('newpass_all')) {
+        if ($this->isActionRequest('newpass_all') && $this->isNativeActionMethod()) {
             foreach ($this->_POST['i'] as $id) {
                 if (!intval($id) || $id == User::ADMIN_ID) {
                     continue;

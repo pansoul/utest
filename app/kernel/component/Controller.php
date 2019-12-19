@@ -326,22 +326,24 @@ class Controller
    
     private function init($componentModel)
     {
-        $this->model = new $componentModel($this->componentName);
         $isMainAction = $this->action === true || (!$this->paramsRow && !$this->action);
+        $arDebugRules = [];
+        $arVars = [];
 
         if ($isMainAction) {
             $this->action = $this->routeMap['action_main'];
             $actionParams = $this->routeMap;
         } else {
-            $arDebugRules = [];
-            $actionParams = $this->findActionParamsInRouteMap($this->paramsRow, $arDebugRules);
-
+            $actionParams = $this->findActionParamsInRouteMap($this->paramsRow, $arDebugRules, $arVars);
             if ($actionParams['action']) {
                 $this->action = $actionParams['action'];
             } elseif ($this->routeMap['action_default']) {
                 $this->action = $this->routeMap['action_default'];
             }
         }
+
+        $this->model = new $componentModel($this->componentName, $this->action);
+        $this->model->setVars($arVars);
 
         if (Base::getConfig('debug > component_debug')) {
             $this->debugInfo['call']['value'] = "[{$this->componentName}] &rarr; [{$this->action}]";
@@ -391,7 +393,7 @@ class Controller
         }
     }
 
-    private function findActionParamsInRouteMap($paramsRow = '', &$arDebugRules = [])
+    private function findActionParamsInRouteMap($paramsRow = '', &$arDebugRules = [], &$arVars = [])
     {
         $actionParams = [];
         $arDebugRules = [];
@@ -403,14 +405,14 @@ class Controller
             {
                 $rule = str_replace('\\/', '/', $path);
                 $rule = str_replace('/', '\\/', $rule);
-                preg_match_all("/<([-_a-z0-9]+)>/i", $path, $arVars, PREG_SET_ORDER);
+                preg_match_all("/<([-_a-z0-9]+)>/i", $path, $arMatches, PREG_SET_ORDER);
 
-                if ($arVars) {
-                    foreach ($arVars as $matches)
+                if ($arMatches) {
+                    foreach ($arMatches as $match)
                     {
                         $rule = str_replace(
-                            $matches[0],
-                            isset($this->routeMap['vars_rules'][$matches[1]]) ? '('.$this->routeMap['vars_rules'][$matches[1]].'+?)' : '([^\/]+?)',
+                            $match[0],
+                            isset($this->routeMap['vars_rules'][$match[1]]) ? '('.$this->routeMap['vars_rules'][$match[1]].'+?)' : '([^\/]+?)',
                             $rule
                         );
                     }
@@ -420,7 +422,7 @@ class Controller
                         $vars = array_values($vars);
                         foreach ($vars as $k => $v)
                         {
-                            $this->model->setVars($arVars[$k][1], $v);
+                            $arVars[$arMatches[$k][1]] = $v;
                         }
                         $actionParams = $params;
                         break 1;
@@ -456,6 +458,7 @@ class Controller
 
         $templateResult = new TemplateResult(
             $this->componentName,
+            $this->action,
             $this->model->getData(),
             $this->model->getErrors(false),
             $this->model->getVars(),
