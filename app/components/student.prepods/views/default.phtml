@@ -1,4 +1,7 @@
 <?
+use UTest\Kernel\Form;
+use UTest\Kernel\Base;
+
 $arTitles = array(    
     'ФИО',
     'Должность',    
@@ -6,28 +9,30 @@ $arTitles = array(
     'Контактный e-mail'
 );
 
-$items = $arResult['data']['form'];
-$arPost = $this->model->getArPost();
+$arPositions = Base::getConfig('positions');
+
+if (count($data) == 0) {
+    echo Form::info('Список пуст');
+    return;
+}
 ?>
 
-<?if (empty($items)):?>
-    Список пуст
-<?else:?>    
-    <table class="table table-hover">
-        <thead>
+<table class="table table-hover">
+    <thead>
+        <tr>
+        <?foreach($arTitles as $title):?>
+            <th><?=$title?></th>
+        <?endforeach?>
+        </tr>
+    </thead>
+    <tbody>
+        <?foreach($data as $k => $v):?>
             <tr>
-            <?foreach($arTitles as $title):?>
-                <th><?=$title?></th>
-            <?endforeach?>
-            </tr>
-        </thead>
-        <?foreach($items as $k => $v):?>
-            <tr>                
-                <td><?=$v['last_name']?> <?=$v['name']?> <?=$v['surname']?></td>                
-                <td><?=$arPost[ $v['post'] ]?></td>
-                <td><?=$v['phone'] ? $v['phone'] : '-'?></td>
-                <td><?=$v['email'] ? $v['email'] : '-'?></td>                                    
+                <td><?= $v['last_name'] ?> <?= $v['name'] ?> <?= $v['surname'] ?></td>
+                <td><?= $arPositions[$v['post']] ?></td>
+                <td><?= $v['phone'] ?: '&mdash;' ?></td>
+                <td><?= $v['email'] ?: '&mdash;' ?></td>
             </tr>
         <?endforeach?>
-    </table>    
-<?endif?>
+    </tbody>
+</table>

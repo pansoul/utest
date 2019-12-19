@@ -1,29 +1,19 @@
 <?php
 
-class StudentPrepodsModel extends ComponentModel {
-    
-    private $table_user = 'u_user';
-    
-    private $arPost = array(
-        'old_prepod'    => 'старший преподаватель',
-        'docent'        => 'доцент',
-        'prof'          => 'профессор',
-        'prepod'        => 'преподаватель',
-    );
+namespace UTest\Components;
 
+use UTest\Kernel\DB;
+use UTest\Kernel\User\Roles\Prepod;
+
+class StudentPrepodsModel extends \UTest\Kernel\Component\Model
+{
     public function indexAction()
-    { 
-        $res = R::find($this->table_user, 'group_id IS NULL AND role != "admin" ORDER BY last_name');        
-        
-        return $this->returnResult(array(
-            'form' => $res,
-            'users' => $users
-        ));
-    }
-    
-    public function getArPost()
     {
-        return $this->arPost;
-    }
+        $res = DB::table(TABLE_USER)
+            ->where('role', '=', Prepod::ROLE)
+            ->orderBy('last_name')
+            ->get();
 
+        $this->setData($res);
+    }
 }

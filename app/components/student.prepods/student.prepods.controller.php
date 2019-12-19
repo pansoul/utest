@@ -1,16 +1,11 @@
 <?php
 
-class StudentPrepodsController extends USiteController {
+namespace UTest\Components;
 
+class StudentPrepodsController extends \UTest\Kernel\Component\Controller
+{
     protected $routeMap = array(
-        'setTitle' => 'Преподаватели'      
+        'title' => 'Преподаватели',
+        'add_breadcrumb' => true
     );
-
-    public function run()
-    {
-        $result = $this->model->doAction($this->action);        
-        $html = $this->loadView('', $result);        
-        $this->putContent($html);
-    }
-
 }
