@@ -1,31 +1,64 @@
 <?
-$v = $arResult['data'];
+use UTest\Kernel\Form;
+
+$arTitles = array(
+    'ФИО',
+    'Группа',
+    'Факультет',
+    'Специальность',
+    'Код специальности',
+);
+
+$v = $data;
 ?>
 
-<?if($_SESSION['update'] == 'Y'):?>
-    <div class="alert alert-success">Данные успешно изменены</div>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <?foreach($arTitles as $title):?>
+                <th><?=$title?></th>
+            <?endforeach?>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><?=$v['last_name']?> <?=$v['name']?> <?=$v['surname']?></td>
+            <td><?=$v['group_name']?></td>
+            <td><?=$v['faculty_name']?></td>
+            <td><?=$v['speciality_name']?></td>
+            <td><?=$v['speciality_code']?></td>
+        </tr>
+    </tbody>
+</table>
+
 <?
-unset($_SESSION['update']);
-endif;
-?>    
+if ($this->hasErrors()) {
+    echo Form::error($this->getErrors(), true);
+}
+
+if ($_SESSION['update'] == 'Y') {
+    echo Form::success('Данные успешно обновлены');
+    unset($_SESSION['update']);
+}
+?>
 
 <form class="form-horizontal" method="post" action="">    
     <div class="form-group">
         <label class="col-lg-2 control-label">Контактный телефон:</label>
         <div class="col-lg-10">
-            <?=UForm::input('text', 'phone', $v['phone'] , 'form-control')?>            
+            <?=Form::input('text', 'phone', $v['phone'] , 'form-control')?>            
         </div>
     </div>
     <div class="form-group">
         <label class="col-lg-2 control-label">E-mail для связи:</label>
         <div class="col-lg-10">
-            <?=UForm::input('text', 'email', $v['email'] , 'form-control')?>            
+            <?=Form::input('text', 'email', $v['email'] , 'form-control')?>            
         </div>
     </div>
     <div class="form-group">
         <div class="col-lg-offset-2 col-lg-10">
-            <?=UForm::button('Изменить', 'btn btn-default')?>            
+            <?=Form::button('Изменить', 'btn btn-default')?>            
         </div>
     </div>
-    <?=UForm::input('hidden', 'a', 'Y')?>
+    <?=Form::input('hidden', 'a', 'Y')?>
 </form>
