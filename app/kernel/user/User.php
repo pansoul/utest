@@ -5,9 +5,12 @@ namespace UTest\Kernel\User;
 use UTest\Kernel\Site;
 use UTest\Kernel\Errors\AppException;
 use UTest\Kernel\DB;
+use UTest\Kernel\Base;
 
 class User
 {
+    use \UTest\Kernel\Traits\ErrorsManageTrait;
+
     /**
      * Данную роль нельзя переопределять.
      * Список пользовательских ролей содержится в файле roles.php в папке конфигурации
@@ -18,6 +21,13 @@ class User
      * Предопределённый Id админа
      */
     const ADMIN_ID = 1;
+
+    /**
+     * Список предустановленных ролей
+     */
+    const PRESET_ROLES = [
+        self::ADMIN_ROLE => 'Администратор'
+    ];
 
     /**
      * Id пользователя
@@ -36,19 +46,6 @@ class User
      * @var string
      */
     protected $role = '';
-
-    /**
-     * К какой группе принадлежит текущая роль пользователя.
-     * Название группы будет иметься только у унаследованных групп пользователей, у групп-родителей этот параметр будет выводить "0"
-     * @var string
-     */
-    protected $roleGroup = '';
-
-    /**
-     * Содержит название самой корневой группы, от которой произошло любое наследование для текущей роли.
-     * @var string
-     */
-    protected $roleRootGroup = '';
 
     /**
      * Логин пользователя
@@ -75,14 +72,6 @@ class User
     protected $userData = null;
 
     /**
-     * Список доступных ролей
-     * @var array
-     */
-    protected static $arRoles = [
-        self::ADMIN_ROLE => 'Администратор'
-    ];
-
-    /**
      * Объект текущего авторизованного пользователя
      * @var object
      */
@@ -94,12 +83,6 @@ class User
      */
     private static $requestedUser = null;
 
-    /**
-     * Переменная содержит список текстовых ошибок
-     * @var array
-     */
-    public static $last_errors = array();
-
     protected function __construct($userData, $isRequestedUser = false)
     {
         $this->userData = $userData;
@@ -110,7 +93,6 @@ class User
         $this->role = $userData['role'];
         $this->login = $userData['login'];
         $this->groupId = $userData['group_id'];
-        $this->setRoleGroups($userData['role']);
     }
 
     public function __call($name, $arguments)
@@ -160,6 +142,7 @@ class User
     {
         $uid = intval($uid);
         $isRequestedUser = $uid && $uid != @$_SESSION['u_uid'];
+        $userData = false;
 
         // Если есть запрос на получение произвольного пользователя и текущий пользователь не такой же, как запрашиваемый.
         // Примечание! При таком расскладе авторизованность пользователя не учитывается.
@@ -170,16 +153,14 @@ class User
             }
 
             $userData = self::getById($uid);
-            if (!$userData) {
-                return new EmptyUser($uid);
-            }
         }
         // Если кэша текущего авторизованного пользователя нет
         elseif (self::isAuth() && !self::$user) {
             $userData = self::getById($_SESSION['u_uid']);
         }
-        else {
-            return new EmptyUser($uid);
+
+        if (!$userData) {
+            throw new AppException("User[{$uid}] не существует для работы с ним");
         }
 
         $person = self::loadPerson($userData['role'], $userData, $isRequestedUser);
@@ -209,6 +190,9 @@ class User
         $userClass = '\\UTest\\Kernel\\User\\Roles\\' . $userRole;
         $userClassPath = KERNEL_PATH . '/user/roles/' . $userRole . '.php';
 
+        if (!self::isSysRoleExists($userRole)) {
+            throw new AppException("Роль '{$userRole}' не описана в системе");
+        }
         if (!file_exists($userClassPath)) {
             throw new AppException("Файл '{$userClassPath}' для типа пользователя '{$userRole}' не найден");
         }
@@ -220,32 +204,16 @@ class User
     }
 
     /**
-     * Устанавливает для пользователя такие значения как "название" и "название корневой группы" по его роли.
-     * @param string $role
-     */
-    private function setRoleGroups($role)
-    {
-        $rootGroup = DB::table(TABLE_USER_ROLES)->where('type', '=', $role)->first();
-        $this->roleGroup = $rootGroup['group'];
-
-        while ($rootGroup['group'] != 0) {
-            $rootGroup = DB::table(TABLE_USER_ROLES)->where('type', '=', $rootGroup['group'])->first();
-        }
-        $this->roleRootGroup = $rootGroup['type'];
-    }
-
-    /**
      * Находит пользователя по переданному Id
      * @param integer $uid
      * @return boolean|object
      */
     public static function getById($uid)
     {
-        $e = array();
+        self::clearErrors();
         $user = DB::table(TABLE_USER)->find($uid);
         if (!$user) {
-            $e[] = "Пользователя с Id = '{$uid}' не существует";
-            self::$last_errors = $e;
+            self::setErrors("Пользователя с Id = '{$uid}' не существует");
             return false;
         }
         return $user;
@@ -258,11 +226,10 @@ class User
      */
     public static function getByLogin($login)
     {
-        $e = array();
+        self::clearErrors();
         $user = DB::table(TABLE_USER)->where('login', '=', $login)->first();
         if (!$user) {
-            $e[] = "Пользователя с login = '{$login}' не существует";
-            self::$last_errors = $e;
+            self::setErrors("Пользователя с login = '{$login}' не существует");
             return false;
         }
         return $user;
@@ -296,24 +263,6 @@ class User
     }
 
     /**
-     * Возвращает имя группы пользователя, к которой относится его роль
-     * @return string
-     */
-    public function getRoleGroup()
-    {
-        return $this->roleGroup;
-    }
-
-    /**
-     * Возвращает название самой корневой группы пользователя, к коорой относится его роль
-     * @return string
-     */
-    public function getRoleRootGroup()
-    {
-        return $this->roleRootGroup;
-    }
-
-    /**
      * Возвращает логин
      * @return string
      */
@@ -339,7 +288,7 @@ class User
      */
     public function getFields($arFields = [])
     {
-        $e = [];
+        self::clearErrors();
         $arOut = [];
         $arFields = (array) $arFields;
 
@@ -348,8 +297,7 @@ class User
         } else {
             foreach ($arFields as $v) {
                 if (!array_key_exists($v, $this->userData)) {
-                    $e[] = "Поле '{$v}' не существует в списке свойств пользователя";
-                    self::$last_errors = $e;
+                    self::setErrors("Поле '{$v}' не существует в списке свойств пользователя");
                     return false;
                 }
                 $arOut[$v] = $this->userData[$v];
@@ -360,34 +308,24 @@ class User
     }
 
     /**
-     * Находит корневую группу для переданной роли
-     * @param string $role
-     * @return boolean|string
-     */
-    public static function getRootGroup($role)
-    {
-        $e = array();
-        $rootGroup = DB::table(TABLE_USER_ROLES)->where('type', '=', $role)->first();
-
-        if (empty($rootGroup)) {
-            $e[] = "Роль '{$role}' в системе не существует";
-            self::$last_errors = $e;
-            return false;
-        }
-
-        while ($rootGroup['group'] != 0) {
-            $rootGroup = DB::table(TABLE_USER_ROLES)->where('type', '=', $rootGroup['group'])->first();
-        }
-        return $rootGroup['type'];
-    }
-
-    /**
-     * Возвращает массив всех системных (=корневых) ролей приложения
+     * Возвращает массив всех системных ролей приложения
      * @return array
      */
     public static function getSysRoles()
     {
-        return DB::table(TABLE_USER_ROLES)->where('group', '=', 0)->get();
+        $roles = array_change_key_case(Base::getConfig('roles'), CASE_LOWER);
+        $roles = array_merge($roles, self::PRESET_ROLES);
+        return $roles;
+    }
+
+    /**
+     * Проверяет роль на существование
+     * @param string $role
+     * @return bool
+     */
+    public static function isSysRoleExists($role = '')
+    {
+        return isset(self::getSysRoles()[strtolower($role)]);
     }
 
     /**
@@ -410,12 +348,11 @@ class User
      */
     public static function login($login, $pass, $redirectUrl = false)
     {
-        $e = array();
+        self::clearErrors();
         $user = self::getByLogin($login);
 
         if ($user['password'] != md5(sha1($pass) . $user['salt'])) {
-            $e[] = "Неверно введён логин или пароль";
-            self::$last_errors = $e;
+            self::setErrors("Неверно введён логин или пароль");
             return false;
         }
 
@@ -451,86 +388,14 @@ class User
      */
     public function doAction($role, $action, ...$args)
     {
-        $e = array();
+        self::clearErrors();
         $person = self::loadPerson($role, [], true);
 
         if (!method_exists($person, $action)) {
-            $e[] = "Метод '{$action}' отсутствует у класса запрашиваемой роли '{$role}'";
-            self::$last_errors = $e;
+            self::setErrors("Метод '{$action}' отсутствует у класса запрашиваемой роли '{$role}'");
             return false;
         }
 
         return call_user_func_array([$person, $action], $args);
     }
-
-    /**
-     * Возвращает массив групп, которые относятся к переданной роли
-     * @param string $role
-     * @return array
-     *
-     * @todo пересмотреть
-     */
-    /*public static function getTreeGroup($role)
-    {
-        return self::addTreeItems($role);
-    }*/
-
-    /**
-     * Создаёт массив групп, которые относятся к передаваемой роли, рекурсивно проходя по всем зависимым группам.
-     *
-     * @param string $role
-     * @param array $output
-     *
-     * @return array
-     *
-     * @todo пересмотреть
-     */
-    /*private static function addTreeItems($role, &$output = array())
-    {
-        $role = intval($role);
-        $arRelatedRoles = R::findAndExport(TABLE_USER_ROLES, '`group` = ?', array($role));
-        $arCurRole = R::findOne(TABLE_USER_ROLES, '`type` = ?', array($role));
-
-        if (empty($arCurRole) || !$role) {
-            return false;
-        }
-
-        $output[] = $role;
-        foreach ($arRelatedRoles as $arRole) {
-            self::addTreeItems($arRole['type'], $output);
-        }
-        return $output;
-    }*/
-
-    // @todo пересмотреть
-    /*public static function refreshDataRoles()
-    {
-        $arExtRoles = include APP_CONFIG_PATH . '/roles.php';
-        $arFullRoles = array_merge($arExtRoles, self::$arRoles);
-        $arFullRoles = array_reverse($arFullRoles);
-
-        foreach ($arFullRoles as $k => $v) {
-            if ($k == self::ADMIN_ROLE) {
-                throw new AppException ("Нельзя переопределять роль 'admin'");
-            }
-
-            $result = R::findOne(TABLE_USER_ROLES, 'type=?', array(strtolower($k)));
-
-            if ($result && $result->name == $v['name']) {
-                continue;
-            } elseif ($result) {
-                $result->name = $v['name'];
-                R::store($result);
-            } else {
-                $role = R::dispense(TABLE_USER_ROLES);
-                $role->name = $v['name'];
-                $role->group = $v['group'] ? $v['group'] : 0;
-                $role->type = $k;
-                R::store($role);
-            }
-        }
-    }*/
-
-
-
 }

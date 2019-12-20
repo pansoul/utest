@@ -41,7 +41,7 @@ class PrepodStudentsModel extends \UTest\Kernel\Component\Model
                 if ($user) {
                     $users[] = $user;
                 } else {
-                    $this->setErrors(User::$last_errors);
+                    $this->setErrors(User::getErrors());
                     break;
                 }
             }
@@ -79,7 +79,7 @@ class PrepodStudentsModel extends \UTest\Kernel\Component\Model
             if (!$this->hasErrors()) {
                 $user = User::user()->doAction('admin', 'edit', ['password' => $v['password']], $this->vars['id']);
                 if (!$user) {
-                    $this->setErrors(User::$last_errors);
+                    $this->setErrors(User::getErrors());
                 }
             }
         }
@@ -95,7 +95,7 @@ class PrepodStudentsModel extends \UTest\Kernel\Component\Model
     public function editStudentAction($id)
     {
         $v = User::getById($id);
-        if (User::getRootGroup($v['role']) !== self::STUDENT_ROLE) {
+        if ($v['role'] !== self::STUDENT_ROLE) {
             $this->setErrors('Пользователь не найден', ERROR_ELEMENT_NOT_FOUND);
         }
         return $this->newStudentAction($v);

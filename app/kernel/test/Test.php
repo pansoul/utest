@@ -589,7 +589,7 @@ class Test
      */
     public static function getQuestionTypes()
     {
-        return Base::getConfig('question_types');
+        return array_change_key_case(Base::getConfig('question_types'), CASE_LOWER);
     }
 
     /**
@@ -609,7 +609,7 @@ class Test
      */
     public static function getQuestionTypeClass($type = '')
     {
-        if (!isset(Base::getConfig('question_types')[$type])) {
+        if (!isset(self::getQuestionTypes()[strtolower($type)])) {
             return false;
         }
 

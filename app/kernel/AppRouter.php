@@ -40,7 +40,7 @@ class AppRouter
         }
         // Если текущего алиаса в карте не найдено, значит загружем контент исходя из авторизации и типа пользователя
         // @todo произвести рефактор условия
-        elseif (Site::getGroup() && (!User::isAuth() || Site::getGroup() != User::user()->getRoleRootGroup())) {
+        elseif (Site::getGroup() && (!User::isAuth() || Site::getGroup() != User::user()->getRole())) {
             $builder->build(false, LAYOUT_404);
         } else {
             $builder->build(Controller::loadComponent(Site::getUrl()), $layout);

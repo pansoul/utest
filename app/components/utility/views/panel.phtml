@@ -7,6 +7,6 @@ if (!User::isAuth()) {
 ?>
 
 <div class="user-panel">
-    <a href="/<?=User::user()->getRoleRootGroup()?>/profile" class="user-name"><?=User::user()->getName()?></a>
+    <a href="/<?=User::user()->getRole()?>/profile" class="user-name"><?=User::user()->getName()?></a>
     <a href="?logout=Y" class="user-logout">Выйти</a>
 </div>

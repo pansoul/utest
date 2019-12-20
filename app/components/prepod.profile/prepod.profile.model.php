@@ -26,7 +26,7 @@ class PrepodProfileModel extends \UTest\Kernel\Component\Model
                 Site::redirect(Site::getModurl());
             }
 
-            $this->setErrors(User::$last_errors);
+            $this->setErrors(User::getErrors());
         }
 
         $this->setData($v);

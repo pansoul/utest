@@ -32,12 +32,13 @@ class AdminPrepodsModel extends \UTest\Kernel\Component\Model
                 if ($user) {
                     $users[] = $user;
                 } else {
-                    $this->setErrors(User::$last_errors);
+                    $this->setErrors(User::getErrors());
                     break;
                 }
             }
         }
 
+        // @todo
         $res = DB::table(TABLE_USER)
             ->whereNull('group_id')
             ->where('role', '!=', User::ADMIN_ROLE)
@@ -64,7 +65,7 @@ class AdminPrepodsModel extends \UTest\Kernel\Component\Model
             } else {
                 $user = User::user()->add($v);
             }
-            $this->setErrors(User::$last_errors);
+            $this->setErrors(User::getErrors());
         }
 
         $this->setData([
@@ -76,7 +77,7 @@ class AdminPrepodsModel extends \UTest\Kernel\Component\Model
     public function editAction($id)
     {
         $v = User::getById($id);
-        if (User::getRootGroup($v['role']) !== Prepod::ROLE) {
+        if ($v['role'] !== Prepod::ROLE) {
             $this->setErrors('Пользователь не найден', ERROR_ELEMENT_NOT_FOUND);
         }
         return $this->newPrepodAction($v);

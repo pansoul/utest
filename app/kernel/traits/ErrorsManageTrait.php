@@ -5,28 +5,39 @@ namespace UTest\Kernel\Traits;
 trait ErrorsManageTrait
 {
     protected $errors = [];
+    protected static $lastErrors = [];
 
     protected function clearErrors()
     {
-        $this->errors = [];
+        $e =& self::_isStatic() ? self::$lastErrors : $this->errors;
+        $e = [];
     }
 
     protected function setErrors($errorsMsg = null)
     {
+        $e =& self::_isStatic() ? self::$lastErrors : $this->errors;
         if (is_array($errorsMsg)) {
-            $this->errors = array_merge($this->errors, $errorsMsg);
+            $e = array_merge($e, $errorsMsg);
         } else {
-            $this->errors[] = $errorsMsg;
+            $e[] = $errorsMsg;
         }
     }
 
     public function getErrors()
     {
-        return $this->errors;
+        $e =& self::_isStatic() ? self::$lastErrors : $this->errors;
+        return $e;
     }
 
     public function hasErrors()
     {
-        return !empty($this->errors);
+        $e =& self::_isStatic() ? self::$lastErrors : $this->errors;
+        return !empty($e);
+    }
+
+    protected static function _isStatic()
+    {
+        $bt = debug_backtrace();
+        return $bt[1]['type'] == '::';
     }
 }

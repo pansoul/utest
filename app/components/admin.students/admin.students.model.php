@@ -55,7 +55,7 @@ class AdminStudentsModel extends \UTest\Kernel\Component\Model
                 if ($user) {
                     $users[] = $user;
                 } else {
-                    $this->setErrors(User::$last_errors);
+                    $this->setErrors(User::getErrors());
                     break;
                 }
             }
@@ -155,7 +155,7 @@ class AdminStudentsModel extends \UTest\Kernel\Component\Model
             } else {
                 $user = User::user()->add($v);
             }
-            $this->setErrors(User::$last_errors);
+            $this->setErrors(User::getErrors());
         } else {
             $v['group_id'] = $parent['id'];
         }
@@ -179,7 +179,7 @@ class AdminStudentsModel extends \UTest\Kernel\Component\Model
     public function editStudentAction($id)
     {
         $v = User::getById($id);
-        if (User::getRootGroup($v['role']) !== Student::ROLE) {
+        if ($v['role'] !== Student::ROLE) {
             $this->setErrors('Пользователь не найден', ERROR_ELEMENT_NOT_FOUND);
         }
         return $this->newStudentAction($v);

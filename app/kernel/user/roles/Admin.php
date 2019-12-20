@@ -17,7 +17,9 @@ class Admin extends \UTest\Kernel\User\User
         return [
             'role' => [
                 FieldsValidateTraitHelper::_NAME => 'Роль пользователя',
-                FieldsValidateTraitHelper::_AVAILABLE => [FieldsValidateTraitHelper::_ADD],
+                FieldsValidateTraitHelper::_AVAILABLE => [
+                    FieldsValidateTraitHelper::_ADD
+                ],
                 FieldsValidateTraitHelper::_REQUIRED => true,
             ],
             'password' => [
@@ -74,7 +76,7 @@ class Admin extends \UTest\Kernel\User\User
                     FieldsValidateTraitHelper::_EDIT
                 ],
                 FieldsValidateTraitHelper::_REQUIRED => function ($v, $group) {
-                    return $v['role'] == 'student';
+                    return $v['role'] == Student::ROLE;
                 },
                 // @todo
                 FieldsValidateTraitHelper::_VALIDATE => [
@@ -96,38 +98,30 @@ class Admin extends \UTest\Kernel\User\User
     // @todo
     public function add($arFields = array())
     {
-        $arFields = $this->checkFields($this->fieldsMap(), $arFields, FieldsValidateTraitHelper::_ADD, self::$last_errors);
-        if ($arFields === false) {
-            return false;
+        self::clearErrors();
+        $e = [];
+        $arFields = $this->checkFields($this->fieldsMap(), $arFields, FieldsValidateTraitHelper::_ADD, $e);
+        self::setErrors($e);
+
+        // @todo сделать также доп. проверки на другие связанные значения
+        if (!self::isSysRoleExists($arFields['role'])) {
+            self::setErrors("Роль {$arFields['role']} не существует");
         }
 
-        if (empty($arFields['group_id'])) {
-            $arFields['group_id'] = null;
-        }
-
-        $rootRole = self::getRootGroup($arFields['role']);
-        if (!$rootRole) {
+        // @todo
+        if (self::hasErrors()) {
             return false;
         }
 
         $password = $arFields['password'];
         $arFields['salt'] = Utilities::generateSalt();
         $arFields['password'] = md5(sha1($password) . $arFields['salt']);
+        $arFields['role'] = strtolower($arFields['role']);
+        $arFields['group_id'] = $arFields['group_id'] ? intval($arFields['group_id']) : null;
+
         $id = DB::table(TABLE_USER)->insertGetId($arFields);
-        // @todo
-        switch ($rootRole) {
-            case 'admin':
-                $logname = 'admin';
-                break;
 
-            case 'prepod':
-                $logname = 'prepod';
-                break;
-
-            default :
-                $logname = 'student';
-        }
-        $login = $logname . str_pad($id, 2, '0', STR_PAD_LEFT);
+        $login = $arFields['role'] . str_pad($id, 2, '0', STR_PAD_LEFT);
         DB::table(TABLE_USER)->where('id', '=', $id)->update(['login' => $login]);
 
         return array(
@@ -138,8 +132,11 @@ class Admin extends \UTest\Kernel\User\User
         );
     }
 
+    // @todo
     public function edit($arFields = array(), $uid = null)
     {
+        self::clearErrors();
+        $e = [];
         $uid = intval($uid) ? intval($uid) : $this->getUID();
         $user = self::getById($uid);
 
@@ -147,10 +144,15 @@ class Admin extends \UTest\Kernel\User\User
             return false;
         }
 
-        $arFields = $this->checkFields($this->fieldsMap(), $arFields, FieldsValidateTraitHelper::_EDIT, self::$last_errors);
-        if ($arFields === false) {
+        $arFields = $this->checkFields($this->fieldsMap(), $arFields, FieldsValidateTraitHelper::_EDIT, $e);
+        self::setErrors($e);
+
+        // @todo
+        if (self::hasErrors()) {
             return false;
         }
+
+        $arFields['group_id'] = $arFields['group_id'] ? intval($arFields['group_id']) : null;
 
         // новый пароль
         if (!empty($arFields['password'])) {
@@ -172,14 +174,13 @@ class Admin extends \UTest\Kernel\User\User
 
     public function delete($uid)
     {
-        $e = array();
+        self::clearErrors();
 
         $user = self::getById($uid);
         if (!$user) {
             return false;
         } elseif ($user['id'] == self::ADMIN_ID) {
-            $e[] = "Невозможно удалить пользователя с Id = " . self::ADMIN_ID;
-            self::$last_errors = $e;
+            self::setErrors("Невозможно удалить пользователя с Id = " . self::ADMIN_ID);
             return false;
         }
 

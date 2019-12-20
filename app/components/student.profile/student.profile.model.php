@@ -41,7 +41,7 @@ class StudentProfileModel extends \UTest\Kernel\Component\Model
                 Site::redirect(Site::getModurl());
             }
 
-            $this->setErrors(User::$last_errors);
+            $this->setErrors(User::getErrors());
         }
 
         $this->setData(array_merge($v, $data, $u));
