@@ -16,7 +16,7 @@ class AdminProfileModel extends \UTest\Kernel\Component\Model
                 $_SESSION['update'] = 'Y';
                 Site::redirect(Site::getModurl());
             } else {
-                $this->setErrors(User::getErrors());
+                $this->setErrors(User::getLastErrors());
             }
         }
     }

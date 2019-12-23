@@ -9,35 +9,51 @@ trait ErrorsManageTrait
 
     protected function clearErrors()
     {
-        $e =& self::_isStatic() ? self::$lastErrors : $this->errors;
-        $e = [];
+        $this->errors = [];
     }
 
     protected function setErrors($errorsMsg = null)
     {
-        $e =& self::_isStatic() ? self::$lastErrors : $this->errors;
         if (is_array($errorsMsg)) {
-            $e = array_merge($e, $errorsMsg);
+            $this->errors = array_merge($this->errors, $errorsMsg);
         } else {
-            $e[] = $errorsMsg;
+            $this->errors[] = $errorsMsg;
         }
     }
 
     public function getErrors()
     {
-        $e =& self::_isStatic() ? self::$lastErrors : $this->errors;
-        return $e;
+        return $this->errors;
     }
 
     public function hasErrors()
     {
-        $e =& self::_isStatic() ? self::$lastErrors : $this->errors;
-        return !empty($e);
+        return !empty($this->errors);
     }
 
-    protected static function _isStatic()
+    ///////////////////////
+    
+    protected static function clearLastErrors()
     {
-        $bt = debug_backtrace();
-        return $bt[1]['type'] == '::';
+        self::$lastErrors = [];
+    }
+
+    protected static function setLastErrors($errorsMsg = null)
+    {
+        if (is_array($errorsMsg)) {
+            self::$lastErrors = array_merge(self::$lastErrors, $errorsMsg);
+        } else {
+            self::$lastErrors[] = $errorsMsg;
+        }
+    }
+
+    public static function getLastErrors()
+    {
+        return self::$lastErrors;
+    }
+
+    public static function hasLastErrors()
+    {
+        return !empty(self::$lastErrors);
     }
 }

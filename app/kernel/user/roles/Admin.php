@@ -95,21 +95,17 @@ class Admin extends \UTest\Kernel\User\User
         ];
     }
 
-    // @todo
     public function add($arFields = array())
     {
-        self::clearErrors();
-        $e = [];
-        $arFields = $this->checkFields($this->fieldsMap(), $arFields, FieldsValidateTraitHelper::_ADD, $e);
-        self::setErrors($e);
+        self::clearLastErrors();
+        $arFields = $this->checkFields($this->fieldsMap(), $arFields, FieldsValidateTraitHelper::_ADD, self::$lastErrors);
 
         // @todo сделать также доп. проверки на другие связанные значения
         if (!self::isSysRoleExists($arFields['role'])) {
-            self::setErrors("Роль {$arFields['role']} не существует");
+            self::setLastErrors("Роль {$arFields['role']} не существует");
         }
 
-        // @todo
-        if (self::hasErrors()) {
+        if (self::hasLastErrors()) {
             return false;
         }
 
@@ -132,11 +128,9 @@ class Admin extends \UTest\Kernel\User\User
         );
     }
 
-    // @todo
     public function edit($arFields = array(), $uid = null)
     {
-        self::clearErrors();
-        $e = [];
+        self::clearLastErrors();
         $uid = intval($uid) ? intval($uid) : $this->getUID();
         $user = self::getById($uid);
 
@@ -144,11 +138,9 @@ class Admin extends \UTest\Kernel\User\User
             return false;
         }
 
-        $arFields = $this->checkFields($this->fieldsMap(), $arFields, FieldsValidateTraitHelper::_EDIT, $e);
-        self::setErrors($e);
+        $arFields = $this->checkFields($this->fieldsMap(), $arFields, FieldsValidateTraitHelper::_EDIT, self::$lastErrors);
 
-        // @todo
-        if (self::hasErrors()) {
+        if (self::hasLastErrors()) {
             return false;
         }
 
@@ -174,13 +166,13 @@ class Admin extends \UTest\Kernel\User\User
 
     public function delete($uid)
     {
-        self::clearErrors();
+        self::clearLastErrors();
 
         $user = self::getById($uid);
         if (!$user) {
             return false;
         } elseif ($user['id'] == self::ADMIN_ID) {
-            self::setErrors("Невозможно удалить пользователя с Id = " . self::ADMIN_ID);
+            self::setLastErrors("Невозможно удалить пользователя с Id = " . self::ADMIN_ID);
             return false;
         }
 

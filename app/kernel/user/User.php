@@ -210,10 +210,10 @@ class User
      */
     public static function getById($uid)
     {
-        self::clearErrors();
+        self::clearLastErrors();
         $user = DB::table(TABLE_USER)->find($uid);
         if (!$user) {
-            self::setErrors("Пользователя с Id = '{$uid}' не существует");
+            self::setLastErrors("Пользователя с Id = '{$uid}' не существует");
             return false;
         }
         return $user;
@@ -226,10 +226,10 @@ class User
      */
     public static function getByLogin($login)
     {
-        self::clearErrors();
+        self::clearLastErrors();
         $user = DB::table(TABLE_USER)->where('login', '=', $login)->first();
         if (!$user) {
-            self::setErrors("Пользователя с login = '{$login}' не существует");
+            self::setLastErrors("Пользователя с login = '{$login}' не существует");
             return false;
         }
         return $user;
@@ -288,7 +288,7 @@ class User
      */
     public function getFields($arFields = [])
     {
-        self::clearErrors();
+        self::clearLastErrors();
         $arOut = [];
         $arFields = (array) $arFields;
 
@@ -297,7 +297,7 @@ class User
         } else {
             foreach ($arFields as $v) {
                 if (!array_key_exists($v, $this->userData)) {
-                    self::setErrors("Поле '{$v}' не существует в списке свойств пользователя");
+                    self::setLastErrors("Поле '{$v}' не существует в списке свойств пользователя");
                     return false;
                 }
                 $arOut[$v] = $this->userData[$v];
@@ -348,11 +348,11 @@ class User
      */
     public static function login($login, $pass, $redirectUrl = false)
     {
-        self::clearErrors();
+        self::clearLastErrors();
         $user = self::getByLogin($login);
 
         if ($user['password'] != md5(sha1($pass) . $user['salt'])) {
-            self::setErrors("Неверно введён логин или пароль");
+            self::setLastErrors("Неверно введён логин или пароль");
             return false;
         }
 
@@ -388,11 +388,11 @@ class User
      */
     public function doAction($role, $action, ...$args)
     {
-        self::clearErrors();
+        self::clearLastErrors();
         $person = self::loadPerson($role, [], true);
 
         if (!method_exists($person, $action)) {
-            self::setErrors("Метод '{$action}' отсутствует у класса запрашиваемой роли '{$role}'");
+            self::setLastErrors("Метод '{$action}' отсутствует у класса запрашиваемой роли '{$role}'");
             return false;
         }
 

@@ -32,7 +32,7 @@ class AdminPrepodsModel extends \UTest\Kernel\Component\Model
                 if ($user) {
                     $users[] = $user;
                 } else {
-                    $this->setErrors(User::getErrors());
+                    $this->setErrors(User::getLastErrors());
                     break;
                 }
             }
@@ -65,7 +65,7 @@ class AdminPrepodsModel extends \UTest\Kernel\Component\Model
             } else {
                 $user = User::user()->add($v);
             }
-            $this->setErrors(User::getErrors());
+            $this->setErrors(User::getLastErrors());
         }
 
         $this->setData([

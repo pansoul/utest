@@ -18,7 +18,7 @@ class IndexModel extends \UTest\Kernel\Component\Model
             if ($success) {
                 Site::redirect('/' . User::user()->getRole(), false, 'Здравствуйте, ' . User::user()->getName() . '!');
             } else {
-                $this->setErrors(User::getErrors());
+                $this->setErrors(User::getLastErrors());
             }
         }
     }

@@ -41,7 +41,7 @@ class PrepodStudentsModel extends \UTest\Kernel\Component\Model
                 if ($user) {
                     $users[] = $user;
                 } else {
-                    $this->setErrors(User::getErrors());
+                    $this->setErrors(User::getLastErrors());
                     break;
                 }
             }
@@ -79,7 +79,7 @@ class PrepodStudentsModel extends \UTest\Kernel\Component\Model
             if (!$this->hasErrors()) {
                 $user = User::user()->doAction('admin', 'edit', ['password' => $v['password']], $this->vars['id']);
                 if (!$user) {
-                    $this->setErrors(User::getErrors());
+                    $this->setErrors(User::getLastErrors());
                 }
             }
         }

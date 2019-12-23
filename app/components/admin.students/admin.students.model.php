@@ -55,7 +55,7 @@ class AdminStudentsModel extends \UTest\Kernel\Component\Model
                 if ($user) {
                     $users[] = $user;
                 } else {
-                    $this->setErrors(User::getErrors());
+                    $this->setErrors(User::getLastErrors());
                     break;
                 }
             }
@@ -155,7 +155,7 @@ class AdminStudentsModel extends \UTest\Kernel\Component\Model
             } else {
                 $user = User::user()->add($v);
             }
-            $this->setErrors(User::getErrors());
+            $this->setErrors(User::getLastErrors());
         } else {
             $v['group_id'] = $parent['id'];
         }
