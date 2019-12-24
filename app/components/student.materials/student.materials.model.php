@@ -1,89 +1,82 @@
 <?php
 
-class StudentMaterialsModel extends ComponentModel {
+namespace UTest\Components;
 
-    private $table_subject = 'u_prepod_subject';
-    private $table_material = 'u_prepod_material';
-    private $table_user = 'u_user';
-    private $table_student_material = 'u_student_material';
+use UTest\Kernel\DB;
+use UTest\Kernel\User\User;
 
-    public function myAction()
+class StudentMaterialsModel extends \UTest\Kernel\Component\Model
+{
+    public function subjectsAction()
     {
-        $g = UUser::user()->getFields(array('group_id'));
-        
-        $sql = "
-            SELECT DISTINCT m.*, u.last_name as prepod_last_name, u.name as prepod_name, u.surname as prepod_surname
-            FROM {$this->table_subject} AS m 
-            LEFT JOIN {$this->table_student_material} AS s 
-                ON (s.subject_id = m.id)
-            LEFT JOIN {$this->table_user} AS u 
-                ON (m.user_id = u.id)
-            WHERE
-                s.group_id = {$g['group_id']}
-                AND s.is_hidden = 0
-            ORDER BY m.title
-        ";
-        $records = R::getAll($sql);
-        $res = R::convertToBeans($this->table_subject, $records);
-        
-        foreach ($res as &$item)
-        {
-            $item['material_count'] = R::count($this->table_student_material, 'subject_id = :sid AND group_id = :gid ', array(
-                        ':sid' => $item['id'],
-                        ':gid' => $g['group_id']
-            ));
-        }
+        $res = DB::table(TABLE_STUDENT_MATERIAL)
+            ->select(
+                TABLE_STUDENT_MATERIAL.'.id',
+                TABLE_PREPOD_SUBJECT.'.title as subject_name',
+                TABLE_PREPOD_SUBJECT.'.alias as subject_code',
+                TABLE_USER.'.name as prepod_name',
+                TABLE_USER.'.last_name as prepod_last_name',
+                TABLE_USER.'.surname as prepod_surname',
+                DB::raw('count('.TABLE_PREPOD_SUBJECT.'.id) as material_count')
+            )
+            ->leftJoin(TABLE_PREPOD_SUBJECT, TABLE_PREPOD_SUBJECT.'.id', '=', TABLE_STUDENT_MATERIAL.'.subject_id')
+            ->leftJoin(TABLE_USER, TABLE_USER.'.id', '=', TABLE_PREPOD_SUBJECT.'.user_id')
+            ->where(TABLE_STUDENT_MATERIAL.'.group_id', '=', User::user()->getGroupId())
+            ->where(TABLE_STUDENT_MATERIAL.'.is_hidden', '=', 0)
+            ->groupBy(TABLE_STUDENT_MATERIAL.'.subject_id')
+            ->orderBy('subject_name')
+            ->get();
 
-        if ($this->vars['subject_code']) {
-            $parent = R::findOne($this->table_subject, '`alias` = ? ', array($this->vars['subject_code']));
-            
-            if ($parent) {
-                UAppBuilder::addBreadcrumb($parent['title'], USite::getUrl());
-                
-                $sql = "
-                    SELECT s.*, m.filename, m.size, m.extension
-                    FROM {$this->table_student_material} AS s 
-                    LEFT JOIN {$this->table_material} AS m 
-                        ON (m.id = s.material_id)
-                    WHERE
-                        s.group_id = {$g['group_id']}
-                        AND s.subject_id = {$parent['id']}                    
-                    ORDER BY s.date DESC
-                ";      
-                $records = R::getAll($sql);
-                $res = R::convertToBeans($this->table_student_material, $records);
-                
-                if ($this->request->_GET['download']) 
-                    $this->fileDownload($this->request->_GET['download']);
-            }
-        }
-
-        return $this->returnResult($res);
+        $this->setData($res);
     }
-    
+
+    public function materialsAction($subjectCode)
+    {
+        $subject = DB::table(TABLE_STUDENT_MATERIAL)
+            ->select(TABLE_PREPOD_SUBJECT.'.id')
+            ->leftJoin(TABLE_PREPOD_SUBJECT, TABLE_PREPOD_SUBJECT.'.id', '=', TABLE_STUDENT_MATERIAL.'.subject_id')
+            ->where(TABLE_PREPOD_SUBJECT.'.alias', '=', $subjectCode)
+            ->where(TABLE_STUDENT_MATERIAL.'.group_id', '=', User::user()->getGroupId())
+            ->first();
+
+        if (!$subject) {
+            $this->setErrors('Предмет не найден', ERROR_ELEMENT_NOT_FOUND);
+        } else {
+            $res = DB::table(TABLE_STUDENT_MATERIAL)
+                ->select(
+                    TABLE_STUDENT_MATERIAL.'.*',
+                    TABLE_PREPOD_MATERIAL.'.extension',
+                    TABLE_PREPOD_MATERIAL.'.size',
+                    TABLE_PREPOD_MATERIAL.'.filename'
+                )
+                ->leftJoin(TABLE_PREPOD_MATERIAL, TABLE_PREPOD_MATERIAL.'.id', '=', TABLE_STUDENT_MATERIAL.'.material_id')
+                ->where(TABLE_STUDENT_MATERIAL.'.group_id', '=', User::user()->getGroupId())
+                ->where(TABLE_STUDENT_MATERIAL.'.subject_id', '=', $subject['id'])
+                ->where(TABLE_STUDENT_MATERIAL.'.is_hidden', '=', 0)
+                ->orderBy(TABLE_STUDENT_MATERIAL.'.date', 'desc')
+                ->get();
+        }
+
+        $this->setData($res);
+    }
+
     function fileDownload($docId)
     {
-        $docId = intval($docId);
-        $g = UUser::user()->getFields(array('group_id'));
-        $parent = R::findOne($this->table_subject, '`alias` = ? ', array($this->vars['subject_code']));
-        
-        $sql = "
-            SELECT m.*
-            FROM {$this->table_material} AS m 
-            LEFT JOIN {$this->table_student_material} AS s 
-                ON (m.id = s.material_id)
-            WHERE
-                m.id = $docId
-                AND s.group_id = {$g['group_id']}
-                AND s.subject_id = {$parent['id']}
-                AND s.is_hidden = 0
-        ";                        
-        $records = R::getAll($sql);
-        $res = R::convertToBeans($this->table_material, $records);
-        $result = reset($res);
+        $result = DB::table(TABLE_STUDENT_MATERIAL)
+            ->select(
+                TABLE_STUDENT_MATERIAL.'.*',
+                TABLE_PREPOD_MATERIAL.'.extension',
+                TABLE_PREPOD_MATERIAL.'.filename',
+                TABLE_PREPOD_MATERIAL.'.filepath'
+            )
+            ->leftJoin(TABLE_PREPOD_MATERIAL, TABLE_PREPOD_MATERIAL.'.id', '=', TABLE_STUDENT_MATERIAL.'.material_id')
+            ->where(TABLE_STUDENT_MATERIAL.'.group_id', '=', User::user()->getGroupId())
+            ->where(TABLE_STUDENT_MATERIAL.'.material_id', '=', $docId)
+            ->where(TABLE_STUDENT_MATERIAL.'.is_hidden', '=', 0)
+            ->first();
 
         if (!$result) {
-            return false;
+            return;
         }
 
         $file = ROOT . $result['filepath'];
@@ -91,25 +84,21 @@ class StudentMaterialsModel extends ComponentModel {
         if (file_exists($file)) {
             // сбрасываем буфер вывода PHP, чтобы избежать переполнения памяти выделенной под скрипт
             // если этого не сделать файл будет читаться в память полностью!
-            if (ob_GET_level()) {
+            if (ob_get_level()) {
                 ob_end_clean();
             }
 
-            $f = str_replace(' ', '_', $result['filename']) . '.' . $result['extension'];
-            if (stristr($_SERVER['HTTP_USER_AGENT'], 'MSIE 8.0') 
-                || stristr($_SERVER['HTTP_USER_AGENT'], 'MSIE 7.0')) {
-                
-                $f = str_replace('+', '_', urlencode($result['filename'])) . '.' . $result['extension'];
-            }
+            $filename = str_replace(' ', '_', $result['filename']) . '.' . $result['extension'];
 
             // заставляем браузер показать окно сохранения файла
             header('Content-Description: File Transfer');
             header('Content-Type: application/octet-stream');
-            header('Content-Disposition: attachment; filename=' . $f);
-            header('Content-Transfer-Encoding: binary');
+            header("Content-Disposition: attachment; filename=" . $filename);
+            header('Content-Transfer-Encoding: application/octet-stream');
             header('Expires: 0');
             header('Cache-Control: must-revalidate');
             header('Pragma: public');
+            header('Accept-Ranges: bytes');
             header('Content-Length: ' . filesize($file));
 
             // читаем файл и отправляем его пользователю
@@ -117,5 +106,4 @@ class StudentMaterialsModel extends ComponentModel {
             exit;
         }
     }
-
 }

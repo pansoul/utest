@@ -1,39 +1,44 @@
 <?php
 
-class StudentMaterialsController extends USiteController {    
+namespace UTest\Components;
 
+class StudentMaterialsController extends \UTest\Kernel\Component\Controller
+{
     protected $routeMap = array(
-        'setTitle' => 'Материал по дисциплинам',
-        'actionDefault' => 'my',
-        'paramsPath' => array(
-            'my' => '/<subject_code>',           
+        'title' => 'Материал по дисциплинам',
+        'add_breadcrumb' => true,
+        'action_main' => 'subjects',
+        'actions_params' => array(
+            '/<subject_code>' => [
+                'action' => 'materials',
+                'title' => 'Список документов',
+                'add_breadcrumb' => true
+            ]
         ),
-        'params' => array(
-            'subject_code' => array(
-                'mask' => '',
-                'rule' => '[-_a-zA-Z0-9]',
-                'default' => 0
-            )
+        'vars_rules' => array(
+            'subject_code' => '[-_a-zA-Z0-9]'
         )
     );
 
     public function run()
     {
-        $result = $this->model->doAction($this->action);              
-        
+        // Если пришёл запрос на скачивание файла
+        if ($this->model->_GET['download']) {
+            $this->model->fileDownload($this->model->_GET['download']);
+        }
+
         switch ($this->action) {
-            case 'my':
-                $html = $this->model->vars['subject_code'] 
-                    ? $this->loadView('mymaterial', $result)
-                    : $this->loadView($this->action, $result);
+            case 'materials':
+                $this->doAction($this->action, $this->getVars('subject_code'));
+                $html = $this->loadView($this->action);
                 break;
-            
+
             default:
-                $html = $this->loadView($this->action, $result);
+                $this->doAction($this->action);
+                $html = $this->loadView($this->action);
                 break;
-        }        
-        
+        }
+
         $this->putContent($html);
     }
-
 }

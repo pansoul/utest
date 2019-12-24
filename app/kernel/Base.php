@@ -124,7 +124,7 @@ class Base
         $arPath = array_map('trim', $arPath);
         foreach ($arPath as $option) {
             if (!isset($value[$option])) {
-                return false;
+                return null;
             }
             $value = $value[$option];
         }

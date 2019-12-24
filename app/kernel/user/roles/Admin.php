@@ -144,8 +144,6 @@ class Admin extends \UTest\Kernel\User\User
             return false;
         }
 
-        $arFields['group_id'] = $arFields['group_id'] ? intval($arFields['group_id']) : null;
-
         // новый пароль
         if (!empty($arFields['password'])) {
             $password = $arFields['password'];

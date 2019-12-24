@@ -651,6 +651,14 @@ textarea{
     background: #F2DEDE;
 }
 
+.column-min{
+    width: 1px;
+    white-space: nowrap;
+}
+.column-max{
+    width: 99%;
+}
+
 .badge {
     background-color: #B1B1B1;
     border-radius: 10px;
@@ -840,9 +848,8 @@ textarea{
 
 .comment-block{
     padding: 10px 20px 10px 40px;
-    border-left: 3px solid #D4D4D4;
+    border-left: 2px solid #D4D4D4;
     background: url(../img/quote.png) 13px 10px no-repeat #fff;
-    font-style: italic;
 }
 
 .test-wrapper, .result-wrapper, .result-retake-wrapper{    
