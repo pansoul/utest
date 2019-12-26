@@ -5,10 +5,10 @@ use UTest\Kernel\Utilities;
 
 $arTitles = [
     Form::checkbox('check_all', 1, false, 'check-all'),
-    'ID',
-    'Тип',
-    'Дата',
-    'Содержимое',
+    'ID' => 'int',
+    'Тип' => 'string',
+    'Дата' => 'string',
+    'Содержимое' => 'string',
     'Скачать',
     'Управление',
 ];
@@ -38,11 +38,14 @@ if (count($items) == 0) {
 </div>
 
 <form action="" method="post" class="formaction">
-    <table class="table table-hover">
+    <table class="table table-hover table-sort">
         <thead>
             <tr>
-                <?foreach($arTitles as $title):?>
-                    <th><?=$title?></th>
+                <?foreach($arTitles as $k => $v):
+                    $title = is_string($k) ? $k : $v;
+                    $dataSort = is_string($k) ? "data-sort='{$v}'" : '';
+                ?>
+                    <th <?=$dataSort?>><?=$title?></th>
                 <?endforeach?>
             </tr>
         </thead>
@@ -56,7 +59,7 @@ if (count($items) == 0) {
             ?>
                 <tr>
                     <td class="checkbox-column"><?=Form::checkbox("i[]", $v['id'], 'check-one')?></td>
-                    <td><?=$v['id']?></td>
+                    <td class="column-min"><?=$v['id']?></td>
                     <td><?= $isComment ? 'комментарий' : 'файл' ?></td>
                     <td><?=date("d.m.Y",strtotime($v['date']))?></td>
                     <td><?=$file?></td>

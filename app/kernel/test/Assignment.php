@@ -6,6 +6,10 @@ use UTest\Kernel\DB;
 use UTest\Kernel\User\User;
 use UTest\Kernel\Traits\FieldsValidateTraitHelper;
 
+/**
+ * Класс по созданию и управлению назначенных тестов группам.
+ * @package UTest\Kernel\Test
+ */
 class Assignment
 {
     use \UTest\Kernel\Traits\ErrorsManageTrait;
@@ -116,7 +120,7 @@ class Assignment
         }
 
         $this->clearErrors();
-        $this->clearAssidnedTestData();
+        $this->clearAssignedTestData();
 
         if (!$this->checkPermissions(self::CHECK_UID)) {
             return false;
@@ -129,7 +133,7 @@ class Assignment
             $this->assignData = $res;
             $this->atid = $id;
             if ($loadBaseList) {
-                $this->loadBase();
+                $this->loadBaseList();
             }
         }
 
@@ -220,7 +224,7 @@ class Assignment
         }
 
         if ($rows && $this->atid == $id) {
-            $this->clearAssidnedTestData();
+            $this->clearAssignedTestData();
         }
 
         return $rows;
@@ -234,6 +238,11 @@ class Assignment
     public function getAssignedTestId()
     {
         return $this->atid;
+    }
+
+    public function getBaseTestId()
+    {
+        return $this->assignData['test_id'];
     }
 
     /**
@@ -277,7 +286,7 @@ class Assignment
         return $result == count($types);
     }
 
-    private function clearAssidnedTestData()
+    private function clearAssignedTestData()
     {
         $this->atid = 0;
         $this->assignData = [];

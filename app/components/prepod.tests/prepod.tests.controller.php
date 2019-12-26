@@ -126,7 +126,7 @@ class PrepodTestsController extends \UTest\Kernel\Component\Controller
                 break;
 
             case 'my_edit_test':
-                $this->doAction($this->action, $this->getVars('tid'));
+                $this->doAction($this->action, $this->getVars('id'));
                 $html = $this->loadView('my_new_test');
                 break;
 

@@ -1111,3 +1111,43 @@ textarea{
 .help-table td:first-child {
     text-align: right;
 }
+
+.table-sort > thead th[data-sort]{
+    position: relative;
+    padding-right: 30px;
+}
+.table-sort > thead th[data-sort]:hover{
+    background: #78A8B4;
+    cursor: pointer;
+}
+.table-sort > thead th[data-sort]:after,
+.table-sort > thead th[data-sort]:before{
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 0;
+    right: 8px;
+    opacity: 0.4;
+}
+.table-sort > thead th[data-sort]:after{
+    bottom: calc(50% + 2px);
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 7px solid #fff;
+}
+.table-sort > thead th[data-sort]:before{
+    top: calc(50% + 2px);
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 7px solid #fff;
+}
+.table-sort > thead th[data-sort].sorting-asc,
+.table-sort > thead th[data-sort].sorting-desc{
+    background: #78A8B4;
+}
+.table-sort > thead th[data-sort].sorting-asc:after{
+    opacity: 1;
+}
+.table-sort > thead th[data-sort].sorting-desc:before{
+    opacity: 1;
+}

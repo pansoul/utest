@@ -3,11 +3,12 @@ use UTest\Kernel\Form;
 use UTest\Kernel\Site;
 
 $arTitles = array(
-    'Название дисциплины' => 'string'
+    'Название дисциплины' => 'string',
+    'Преподаватель' => 'string'
 );
 
 if (count($data) == 0) {
-    echo Form::info('Ни одной дисциплины не создано');
+    echo Form::info('Список пуст');
     return;
 }
 ?>
@@ -27,9 +28,10 @@ if (count($data) == 0) {
         <?foreach($data as $k => $v):?>
             <tr>
                 <td>
-                    <a href="<?=Site::getModurl() . '/my/' . $v['alias']?>"><?=$v['title']?></a>
-                    <span rel="tooltip" data-placement="right" data-toggle="tooltip" title="Количество файлов" class="badge"><?=$v['material_count']?></span>
+                    <a href="<?=Site::getUrl() . '/' . $v['subject_code']?>"><?=$v['subject_name']?></a>
+                    <span rel="tooltip" data-placement="right" data-toggle="tooltip" title="Количество тестов" class="badge"><?=$v['test_count']?></span>
                 </td>
+                <td><?=$v['prepod_last_name'].' '.$v['prepod_name'].' '.$v['prepod_surname']?></td>
             </tr>
         <?endforeach?>
     </tbody>

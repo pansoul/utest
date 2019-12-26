@@ -3,13 +3,18 @@ use UTest\Kernel\Form;
 use UTest\Kernel\Utilities;
 
 $arTitles = array(
-    'Дата выкладывания',
-    'Тип',
-    'Название документа',
+    'Дата выкладывания' => 'string',
+    'Тип' => 'string',
+    'Название документа' => 'string',
     'Размер',
     'Формат',
     'Скачать',
 );
+
+if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) {
+    echo Form::error($this->getErrors(ERROR_ELEMENT_NOT_FOUND));
+    return;
+}
 
 if (count($data) == 0) {
     echo Form::info('Дисциплины с доступным материалом отсутствуют');
@@ -17,11 +22,14 @@ if (count($data) == 0) {
 }
 ?>
 
-<table class="table table-hover">
+<table class="table table-hover table-sort">
     <thead>
         <tr>
-            <?foreach($arTitles as $title):?>
-                <th><?=$title?></th>
+            <?foreach($arTitles as $k => $v):
+                $title = is_string($k) ? $k : $v;
+                $dataSort = is_string($k) ? "data-sort='{$v}'" : '';
+            ?>
+                <th <?=$dataSort?>><?=$title?></th>
             <?endforeach?>
         </tr>
     </thead>

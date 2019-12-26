@@ -5,11 +5,11 @@ use UTest\Kernel\Test\Test;
 
 $arTitles = array(
     Form::checkbox('check_all', 1, false, 'check-all'),
-    'ID',
-    '№',
-    'Индекс сортировки',
-    'Вопрос',
-    'Тип вопроса',    
+    'ID' => 'int',
+    '№' => 'int',
+    'Индекс сортировки' => 'int',
+    'Вопрос' => 'string',
+    'Тип вопроса' => 'string',
     'Управление'
 );
 
@@ -37,11 +37,14 @@ if (count($items) == 0) {
 </div>
 
 <form action="" method="post" class="formaction">
-    <table class="table table-hover">
+    <table class="table table-hover table-sort">
         <thead>
             <tr>
-                <?foreach($arTitles as $title):?>
-                    <th><?=$title?></th>
+                <?foreach($arTitles as $k => $v):
+                    $title = is_string($k) ? $k : $v;
+                    $dataSort = is_string($k) ? "data-sort='{$v}'" : '';
+                ?>
+                    <th <?=$dataSort?>><?=$title?></th>
                 <?endforeach?>
             </tr>
         </thead>
@@ -51,8 +54,8 @@ if (count($items) == 0) {
         foreach($items as $k => $v):?>
             <tr>
                 <td class="checkbox-column"><?=Form::checkbox("i[]", $v['id'], 'check-one')?></td>
-                <td><?=$v['id']?></td>
-                <td class="column-disabled">#<?=$count?></td>
+                <td class="column-min"><?=$v['id']?></td>
+                <td class="column-disabled column-min" data-sort-value="<?=$count?>">#<?=$count?></td>
                 <td><?=$v['ord']?></td>
                 <td><?= html_entity_decode($v['text']) ?></td>
                 <td><?=Test::getQuestionTypes()[$v['type']]['name']?></td>

@@ -7,6 +7,11 @@ use UTest\Kernel\User\User;
 use UTest\Kernel\Traits\FieldsValidateTraitHelper;
 use UTest\Kernel\Base;
 
+/**
+ * Класс по созданию и управлению тестами и их вопросами.
+ * Именно эти тесты являются тестами-основами.
+ * @package UTest\Kernel\Test
+ */
 class Test
 {
     use \UTest\Kernel\Traits\ErrorsManageTrait;

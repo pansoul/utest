@@ -24,4 +24,23 @@ $(document).ready(function() {
         window.print();
     });
 
+    $('.formaction').uFormTable({
+        elements: {
+            table: '.table-hover',
+            checkbox: '.check-one',
+            checkboxAll: '#check-all'
+        },
+        checkboxDependentItems: [
+            '.delete-selected',
+            '.newpass-selected',
+        ],
+        confirmItems: {
+            '.btn-delete': 'Вы точно хотите удалить данную запись?',
+            '.delete-selected': 'Вы уверены, что хотите удалить отмеченные записи?',
+            '.newpass-selected': 'Вы уверены, что хотите сгенерировать выбранным пользователям новые пароли?'
+        }
+    });
+
+    $('.table-sort').stupidtable();
+
 });

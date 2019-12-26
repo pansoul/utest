@@ -5,11 +5,11 @@ use UTest\Kernel\Utilities;
 
 $arTitles = array(
     Form::checkbox('check_all', 1, false, 'check-all'),
-    'ID',
-    'Дата загрузки',
-    'Название документа',
-    'Размер',
-    'Формат',
+    'ID' => 'int',
+    'Дата загрузки' => 'string',
+    'Название документа' => 'string',
+    'Размер' => 'int',
+    'Формат' => 'string',
     'Скачать файл',
     'Управление'
 );
@@ -34,11 +34,14 @@ if (count($items) == 0) {
 ?>
 
 <form action="" method="post" class="formaction">
-    <table class="table table-hover">
+    <table class="table table-hover table-sort">
         <thead>
             <tr>
-                <?foreach($arTitles as $title):?>
-                    <th><?=$title?></th>
+                <?foreach($arTitles as $k => $v):
+                    $title = is_string($k) ? $k : $v;
+                    $dataSort = is_string($k) ? "data-sort='{$v}'" : '';
+                ?>
+                    <th <?=$dataSort?>><?=$title?></th>
                 <?endforeach?>
             </tr>
         </thead>
@@ -46,7 +49,7 @@ if (count($items) == 0) {
             <?foreach($items as $k => $v):?>
                 <tr>
                     <td class="checkbox-column"><?=Form::checkbox("i[]", $v['id'], 'check-one')?></td>
-                    <td><?=$v['id']?></td>
+                    <td class="column-min"><?=$v['id']?></td>
                     <td><?=date("d.m.Y",strtotime($v['date']))?></td>
                     <td><?=$v['filename']?></td>
                     <td><?=Utilities::bytesToSize($v['size'])?></td>

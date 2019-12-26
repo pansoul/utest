@@ -1,8 +1,17 @@
 <?
-$v = $arResult['data'];
-$title = isset($v['tparent']) ? $v['tparent']['title'] : $v['title'];
+use UTest\Kernel\Form;
+use UTest\Kernel\Site;
 
-UAppBuilder::setH("Прохождение теста &laquo;{$title}&raquo;");
+if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) {
+    echo Form::error($this->getErrors(ERROR_ELEMENT_NOT_FOUND));
+    return;
+}
+
+if ($this->hasErrors()) {
+    echo Form::error($this->getErrors(), true);
+}
+
+$v = $data;
 ?>
 
 <?if (empty($v)):?>
@@ -91,4 +100,4 @@ UAppBuilder::setH("Прохождение теста &laquo;{$title}&raquo;");
     
 <?endif?>
 
-<?=UForm::input('hidden', 'url', USite::getModurl())?>
+<?=Form::input('hidden', 'url', Site::getModurl())?>

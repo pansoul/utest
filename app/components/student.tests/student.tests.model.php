@@ -1,12 +1,72 @@
 <?php
 
-class StudentTestsModel extends ComponentModel {
-    
+namespace UTest\Components;
+
+use UTest\Kernel\DB;
+use UTest\Kernel\User\User;
+use UTest\Kernel\Test\Passage;
+
+class StudentTestsModel extends \UTest\Kernel\Component\Model
+{
     private $table_subject = 'u_prepod_subject';
     private $table_student_test = 'u_student_test';
     private $table_user = 'u_user';
     private $table_question = 'u_test_question';
     private $table_student_passage = 'u_student_test_passage';
+
+    public function subjectsAction()
+    {
+        $res = DB::table(TABLE_STUDENT_TEST)
+            ->select(
+                TABLE_STUDENT_TEST.'.id',
+                TABLE_PREPOD_SUBJECT.'.title as subject_name',
+                TABLE_PREPOD_SUBJECT.'.alias as subject_code',
+                TABLE_USER.'.name as prepod_name',
+                TABLE_USER.'.last_name as prepod_last_name',
+                TABLE_USER.'.surname as prepod_surname',
+                DB::raw('count('.TABLE_STUDENT_TEST.'.id) as test_count')
+            )
+            ->leftJoin(TABLE_PREPOD_SUBJECT, TABLE_PREPOD_SUBJECT.'.id', '=', TABLE_STUDENT_TEST.'.subject_id')
+            ->leftJoin(TABLE_USER, TABLE_USER.'.id', '=', TABLE_PREPOD_SUBJECT.'.user_id')
+            ->where(TABLE_STUDENT_TEST.'.group_id', '=', User::user()->getGroupId())
+            ->groupBy(TABLE_STUDENT_TEST.'.subject_id')
+            ->orderBy('subject_name')
+            ->get();
+
+        $this->setData($res);
+    }
+
+    public function testListAction($subjectCode)
+    {
+        $subject = DB::table(TABLE_STUDENT_TEST)
+            ->select(TABLE_PREPOD_SUBJECT.'.id')
+            ->leftJoin(TABLE_PREPOD_SUBJECT, TABLE_PREPOD_SUBJECT.'.id', '=', TABLE_STUDENT_TEST.'.subject_id')
+            ->where(TABLE_PREPOD_SUBJECT.'.alias', '=', $subjectCode)
+            ->where(TABLE_STUDENT_TEST.'.group_id', '=', User::user()->getGroupId())
+            ->first();
+
+        if (!$subject) {
+            $this->setErrors('Предмет не найден', ERROR_ELEMENT_NOT_FOUND);
+        } else {
+            $res = DB::table(TABLE_STUDENT_TEST)
+                ->select(
+                    TABLE_STUDENT_TEST.'.*',
+                    TABLE_STUDENT_TEST_PASSAGE.'.status',
+                    TABLE_STUDENT_TEST_PASSAGE.'.retake'
+                )
+                ->leftJoin(TABLE_STUDENT_TEST_PASSAGE, function($join){
+                    $join->on(TABLE_STUDENT_TEST_PASSAGE.'.test_id', '=', TABLE_STUDENT_TEST.'.id')
+                        ->where(TABLE_STUDENT_TEST_PASSAGE.'.user_id', '=', User::user()->getUID());
+                })
+                ->where(TABLE_STUDENT_TEST.'.group_id', '=', User::user()->getGroupId())
+                ->where(TABLE_STUDENT_TEST.'.subject_id', '=', $subject['id'])
+                ->orderBy(TABLE_STUDENT_TEST.'.title')
+                ->get();
+        }
+
+        $this->setData($res);
+        return $subject;
+    }
 
     public function myAction()
     {
@@ -106,11 +166,31 @@ class StudentTestsModel extends ComponentModel {
         return $this->returnResult($res);
     }
     
-    public function runAction() 
+    public function runAction($subjectCode, $id)
     {
-        $res = array();
-        
-        if (!$this->request->isAjaxRequest())
+        $subject = $this->testListAction($subjectCode);
+        if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) {
+            $this->setData(null);
+            return;
+        }
+
+        $passage = new Passage(User::user()->getUID(), $id);
+        dump($passage);
+        dump($passage->isMixing());
+        dump($passage->isShowTrue());
+        dump($passage->hasTimeLimit());
+        dump($passage->getNumberQuestions());
+        dump($passage->getTimeLimit());
+        dump($passage->getLastNumberQuestion());
+        dump($passage->getStatus(true));
+        dump($passage->getStatus());
+        dump('==========================');
+        //$passage->start();
+        dump($passage->loadQuestion($passage->getLastNumberQuestion()));
+        dump('==========================');
+        dump($passage->getErrors());
+
+        /*if (!$this->request->isAjaxRequest())
             USite::redirect(USite::getModurl());
         
         $test = new Test($this->vars['id'], UUser::user()->getUID());   
@@ -124,7 +204,7 @@ class StudentTestsModel extends ComponentModel {
         
         $res = $test->gotoQuestion(LAST_Q); 
         header('Content-Type: application/json');
-        return json_encode($res);      
+        return json_encode($res);*/
     }
     
     public function qAction()

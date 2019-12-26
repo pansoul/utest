@@ -4,13 +4,13 @@ use UTest\Kernel\Site;
 
 $arTitles = array(
     Form::checkbox('check_all', 1, false, 'check-all'),
-    'ID',
-    'Дата создания',
-    'Название назначенного теста',
-    'Основа теста',
-    'Кол-во вопросов',
-    'Перемешивание',
-    'Показ верных ответов',
+    'ID' => 'int',
+    'Дата создания' => 'string',
+    'Название назначенного теста' => 'string',
+    'Основа теста' => 'string',
+    'Кол-во вопросов' => 'int',
+    'Перемешивание' => 'int',
+    'Показ верных ответов' => 'int',
     'Управление'
 );
 
@@ -34,19 +34,22 @@ if (count($data) == 0) {
 ?>
     
 <form action="" method="post" class="formaction">
-    <table class="table table-hover">
+    <table class="table table-hover table-sort">
         <thead>
             <tr>
-            <?foreach($arTitles as $title):?>
-                <th><?=$title?></th>
-            <?endforeach?>
+                <?foreach($arTitles as $k => $v):
+                    $title = is_string($k) ? $k : $v;
+                    $dataSort = is_string($k) ? "data-sort='{$v}'" : '';
+                ?>
+                    <th <?=$dataSort?>><?=$title?></th>
+                <?endforeach?>
             </tr>
         </thead>
         <tbody>
             <?foreach($data as $k => $v):?>
                 <tr>
                     <td class="checkbox-column"><?=Form::checkbox("i[]", $v['id'], 'check-one')?></td>
-                    <td><?=$v['id']?></td>
+                    <td class="column-min"><?=$v['id']?></td>
                     <td><?=date("d.m.Y",strtotime($v['date']))?></td>
                     <td><?=$v['title']?></td>
                     <td><?=$v['base_title']?></td>

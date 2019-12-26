@@ -1,75 +1,72 @@
 <?php
 
-class StudentTestsController extends USiteController {
-    
-    public $arTabs;
+namespace UTest\Components;
 
+class StudentTestsController extends \UTest\Kernel\Component\Controller
+{
     protected $routeMap = array(
-        'setTitle' => 'Тесты по дисциплинам',
-        'actionDefault' => 'my',
-        'paramsPath' => array(
+        'title' => 'Тесты по дисциплинам',
+        'add_breadcrumb' => true,
+        'action_main' => 'subjects',
+        'actions_params' => array(
+            '/<subject_code>' => [
+                'action' => 'test_list',
+                'title' => 'Список тестов',
+                'add_breadcrumb' => true
+            ],
+            '/<subject_code>/test-<id>' => [
+                'action' => 'run',
+                'title' => 'Прохождение теста',
+                'add_breadcrumb' => true
+            ],
             'my' => '/<subject_code>/<tid>',
             'run' => '/<id>',
-            'q' => '/<num>'            
+            'q' => '/<num>'
         ),
-        'params' => array(
-            'subject_code' => array(
-                'mask' => '',
-                'rule' => '[-_a-zA-Z0-9]',
-                'default' => 0
-            ),
-            'tid' => array(
-                'mask' => 'test-<?>',
-                'rule' => '[0-9]',
-                'default' => 0
-            ),
-            'id' => array(
-                'mask' => '',
-                'rule' => '[0-9]',
-                'default' => 0
-            ),
-            'num' => array(
-                'mask' => '',
-                'rule' => '[0-9]',
-                'default' => 0
-            )
+        'vars_rules' => array(
+            'subject_code' => '[-_a-zA-Z0-9]',
+            'id' => '[0-9]',
+            'num' => '[0-9]',
         )
     );
-    
-    // Список контроллеров, для которых не нужно обрабатывать "общий" result
-    private $arNotResult = array(
-        //
-    );
-    
+
     public function run()
-    {  
-        if (!in_array($this->action, $this->arNotResult))
-            $result = $this->model->doAction($this->action);              
-        
+    {
         switch ($this->action) {
-            case 'my':
-                if ($this->model->vars['tid'])
-                    $html = $this->loadView('test', $result);
-                elseif ($this->model->vars['subject_code'])
-                    $html = $this->loadView('mytests', $result);
-                else
-                    $html = $this->loadView($this->action, $result);
+            case 'test_list':
+                $this->doAction($this->action, $this->getVars('subject_code'));
+                $html = $this->loadView($this->action);
                 break;
-                
+
+            case 'run':
+                $this->doAction($this->action, $this->getVars(['subject_code', 'id']));
+                $html = $this->loadView($this->action);
+                break;
+
+            /*case 'my':
+                if ($this->model->vars['tid']) {
+                    $html = $this->loadView('test', $result);
+                } elseif ($this->model->vars['subject_code']) {
+                    $html = $this->loadView('mytests', $result);
+                } else {
+                    $html = $this->loadView($this->action, $result);
+                }
+                break;
+
             // for ajax
             case 'run':
             case 'q':
             case 'end':
                 echo $result;
                 exit;
-                break;
-            
+                break;*/
+
             default:
-                $html = $this->loadView($this->action, $result);
+                $this->doAction($this->action);
+                $html = $this->loadView($this->action);
                 break;
-        }        
-        
+        }
+
         $this->putContent($html);
     }
-
 }
