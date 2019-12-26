@@ -185,8 +185,8 @@ class StudentTestsModel extends \UTest\Kernel\Component\Model
         dump($passage->getStatus(true));
         dump($passage->getStatus());
         dump('==========================');
-        //$passage->start();
-        dump($passage->loadQuestion($passage->getLastNumberQuestion()));
+        $passage->start();
+        dump($passage->loadQuestion($passage->getNextQuestionNumber()));
         dump('==========================');
         dump($passage->getErrors());
 

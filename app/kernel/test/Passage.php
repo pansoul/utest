@@ -61,7 +61,7 @@ class Passage
             $this->loadAssign($atid);
         }
 
-        $this->retake = is_null($retake) ? $this->getMaxRetake() : intval($retake);
+        $this->retake = is_null($retake) ? $this->getRetake() : intval($retake);
         $this->loadPassageData();
         $this->loadTimeData();
         $this->loadLastAnswerData();
@@ -138,7 +138,7 @@ class Passage
                     FieldsValidateTraitHelper::_EDIT
                 ]
             ],
-            'retake' => [
+            'retake_value' => [
                 FieldsValidateTraitHelper::_NAME => '№ пересдачи',
                 FieldsValidateTraitHelper::_AVAILABLE => [
                     FieldsValidateTraitHelper::_ADD
@@ -201,9 +201,15 @@ class Passage
         ];
     }
 
-    public function getMaxRetake()
+    public function getRetake()
     {
-        return 0; // @todo
+        return (int) DB::table(TABLE_STUDENT_TEST_PASSAGE)
+            ->select('retake')
+            ->where([
+                'user_id' => $this->uid,
+                'test_id' => $this->atid
+            ])
+            ->first()['retake'];
     }
 
     public function loadAssign($id)
@@ -388,9 +394,7 @@ class Passage
 
     public function start()
     {
-        if ($this->getStatus() == self::STATUS_IN_PROCESS) {
-            return $this->resume();
-        } elseif (!$this->checkPermissions([self::CHECK_UID, self::CHECK_ATID]) || $this->getStatus() != self::STATUS_WAITED_FOR_START) {
+        if (!$this->checkPermissions([self::CHECK_UID, self::CHECK_ATID]) || ($this->getStatus() != self::STATUS_WAITED_FOR_START && $this->hasEqualComplexRetake())) {
             return false;
         }
 
@@ -415,7 +419,7 @@ class Passage
             return false;
         }
 
-        DB::table(TABLE_STUDENT_TEST_PASSAGE)->insert($passageFields);
+        DB::table(TABLE_STUDENT_TEST_PASSAGE)->updateOrInsert(['user_id' => $this->uid, 'test_id' => $this->atid] ,$passageFields);
         DB::table(TABLE_STUDENT_TEST_TIME)->insert($timeFields);
     }
 
@@ -457,7 +461,7 @@ class Passage
 
         $number = (int) $number;
 
-        if (empty($this->passageData)) {
+        if (empty($this->passageData) || empty($this->timeData) || !$this->hasEqualComplexRetake()) {
             $this->setErrors('Начало теста не проинициализировано');
         } elseif ($number < 1 || $number > $this->getNumberQuestions()) {
             $this->setErrors('Несуществующий номер вопроса');
@@ -576,6 +580,11 @@ class Passage
     {
         $this->options['last_q_number'] = (int) $number;
         $this->loadLastAnswerData();
+    }
+
+    private function hasEqualComplexRetake()
+    {
+        return $this->retake == intval($this->passageData['retake']) && $this->retake == intval($this->timeData['retake_value']);
     }
 
     /**
