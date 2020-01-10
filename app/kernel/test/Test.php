@@ -134,6 +134,11 @@ class Test
         ];
     }
 
+    /**
+     * Создаёт новый тест
+     * @param array $v
+     * @return bool|int
+     */
     public function create($v = [])
     {
         $this->clearErrors();
@@ -153,6 +158,14 @@ class Test
         return $id;
     }
 
+    /**
+     * Редактирование теста
+     *
+     * @param array $v
+     * @param int $id
+     *
+     * @return bool|int
+     */
     public function edit($v = [], $id = 0)
     {
         $this->clearErrors();
@@ -170,11 +183,24 @@ class Test
         return $rows;
     }
 
+    /**
+     * Передаёт управление на создание или редактирование теста на основе переданного параметра Id теста
+     *
+     * @param array $v
+     * @param int $id
+     *
+     * @return bool|int
+     */
     public function createOrEdit($v = [], $id = 0)
     {
         return $id ? $this->edit($v, $id) : $this->create($v);
     }
 
+    /**
+     * Удаление теста
+     * @param int $id
+     * @return bool|int
+     */
     public function delete($id = 0)
     {
         $this->clearErrors();
@@ -194,6 +220,11 @@ class Test
         return $rows;
     }
 
+    /**
+     * Загружает данные теста и записывает их в свойства объекта
+     * @param int $id
+     * @return array|bool|\Illuminate\Database\Eloquent\Model|\Illuminate\Database\Query\Builder|null
+     */
     public function loadTest($id = 0)
     {
         if ($id > 0 && $id == $this->tid) {
@@ -217,8 +248,13 @@ class Test
         return $this->testData;
     }
 
+    /**
+     * Загружает список вопросов теста и записывает их в свойства объекта
+     * @return bool
+     */
     public function loadQuestionsList()
     {
+        $this->clearErrors();
         if (!$this->checkPermissions(self::CHECK_TID)) {
             return false;
         }
@@ -227,6 +263,11 @@ class Test
         return true;
     }
 
+    /**
+     * Загружает вопрос и записывает его в свойства объекта
+     * @param int $id
+     * @return array|bool|\Illuminate\Database\Eloquent\Model|\Illuminate\Database\Query\Builder|null
+     */
     public function loadQuestion($id = 0)
     {
         if ($id > 0 && $id == $this->qid) {
@@ -256,6 +297,11 @@ class Test
         return $this->questionData;
     }
 
+    /**
+     * Удаляет вариант ответа вопроса
+     * @param int $id
+     * @return bool
+     */
     public function deleteAnswer($id = 0)
     {
         $this->clearErrors();
@@ -284,6 +330,11 @@ class Test
         return $res;
     }
 
+    /**
+     * Загружает вариант ответа вопроса
+     * @param int $id
+     * @return array|bool
+     */
     public function loadAnswer($id = 0)
     {
         if ($id > 0 && $id == $this->aid) {
@@ -307,6 +358,10 @@ class Test
         return $this->answerData;
     }
 
+    /**
+     * Загружает список всех вариантов ответов вопроса и записывает их в свойство объекта
+     * @return bool
+     */
     public function loadAnswersList()
     {
         if (!$this->checkPermissions(self::CHECK_QID)) {
@@ -318,11 +373,20 @@ class Test
         return true;
     }
 
+    /**
+     * Возвращает список вопросов теста, полученный функцией loadQuestionsList()
+     * @return array
+     */
     public function getQuestionsList()
     {
         return $this->questionsList;
     }
 
+    /**
+     * Возвращает список вариантов ответов вопроса, полученный функцией loadAnswersList()
+     * @param string $mode - какой набор данных вернуть [ANSWERS_MODE_VARIANTS|ANSWERS_MODE_RIGHTS|ANSWERS_MODE_FULL]
+     * @return array|bool
+     */
     public function getAnswersList($mode = self::ANSWERS_MODE_FULL)
     {
         if (!$this->checkPermissions(self::CHECK_QID)) {
@@ -347,31 +411,60 @@ class Test
         return $list;
     }
 
+    /**
+     * Возвращает данные теста, полученные функцией loadTest()
+     * @return array
+     */
     public function getTestData()
     {
         return $this->testData;
     }
 
+    /**
+     * Возвращает данные вопроса, полученные функцией loadQuestion()
+     * @return array
+     */
     public function getQuestionData()
     {
         return $this->questionData;
     }
 
+    /**
+     * Возвращает Id загруженного теста
+     * @return int
+     */
     public function getTestId()
     {
         return $this->tid;
     }
 
+    /**
+     * Возвращает Id загруженного вопроса
+     * @return int
+     */
     public function getQuestionId()
     {
         return $this->qid;
     }
 
+    /**
+     * Возвращает Id загруженного варианта ответа вопроса
+     * @return int
+     */
     public function getAnswerId()
     {
         return $this->aid;
     }
 
+    /**
+     * Создаёт полноценный вопрос с вариантами ответов
+     *
+     * @param array $questionFields
+     * @param array $arVariants
+     * @param array $arRights
+     *
+     * @return bool|int
+     */
     public function createQuestion($questionFields = [], $arVariants = [], $arRights = [])
     {
         $this->clearErrors();
@@ -410,6 +503,16 @@ class Test
         return $id;
     }
 
+    /**
+     * Редактирование вопроса с вариантами ответов
+     *
+     * @param array $questionFields
+     * @param array $arVariants
+     * @param array $arRights
+     * @param int $id
+     *
+     * @return bool|int
+     */
     public function editQuestion($questionFields = [], $arVariants = [], $arRights = [], $id = 0)
     {
         $this->clearErrors();
@@ -460,6 +563,16 @@ class Test
         return $rows;
     }
 
+    /**
+     * Передаёт управление на создание или редактирование вопроса на основе переданного параметра Id вопроса
+     *
+     * @param array $questionFields
+     * @param array $arVariants
+     * @param array $arRights
+     * @param int $id
+     *
+     * @return bool|int
+     */
     public function createOrEditQuestion($questionFields = [], $arVariants = [], $arRights = [], $id = 0)
     {
         return $id
@@ -467,6 +580,11 @@ class Test
             : $this->createQuestion($questionFields, $arVariants, $arRights);
     }
 
+    /**
+     * Удаляет вопрос
+     * @param int $id
+     * @return bool|int
+     */
     public function deleteQuestion($id = 0)
     {
         $this->clearErrors();
@@ -486,6 +604,7 @@ class Test
         return $rows;
     }
 
+    // @todo
     public function getBySubject($sid = 0)
     {
         return DB::table(TABLE_TEST)->where(['subject_id' => $sid, 'user_id' => $this->uid])->orderBy('title')->get();
@@ -619,7 +738,7 @@ class Test
         }
 
         $typeClassName = ucfirst(strtolower($type));
-        $typeClass = '\\UTest\\Kernel\\Test\\Types\\' . $typeClassName;
+        $typeClass = '\\UTest\\Kernel\\Test\\Question\\Types\\' . $typeClassName;
 
         if (!class_exists($typeClass)) {
             return false;

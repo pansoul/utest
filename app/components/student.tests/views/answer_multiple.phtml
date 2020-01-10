@@ -1,0 +1,60 @@
+<?
+use UTest\Kernel\Form;
+
+$arTitles = array(
+    'Название варианта ответа',
+    'Верный ответ',
+    'Управление'
+);
+
+$v = $data['form_question'];
+$a = $data['form_answer'];
+$r = $data['form_right'];
+
+// Фиктивные варианты ответов при первом показе формы
+if (empty($a) && !$this->isActionRequest()) {
+    $a = [1 => 1];
+}
+?>
+
+<?
+// запрос на создание нового варианта ответа
+if($get['new'] == 'Y') :
+    $count = microtime(true); ?>
+
+    <tr>
+        <td><?= Form::input('text', "variant[a_{$count}][title]", '', 'form-control answer-text') ?></td>
+        <td><label for="a-<?=$count?>"><?=Form::checkbox("right[a_{$count}]", 1, 'answer-checkbox', "a-{$count}")?> отметить</label></td>
+        <td class="last-column"><?=Form::btnDelete('#')?></td>
+    </tr>
+
+<? else: ?>
+
+    <table class="table table-hover answer-table">
+        <thead>
+            <tr>
+                <?foreach($arTitles as $title):?>
+                    <th><?=$title?></th>
+                <?endforeach?>
+            </tr>
+        </thead>
+        <tbody>
+            
+            <? foreach($a as $k => $item): ?>
+
+                <tr>
+                    <td><?=Form::input('text', "variant[{$k}][title]", $item['title'] , 'form-control answer-text')?></td>
+                    <td><label for="a-<?=$k?>"><?=Form::checkbox("right[{$k}]", 1, 'answer-checkbox', "a-{$k}", $r[$k])?> отметить</label></td>
+                    <td class="last-column">
+                        <?=Form::input('hidden', "variant[{$k}][id]", $item['id'])?>
+                        <?=Form::btnDelete('#', false, ['data-id' => $item['id']])?>
+                    </td>
+                </tr>
+
+            <? endforeach; ?>
+                       
+        </tbody>
+    </table>
+    <?=Form::button('создать новый вариант ответа', 'btn btn-add-answer')?>
+
+<? endif; ?>

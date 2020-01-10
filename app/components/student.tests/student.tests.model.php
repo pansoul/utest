@@ -68,7 +68,7 @@ class StudentTestsModel extends \UTest\Kernel\Component\Model
         return $subject;
     }
 
-    public function myAction()
+    /*public function myAction()
     {
         $this->errors = array();        
         $u = UUser::user()->getFields('*');
@@ -164,47 +164,70 @@ class StudentTestsModel extends \UTest\Kernel\Component\Model
         }
         
         return $this->returnResult($res);
-    }
+    }*/
     
     public function runAction($subjectCode, $id)
     {
-        $subject = $this->testListAction($subjectCode);
+        $this->testListAction($subjectCode);
         if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) {
             $this->setData(null);
             return;
         }
 
         $passage = new Passage(User::user()->getUID(), $id);
-        dump($passage);
-        dump($passage->isMixing());
-        dump($passage->isShowTrue());
-        dump($passage->hasTimeLimit());
-        dump($passage->getNumberQuestions());
-        dump($passage->getTimeLimit());
-        dump($passage->getLastNumberQuestion());
-        dump($passage->getStatus(true));
-        dump($passage->getStatus());
-        dump('==========================');
-        $passage->start();
-        dump($passage->loadQuestion($passage->getNextQuestionNumber()));
-        dump('==========================');
-        dump($passage->getErrors());
+        $this->setErrors($passage->getErrors(), ERROR_ELEMENT_NOT_FOUND);
 
-        /*if (!$this->request->isAjaxRequest())
-            USite::redirect(USite::getModurl());
-        
-        $test = new Test($this->vars['id'], UUser::user()->getUID());   
-        
-        if (!empty(Test::$last_errors)) {
-            $res['status'] = 'ERROR';
-            $res['status_message'] = Test::$last_errors;
-            header('Content-Type: application/json');
-            return json_encode($res);            
+        $this->setData([
+            'assign' => $passage->getAssignData(),
+            'passage' => $passage->getPassageData(),
+            'questions_count' => $passage->getNumberQuestions(),
+            'question' => $passage->resume(),
+            'options' => $passage->getOptions()
+        ]);
+    }
+
+    public function ajaxStartAction($id)
+    {
+        $result = [];
+
+        $passage = new Passage(User::user()->getUID(), $id);
+        $passage->start();
+
+        if ($q = $passage->loadQuestion(1)) {
+            $result['status'] = 'OK';
+            $result['question'] = [
+                'text' => html_entity_decode($q['question']['text']),
+                'cur_num' => $q['cur_num'],
+                'variants' => '' // @todo
+            ];
+        } else {
+            $result['status'] = 'ERROR';
+            $result['message'] = $passage->getErrors();
         }
-        
-        $res = $test->gotoQuestion(LAST_Q); 
-        header('Content-Type: application/json');
-        return json_encode($res);*/
+
+        $this->setData($result);
+    }
+
+    public function ajaxGotoAction($id, $number)
+    {
+        $result = [];
+
+        $passage = new Passage(User::user()->getUID(), $id);
+        $q = $passage->loadQuestion($number == 'next' ? $passage->getNextQuestionNumber() : $number);
+
+        if ($q) {
+            $result['status'] = 'OK';
+            $result['question'] = [
+                'text' => html_entity_decode($q['question']['text']),
+                'cur_num' => $q['cur_num'],
+                'variants' => '' // @todo
+            ];
+        } else {
+            $result['status'] = 'ERROR';
+            $result['message'] = $passage->getErrors();
+        }
+
+        $this->setData($result);
     }
     
     public function qAction()

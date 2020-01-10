@@ -1,6 +1,6 @@
 <?php
 
-namespace UTest\Kernel\Test\Types;
+namespace UTest\Kernel\Test\Question;
 
 use UTest\Kernel\DB;
 use UTest\Kernel\Traits\FieldsValidateTraitHelper;

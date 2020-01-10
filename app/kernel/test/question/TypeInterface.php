@@ -1,6 +1,6 @@
 <?php
 
-namespace UTest\Kernel\Test\Types;
+namespace UTest\Kernel\Test\Question;
 
 interface TypeInterface {
     public function validateComplect($v, $r);

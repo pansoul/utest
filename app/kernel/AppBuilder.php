@@ -12,10 +12,12 @@ class AppBuilder
     private static $title = '';
     private static $h = '';
     private static $content = '';
-    private static $arBreadcrumb = array();
+    private static $arBreadcrumb = [];
+    private static $arDelayedJs = [];
 
     private $html = null;
     private $arSysTplVars = array(
+        'delayed_js',
         'theme_url',
         'content',
         'menu',
@@ -181,6 +183,47 @@ class AppBuilder
     public static function getThemeUrl()
     {
         return CURRENT_THEME_URL;
+    }
+
+    public static function addDelayedJs($js, $appendScriptTag = false, $name = null, $order = 1)
+    {
+        $value = [
+            'order' => $order,
+            'js' => $appendScriptTag ? '<script>'.$js.'</script>' : $js
+        ];
+        if (is_null($name)) {
+            self::$arDelayedJs[] = $value;
+        } else {
+            self::$arDelayedJs[$name] = $value;
+        }
+    }
+
+    public static function removeDelayedJs($name = null)
+    {
+        if (is_null($name)) {
+            self::$arDelayedJs = [];
+        } elseif (isset(self::$arDelayedJs[$name])) {
+            unset(self::$arDelayedJs[$name]);
+        }
+    }
+
+    public static function delayedJsStart()
+    {
+        ob_start();
+    }
+
+    public static function delayedJsEnd($name = null, $order = 1)
+    {
+        $js = ob_get_clean();
+        self::addDelayedJs($js, false, $name, $order);
+    }
+
+    public static function getDelayedJs()
+    {
+        $arJs = self::$arDelayedJs;
+        $order = array_column($arJs, 'order');
+        array_multisort($order, SORT_ASC, $arJs);
+        return join('', array_column($arJs, 'js'));
     }
 
     // @todo заменить везде вызовы компонентов через данный алиас

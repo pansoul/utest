@@ -113,6 +113,14 @@ class Assignment
         ];
     }
 
+    /**
+     * Загружает данные назначенного теста и записывает их в свойства объекта
+     *
+     * @param $id
+     * @param bool $loadBaseList
+     *
+     * @return array|bool|\Illuminate\Database\Eloquent\Model|\Illuminate\Database\Query\Builder|null
+     */
     public function loadAssign($id, $loadBaseList = false)
     {
         if ($id > 0 && $id == $this->atid) {
@@ -140,8 +148,13 @@ class Assignment
         return $this->assignData;
     }
 
+    /**
+     * Загружает список тест-основ назначенного теста и записывает их в свойство объекта
+     * @return bool
+     */
     public function loadBaseList()
     {
+        $this->clearErrors();
         if (!$this->checkPermissions([self::CHECK_UID, self::CHECK_ATID])) {
             return false;
         }
@@ -150,10 +163,17 @@ class Assignment
         return true;
     }
 
+    /**
+     * Валидирует корректность переданных тест-основ
+     * @param null $ids
+     * @return bool
+     */
     public function checkBase($ids = null)
     {
+        $this->clearErrors();
         $ids = (array) $ids;
         $ids = array_filter($ids, function($value){ return $value > 0; });
+
         if (empty($ids)) {
             $this->setErrors('Тест-основа не выбрана');
             return false;
@@ -170,6 +190,11 @@ class Assignment
         return true;
     }
 
+    /**
+     * Создаёт назначаемый тест
+     * @param array $v
+     * @return bool|int
+     */
     public function create($v = [])
     {
         $this->clearErrors();
@@ -181,7 +206,7 @@ class Assignment
         $v['user_id'] = $this->uid;
         $v = $this->checkFields($this->assignFieldsMap(), $v, FieldsValidateTraitHelper::_ADD, $this->errors);
 
-        if ($this->checkBase($v['test_id']) && !$this->hasErrors()) {
+        if (!$this->hasErrors() && $this->checkBase($v['test_id'])) {
             $id = DB::table(TABLE_STUDENT_TEST)->insertGetId($v);
             $this->loadAssign($id);
         }
@@ -189,6 +214,14 @@ class Assignment
         return $id;
     }
 
+    /**
+     * Редактирование назначенного теста
+     *
+     * @param array $v
+     * @param int $id
+     *
+     * @return bool|int
+     */
     public function edit($v = [], $id = 0)
     {
         $this->clearErrors();
@@ -206,11 +239,24 @@ class Assignment
         return $rows;
     }
 
+    /**
+     * Передаёт управление на создание или редактирование назначенного теста на основе переданного параметра Id назначенного теста
+     *
+     * @param array $v
+     * @param int $id
+     *
+     * @return bool|int
+     */
     public function createOrEdit($v = [], $id = 0)
     {
         return $id ? $this->edit($v, $id) : $this->create($v);
     }
 
+    /**
+     * Удаляет назначенный тест
+     * @param int $id
+     * @return bool|int
+     */
     public function delete($id = 0)
     {
         $this->clearErrors();
@@ -230,16 +276,28 @@ class Assignment
         return $rows;
     }
 
+    /**
+     * Возвращает свойства назначенного теста, полученные функцией loadAssign()
+     * @return array
+     */
     public function getAssignData()
     {
         return $this->assignData;
     }
 
+    /**
+     * Возвращает Id загруженного назначенного теста
+     * @return int
+     */
     public function getAssignedTestId()
     {
         return $this->atid;
     }
 
+    /**
+     * Возвращает Id теста-основы загруженного назначенного теста
+     * @return mixed
+     */
     public function getBaseTestId()
     {
         return $this->assignData['test_id'];
@@ -286,6 +344,9 @@ class Assignment
         return $result == count($types);
     }
 
+    /**
+     * Очищает данные о загруженном назначенном тесте
+     */
     private function clearAssignedTestData()
     {
         $this->atid = 0;

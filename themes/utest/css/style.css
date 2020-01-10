@@ -918,25 +918,29 @@ textarea{
     text-indent: 25px;
 }
 
+#test-q-text > *:last-child{
+    margin-bottom: 0;
+}
+
 .test-variantsbox{
     border: 2px solid #ddd;
     border-radius: 4px;
 }
 
-#test-variants, .test-control{
+.test-formaction__variants, .test-formaction__control{
     padding: 15px;
 }
 
-.test-control{
+.test-formaction__control{
     border-top: 1px solid #ddd;
 }
 
 #test-end{
-    float: right;
+    float: left;
 }
 
 #test-next{
-    float: left;
+    float: right;
 }
 
 .test-variant-list li label{

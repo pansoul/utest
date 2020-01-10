@@ -1,0 +1,64 @@
+<?
+use UTest\Kernel\Form;
+
+$arTitles = array(
+    'Название варианта ответа',
+    'Укажите верную позицию ответа',
+    'Управление'
+);
+
+$v = $data['form_question'];
+$a =  $data['form_answer'];
+$r = $data['form_right'];
+
+$maxCount = $a ? count($a) : intval($get['count']) + 1;
+$range = range(1, $maxCount);
+$arOptions = array_combine($range, $range);
+
+// Фиктивные варианты ответов при первом показе формы
+if (empty($a) && !$this->isActionRequest()) {
+    $a = [1 => 1];
+}
+?>
+
+<?
+// запрос на создание нового варианта ответа
+if($get['new'] == 'Y') :
+    $count = microtime(true); ?>
+
+    <tr>
+        <td><?=Form::input('text', "variant[a_{$count}][title]", '', 'form-control answer-text') ?></td>
+        <td><?=Form::select("right[a_{$count}]", $arOptions , [], false, 'form-control answer-select-order')?></td>
+        <td class="last-column"><?=Form::btnDelete('#')?></td>
+    </tr>
+
+<? else: ?>
+
+    <table class="table table-hover answer-table">
+        <thead>
+            <tr>
+                <?foreach($arTitles as $title):?>
+                    <th><?=$title?></th>
+                <?endforeach?>
+            </tr>
+        </thead>
+        <tbody>
+            
+            <? foreach($a as $k => $item): ?>
+            
+                <tr>
+                    <td><?=Form::input('text', "variant[{$k}][title]", $item['title'] , 'form-control answer-text')?></td>
+                    <td><?=Form::select("right[{$k}]", $arOptions , $r[$k], false, 'form-control answer-select-order')?></td>
+                    <td class="last-column">
+                        <?=Form::input('hidden', "variant[{$k}][id]", $item['id'])?>
+                        <?=Form::btnDelete('#', false, ['data-id' => $item['id']])?>
+                    </td>
+                </tr>
+            
+            <? endforeach; ?>
+                          
+        </tbody>
+    </table>
+    <?=Form::button('создать новый вариант ответа', 'btn btn-add-answer')?>
+
+<? endif; ?>

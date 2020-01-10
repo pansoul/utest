@@ -119,7 +119,7 @@ class User
     public static function user($uid = 0)
     {
         // Осуществляем проверку, был ли уже создан объект авторизованного пользователь
-        if (!$uid && self::isAuth() && self::$user) {
+        if (self::isAuth() && self::$user && (!$uid || self::$user->getUID() == $uid)) {
             return self::$user;
         }
         // Если объект не создан, или пользователь был запрошен через идентификатор,
@@ -348,8 +348,8 @@ class User
      */
     public static function login($login, $pass, $redirectUrl = false)
     {
-        self::clearLastErrors();
         $user = self::getByLogin($login);
+        self::clearLastErrors();
 
         if ($user['password'] != md5(sha1($pass) . $user['salt'])) {
             self::setLastErrors("Неверно введён логин или пароль");

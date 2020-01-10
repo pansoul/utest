@@ -1,6 +1,8 @@
 <?php
 
-namespace UTest\Kernel\Test\Types;
+namespace UTest\Kernel\Test\Question\Types;
+
+use UTest\Kernel\Test\Question\AbstractType;
 
 class Match extends AbstractType
 {

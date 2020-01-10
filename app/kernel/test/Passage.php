@@ -7,6 +7,11 @@ use UTest\Kernel\User\User;
 use UTest\Kernel\Traits\FieldsValidateTraitHelper;
 use UTest\Kernel\Utilities;
 
+/**
+ * Класс по управлению прохождения тестов.
+ * Каждый проходимый тест - это назначенный тест.
+ * @package UTest\Kernel\Test
+ */
 class Passage
 {
     use \UTest\Kernel\Traits\ErrorsManageTrait;
@@ -201,6 +206,10 @@ class Passage
         ];
     }
 
+    /**
+     * Возвращает текущее значение пересдачи проходимого теста
+     * @return int
+     */
     public function getRetake()
     {
         return (int) DB::table(TABLE_STUDENT_TEST_PASSAGE)
@@ -212,6 +221,12 @@ class Passage
             ->first()['retake'];
     }
 
+    /**
+     * Загружает данные назначенного теста и записывает их в свойства объекта
+     * @param $id
+     * @return bool|null|Assignment
+     * @throws \UTest\Kernel\Errors\AppException
+     */
     public function loadAssign($id)
     {
         if ($id > 0 && $id == $this->atid) {
@@ -223,12 +238,15 @@ class Passage
         $this->baseTest = null;
         $this->options = $this->customOptions;
 
+        $this->clearErrors();
         if (!$this->checkPermissions(self::CHECK_UID)) {
             return false;
         }
 
-        $authorId = DB::table(TABLE_STUDENT_TEST)->find($id, ['user_id']);
-        if (!$authorId) {
+        $assignedTestData = DB::table(TABLE_STUDENT_TEST)->find($id, ['user_id', 'group_id']);
+        $authorId = $assignedTestData['user_id'];
+
+        if (!$authorId || $assignedTestData['group_id'] != User::user($this->uid)->getGroupId()) {
             $this->setErrors('Тест не найден');
         } else {
             $this->assignedTest = new Assignment($authorId, $id);
@@ -254,8 +272,13 @@ class Passage
         return $this->assignedTest;
     }
 
+    /**
+     * Загружает данные проходимого теста и записывает их в свойства объекта
+     * @return bool
+     */
     private function loadPassageData()
     {
+        $this->clearErrors();
         if (!$this->checkPermissions([self::CHECK_UID, self::CHECK_ATID])) {
             return false;
         }
@@ -271,8 +294,13 @@ class Passage
         return true;
     }
 
+    /**
+     * Загружает данные о времени проходимого теста и записывает их в свойства объекта
+     * @return bool
+     */
     private function loadTimeData()
     {
+        $this->clearErrors();
         if (!$this->checkPermissions([self::CHECK_UID, self::CHECK_ATID])) {
             return false;
         }
@@ -288,8 +316,13 @@ class Passage
         return true;
     }
 
+    /**
+     * Загружает данные последненго запомненного вопроса и записывает их в свойство объекта
+     * @return array|bool|\Illuminate\Database\Eloquent\Model|\Illuminate\Database\Query\Builder|null
+     */
     private function loadLastAnswerData()
     {
+        $this->clearErrors();
         if (!$this->checkPermissions([self::CHECK_UID, self::CHECK_ATID])) {
             return false;
         }
@@ -311,51 +344,103 @@ class Passage
         return $this->lastAnswerData;
     }
 
+    /**
+     * Возвращает свойства назначенного теста, полученные функцией loadAssign()
+     * @return array
+     */
     public function getAssignData()
     {
         return $this->assignedTest->getAssignData();
     }
 
+    /**
+     * Возвращает свойства проходимого теста, полученные функцией loadPassageData()
+     * @return array
+     */
     public function getPassageData()
     {
         return $this->passageData;
     }
 
+    /**
+     * Возвращает актуальные опции/свойства проходимого теста
+     * @return array
+     */
     public function getOptions()
     {
         return $this->options;
     }
 
+    /**
+     * Завершён ли проходимый тест
+     * @return bool
+     */
+    public function isFinished()
+    {
+        if ($this->getStatus() == self::STATUS_FINISHED || $this->isTimeLeft()) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Включена ли опция по перемешиванию вопросов
+     * @return bool
+     */
     public function isMixing()
     {
         return (bool) $this->options['is_mixing'];
     }
 
+    /**
+     * Показывать ли верные ответы после прохождения теста
+     * @return bool
+     */
     public function isShowTrue()
     {
         return (bool) $this->options['is_show_true'];
     }
 
+    /**
+     * Можно ли перескакивать вопросы
+     * @return bool
+     */
     public function canSkip()
     {
         return (bool) $this->options['can_skip'];
     }
 
+    /**
+     * Можно ли изменять ответы
+     * @return bool
+     */
     public function canChange()
     {
         return (bool) $this->options['can_change'];
     }
 
+    /**
+     * Возвращает количество вопросов в проходимом тесте
+     * @return int
+     */
     public function getNumberQuestions()
     {
         return (int) $this->options['count_q'];
     }
 
+    /**
+     * Есть ли ограничение по времени на прохождение теста
+     * @return bool
+     */
     public function hasTimeLimit()
     {
         return $this->getTimeLimit() > 0;
     }
 
+    /**
+     * Вышло ли время на прохождение теста
+     * @return bool
+     */
     public function isTimeLeft()
     {
         if ($this->hasTimeLimit()) {
@@ -364,6 +449,10 @@ class Passage
         return false;
     }
 
+    /**
+     * Количество времени (сек.), оставшееся на прохождение
+     * @return false|int
+     */
     public function getTimeLeft()
     {
         $timeStart = strtotime($this->getTimeStart());
@@ -372,28 +461,50 @@ class Passage
         return $this->getTimeLimit() - $passageTimeLive;
     }
 
+    /**
+     * Возвращает дату начала прохождения теста
+     * @return mixed
+     */
     public function getTimeStart()
     {
         return $this->passageData['date_start'];
     }
 
+    /**
+     * Возвращает время (сек.), выделенное на прохождение
+     * @return int
+     */
     public function getTimeLimit()
     {
         return (int) $this->options['time'];
     }
 
+    /**
+     * Возвращает номер последнего запомненного вопроса
+     * @return int
+     */
     public function getLastNumberQuestion()
     {
         return (int) $this->passageData['last_q_number'];
     }
 
+    /**
+     * Возвращает статус проходимого теста
+     * @param bool $getStatusText
+     * @return array|int|mixed
+     */
     public function getStatus($getStatusText = false)
     {
         return $getStatusText ? self::getTestStatuses($this->getStatus()) : intval($this->passageData['status']);
     }
 
+    /**
+     * Инициализирует начало прохождения теста
+     * @return bool
+     */
     public function start()
     {
+        $this->clearErrors();
         if (!$this->checkPermissions([self::CHECK_UID, self::CHECK_ATID]) || ($this->getStatus() != self::STATUS_WAITED_FOR_START && $this->hasEqualComplexRetake())) {
             return false;
         }
@@ -432,29 +543,47 @@ class Passage
         // @todo
     }
 
+    /**
+     * Продолжает тест, загружая последний запомненный вопрос
+     * @return array|bool|mixed
+     */
     public function resume()
     {
         if (!$this->checkPermissions([self::CHECK_UID, self::CHECK_ATID]) || $this->getStatus() != self::STATUS_IN_PROCESS) {
             return false;
         }
 
-        // @todo
+        return $this->loadQuestion($this->getLastNumberQuestion());
     }
 
+    /**
+     * Возвращает номер следующего вопроса
+     * @return int
+     */
     public function getNextQuestionNumber()
     {
         $nextNumber = $this->getLastNumberQuestion() + 1;
         return $nextNumber > $this->getNumberQuestions() ? $this->getNumberQuestions() : $nextNumber;
     }
 
+    /**
+     * Возвращает номер предыдущего вопроса
+     * @return int
+     */
     public function getPrevQuestionNumber()
     {
         $prevNumber = $this->getLastNumberQuestion() - 1;
         return $prevNumber <= 0 ? 1 : $prevNumber;
     }
 
+    /**
+     * Загружает вопрос и записывает его как последний запомненный
+     * @param int $number
+     * @return array|bool|mixed
+     */
     public function loadQuestion($number = 0)
     {
+        $this->clearErrors();
         if (!$this->checkPermissions([self::CHECK_UID, self::CHECK_ATID])) {
             return false;
         }
@@ -514,15 +643,47 @@ class Passage
         return $q;
     }
 
-    public function saveAnswer($v = [])
+    /**
+     * Сохранение ответа пользователя
+     *
+     * @param array $v
+     * @param int $number
+     *
+     * @return bool
+     */
+    public function saveAnswer($v = [], $number = null)
     {
-        if (!$this->checkPermissions([self::CHECK_UID, self::CHECK_ATID, self::CHECK_AID])) {
+        $this->clearErrors();
+        if (!$this->checkPermissions([self::CHECK_UID, self::CHECK_ATID])) {
             return false;
         }
 
 
+        $number = $number ? intval($number) : $this->getLastNumberQuestion();
+        $q = clone $this;
+
+        if (!$q->loadQuestion($number)) {
+            $this->setErrors($q->getErrors());
+            return false;
+        }
+
+        DB::table(TABLE_STUDENT_TEST_ANSWER)
+            ->where([
+                'user_id' => $this->uid,
+                'test_id' => $this->atid,
+                'retake_value' => $this->retake,
+                'number' => $number,
+            ])
+            ->update(['user_answer' => serialize($v)]);
+
+        return true;
     }
 
+    /**
+     * Возвращает данные вопроса и записывает его как последний запомненный
+     * @param int $number
+     * @return mixed
+     */
     private function getQuestion($number = 0)
     {
         $this->setLastNumberQuestion($number);
@@ -533,8 +694,14 @@ class Passage
         return $q;
     }
 
+    /**
+     * Вернёт список Id свободных вопросов (те, что ещё не выводились)
+     * @param bool $full - вернуть все вопросы, игнорируя использованные
+     * @return array|bool
+     */
     private function getAvailableQuestionsIds($full = false)
     {
+        $this->clearErrors();
         if (!$this->checkPermissions([self::CHECK_UID, self::CHECK_ATID])) {
             return false;
         }
@@ -552,8 +719,13 @@ class Passage
         return $ids;
     }
 
+    /**
+     * Вернёт список использованных вопросв (те, что уже были отображены)
+     * @return bool|mixed
+     */
     private function getUsedQuestionsIds()
     {
+        $this->clearErrors();
         if (!$this->checkPermissions([self::CHECK_UID, self::CHECK_ATID])) {
             return false;
         }
@@ -576,12 +748,20 @@ class Passage
         return $ids;
     }
 
+    /**
+     * Устанавливает указанный номер как последний запомненный вопрос и загружает по нему данные
+     * @param $number
+     */
     private function setLastNumberQuestion($number)
     {
-        $this->options['last_q_number'] = (int) $number;
+        $this->passageData['last_q_number'] = (int) $number;
         $this->loadLastAnswerData();
     }
 
+    /**
+     * Сравнивает текущее значение пересдачи со значением загруженного проходимого теста и даты прохождения
+     * @return bool
+     */
     private function hasEqualComplexRetake()
     {
         return $this->retake == intval($this->passageData['retake']) && $this->retake == intval($this->timeData['retake_value']);
@@ -633,6 +813,11 @@ class Passage
         return $result == count($types);
     }
 
+    /**
+     * Возвращает список возможных статусов проходимого теста
+     * @param null $statusCode
+     * @return array|mixed
+     */
     public static function getTestStatuses($statusCode = null)
     {
         return is_null($statusCode) ? self::$arTestStatuses : self::$arTestStatuses[intval($statusCode)];
