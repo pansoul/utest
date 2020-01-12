@@ -51,18 +51,21 @@ $isLastQuestion = $v['cur_num'] == $data['questions_count'];
         <ul class="pagination" id="test-pagination">
             <?
             for ($i = 1; $i <= $data['questions_count']; $i++) {
-                $class = $i == $v['cur_num'] ? 'class="active"' : '';
+                $classActive = $i == $v['cur_num'] ? 'active' : '';
+                $classAnswered = isset($data['used'][$i]) ? 'answered' : '';
             ?>
-                <li <?=$class?>><a data-num="<?=$i?>" href="#"><?=$i?></a></li>
+                <li class="pagination__item pagination__item--<?=$i?> <?=$classActive?>">
+                    <a class="pagination__item__link pagination__item__link--<?=$i?> <?=$classAnswered?>" data-num="<?=$i?>" href="#"><?=$i?></a>
+                </li>
             <? } ?>
         </ul>
     </div>
 </div>
 
-<? AppBuilder::delayedJsStart(); ?>
+<? AppBuilder::scriptStart(); ?>
 <script>
     $(document).ready(function() {
-        window.test = new TestPassage(<?=$vars['id']?>, '<?=Site::getModurl()?>');
+        new TestPassage(<?=$vars['id']?>, '<?=Site::getModurl()?>', <?=json_encode($data['options'])?>);
     });
 </script>
-<? AppBuilder::delayedJsEnd(); ?>
+<? AppBuilder::scriptEnd(); ?>

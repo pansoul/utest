@@ -407,7 +407,8 @@ class Passage
      */
     public function canSkip()
     {
-        return (bool) $this->options['can_skip'];
+        //return (bool) $this->options['can_skip'];
+        return true;
     }
 
     /**
@@ -416,7 +417,8 @@ class Passage
      */
     public function canChange()
     {
-        return (bool) $this->options['can_change'];
+        //return (bool) $this->options['can_change'];
+        return true;
     }
 
     /**
@@ -532,15 +534,28 @@ class Passage
 
         DB::table(TABLE_STUDENT_TEST_PASSAGE)->updateOrInsert(['user_id' => $this->uid, 'test_id' => $this->atid] ,$passageFields);
         DB::table(TABLE_STUDENT_TEST_TIME)->insert($timeFields);
+
+        $this->loadPassageData();
+        $this->loadTimeData();
+
+        return true;
     }
 
+    /**
+     * Завершает тест
+     * @return bool
+     */
     public function finish()
     {
+        $this->clearErrors();
         if (!$this->checkPermissions([self::CHECK_UID, self::CHECK_ATID]) || $this->getStatus() == self::STATUS_WAITED_FOR_START) {
             return false;
         }
 
-        // @todo
+        DB::table(TABLE_STUDENT_TEST_PASSAGE)->where('id', '=', $this->passageData['id'])->update(['status' => self::STATUS_FINISHED]);
+        DB::table(TABLE_STUDENT_TEST_TIME)->where('id', '=', $this->timeData['id'])->update(['date_finish' => Utilities::getDateTime()]);
+
+        return true;
     }
 
     /**
@@ -549,6 +564,7 @@ class Passage
      */
     public function resume()
     {
+        $this->clearErrors();
         if (!$this->checkPermissions([self::CHECK_UID, self::CHECK_ATID]) || $this->getStatus() != self::STATUS_IN_PROCESS) {
             return false;
         }
@@ -636,8 +652,6 @@ class Passage
         }
 
         DB::table(TABLE_STUDENT_TEST_ANSWER)->insert($answerFields);
-        DB::table(TABLE_STUDENT_TEST_PASSAGE)->where('id', '=', $this->passageData['id'])->update(['last_q_number' => $number]);
-
         $this->setLastNumberQuestion($number);
 
         return $q;
@@ -699,7 +713,7 @@ class Passage
      * @param bool $full - вернуть все вопросы, игнорируя использованные
      * @return array|bool
      */
-    private function getAvailableQuestionsIds($full = false)
+    public function getAvailableQuestionsIds($full = false)
     {
         $this->clearErrors();
         if (!$this->checkPermissions([self::CHECK_UID, self::CHECK_ATID])) {
@@ -723,7 +737,7 @@ class Passage
      * Вернёт список использованных вопросв (те, что уже были отображены)
      * @return bool|mixed
      */
-    private function getUsedQuestionsIds()
+    public function getUsedQuestionsIds()
     {
         $this->clearErrors();
         if (!$this->checkPermissions([self::CHECK_UID, self::CHECK_ATID])) {
@@ -754,6 +768,7 @@ class Passage
      */
     private function setLastNumberQuestion($number)
     {
+        DB::table(TABLE_STUDENT_TEST_PASSAGE)->where('id', '=', $this->passageData['id'])->update(['last_q_number' => $number]);
         $this->passageData['last_q_number'] = (int) $number;
         $this->loadLastAnswerData();
     }

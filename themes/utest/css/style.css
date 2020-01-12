@@ -1155,3 +1155,7 @@ textarea{
 .table-sort > thead th[data-sort].sorting-desc:before{
     opacity: 1;
 }
+
+.pagination__item__link.answered{
+    background: #FFF8C5;
+}

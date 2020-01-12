@@ -17,7 +17,7 @@ class AppBuilder
 
     private $html = null;
     private $arSysTplVars = array(
-        'delayed_js',
+        'scripts',
         'theme_url',
         'content',
         'menu',
@@ -185,7 +185,7 @@ class AppBuilder
         return CURRENT_THEME_URL;
     }
 
-    public static function addDelayedJs($js, $appendScriptTag = false, $name = null, $order = 1)
+    public static function addScript($js, $appendScriptTag = false, $name = null, $order = 1)
     {
         $value = [
             'order' => $order,
@@ -198,7 +198,7 @@ class AppBuilder
         }
     }
 
-    public static function removeDelayedJs($name = null)
+    public static function removeScripts($name = null)
     {
         if (is_null($name)) {
             self::$arDelayedJs = [];
@@ -207,18 +207,18 @@ class AppBuilder
         }
     }
 
-    public static function delayedJsStart()
+    public static function scriptStart()
     {
         ob_start();
     }
 
-    public static function delayedJsEnd($name = null, $order = 1)
+    public static function scriptEnd($name = null, $order = 1)
     {
         $js = ob_get_clean();
-        self::addDelayedJs($js, false, $name, $order);
+        self::addScript($js, false, $name, $order);
     }
 
-    public static function getDelayedJs()
+    public static function getScripts()
     {
         $arJs = self::$arDelayedJs;
         $order = array_column($arJs, 'order');

@@ -65,24 +65,6 @@ class StudentTestsController extends \UTest\Kernel\Component\Controller
                 $this->outputForAjax($this->getActionData(), self::AJAX_MODE_JSON);
                 break;
 
-            /*case 'my':
-                if ($this->model->vars['tid']) {
-                    $html = $this->loadView('test', $result);
-                } elseif ($this->model->vars['subject_code']) {
-                    $html = $this->loadView('mytests', $result);
-                } else {
-                    $html = $this->loadView($this->action, $result);
-                }
-                break;
-
-            // for ajax
-            case 'run':
-            case 'q':
-            case 'end':
-                echo $result;
-                exit;
-                break;*/
-
             default:
                 $this->doAction($this->action);
                 $html = $this->loadView($this->action);
