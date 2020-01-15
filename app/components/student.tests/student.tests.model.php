@@ -3,8 +3,10 @@
 namespace UTest\Components;
 
 use UTest\Kernel\DB;
+use UTest\Kernel\Test\Result;
 use UTest\Kernel\User\User;
 use UTest\Kernel\Test\Passage;
+use UTest\Kernel\Component\Controller;
 
 class StudentTestsModel extends \UTest\Kernel\Component\Model
 {
@@ -15,6 +17,7 @@ class StudentTestsModel extends \UTest\Kernel\Component\Model
                 TABLE_STUDENT_TEST.'.id',
                 TABLE_PREPOD_SUBJECT.'.title as subject_name',
                 TABLE_PREPOD_SUBJECT.'.alias as subject_code',
+                TABLE_PREPOD_SUBJECT.'.id as subject_id',
                 TABLE_USER.'.name as prepod_name',
                 TABLE_USER.'.last_name as prepod_last_name',
                 TABLE_USER.'.surname as prepod_surname',
@@ -25,7 +28,35 @@ class StudentTestsModel extends \UTest\Kernel\Component\Model
             ->where(TABLE_STUDENT_TEST.'.group_id', '=', User::user()->getGroupId())
             ->groupBy(TABLE_STUDENT_TEST.'.subject_id')
             ->orderBy('subject_name')
-            ->get();
+            ->get()
+            ->toArray();
+
+        foreach ($res as $k => $item) {
+            $arTestCountByStatus = DB::table(TABLE_STUDENT_TEST)
+                ->select(
+                    TABLE_STUDENT_TEST_PASSAGE.'.status',
+                    DB::raw('count('.TABLE_STUDENT_TEST_PASSAGE.'.status) as count')
+                )
+                ->leftJoin(TABLE_STUDENT_TEST_PASSAGE, function($join){
+                    $join->on(TABLE_STUDENT_TEST_PASSAGE.'.test_id', '=', TABLE_STUDENT_TEST.'.id')
+                        ->where(TABLE_STUDENT_TEST_PASSAGE.'.user_id', '=', User::user()->getUID());
+                })
+                ->where(TABLE_STUDENT_TEST.'.group_id', '=', User::user()->getGroupId())
+                ->where(TABLE_STUDENT_TEST.'.subject_id', '=', $item['subject_id'])
+                ->groupBy(TABLE_STUDENT_TEST_PASSAGE.'.status')
+                ->get()
+                ->toArray();
+
+            $arTestCountByStatus = array_reduce($arTestCountByStatus, function($acc, $el){
+                $acc[intval($el['status'])] = $el['count'];
+                return $acc;
+            }, []);
+            if ($item['test_count'] != array_sum($arTestCountByStatus)) {
+                $arTestCountByStatus[Passage::STATUS_WAITED_FOR_START] = $item['test_count'] - array_sum($arTestCountByStatus);
+            }
+
+            $res[$k]['status_count'] = $arTestCountByStatus;
+        }
 
         $this->setData($res);
     }
@@ -59,7 +90,7 @@ class StudentTestsModel extends \UTest\Kernel\Component\Model
         }
 
         $this->setData($res);
-        return $subject;
+        return $res;
     }
     
     public function runAction($subjectCode, $id)
@@ -95,11 +126,7 @@ class StudentTestsModel extends \UTest\Kernel\Component\Model
 
         if ($q = $passage->loadQuestion(1)) {
             $result['status'] = 'OK';
-            $result['question'] = [
-                'text' => html_entity_decode($q['question']['text']),
-                'cur_num' => $q['cur_num'],
-                'variants' => '' // @todo
-            ];
+            $result['question'] = $this->buildQuestionDataForAjax($q);
         } else {
             $result['status'] = 'ERROR';
             $result['message'] = $passage->getErrors();
@@ -113,15 +140,15 @@ class StudentTestsModel extends \UTest\Kernel\Component\Model
         $result = [];
 
         $passage = new Passage(User::user()->getUID(), $id);
-        $q = $passage->loadQuestion($number == 'next' ? $passage->getNextQuestionNumber() : $number);
+        $this->saveUserAnswerAction($passage);
+
+        if (!$this->hasErrors()) {
+            $q = $passage->loadQuestion($number == 'next' ? $passage->getNextQuestionNumber() : $number);
+        }
 
         if ($q) {
             $result['status'] = 'OK';
-            $result['question'] = [
-                'text' => html_entity_decode($q['question']['text']),
-                'cur_num' => $q['cur_num'],
-                'variants' => '' // @todo
-            ];
+            $result['question'] = $this->buildQuestionDataForAjax($q);
         } else {
             $result['status'] = 'ERROR';
             $result['message'] = $passage->getErrors();
@@ -135,10 +162,16 @@ class StudentTestsModel extends \UTest\Kernel\Component\Model
         $result = [];
 
         $passage = new Passage(User::user()->getUID(), $id);
+        $this->saveUserAnswerAction($passage);
 
-        if ($passage->finish()) {
+        if (!$this->hasErrors()) {
+            $testResult = new Result(User::user()->getUID(), $id);
+            $testResultData = $testResult->getResult();
+        }
+
+        if (!$this->hasErrors() && $passage->finish()) {
             $result['status'] = 'OK';
-            $result['result'] = ''; // @todo
+            $result['result'] = Controller::loadComponent('utility', 'testresult', [$testResultData]);
         } else {
             $result['status'] = 'ERROR';
             $result['message'] = $passage->getErrors();
@@ -146,38 +179,23 @@ class StudentTestsModel extends \UTest\Kernel\Component\Model
 
         $this->setData($result);
     }
-    
-    /*public function endAction()
-    {
-        $res = array();
-        
-        if (!$this->request->isAjaxRequest())
-            USite::redirect(USite::getModurl());
-        
-        $test = new Test($_SESSION['stid'], UUser::user()->getUID());   
-        
-        if (!empty(Test::$last_errors)) {
-            $res['status'] = 'ERROR';
-            $res['status_message'] = Test::$last_errors;
-            header('Content-Type: application/json');
-            return json_encode($res);            
-        }
-        
-        $r = $test->endTest();
-        
-        if (!$r) {
-            $res['status'] = 'ERROR';
-            $res['status_message'] = Test::$last_errors;
-            header('Content-Type: application/json');
-            return json_encode($res);  
-        }        
-        
-        $testResult = new UTResult($_SESSION['stid']);     
-        $tprop = $testResult->getTProp();
-        $res['status'] = 'OK';
-        $res['result'] = USiteController::loadComponent('utility', 'testresult', array($testResult->getResult(false), $tprop['retake']));
-        header('Content-Type: application/json');
-        return json_encode($res);     
-    }*/
 
+    private function saveUserAnswerAction(Passage $passage)
+    {
+        $this->clearErrors();
+        $v = $this->_POST;
+        $passage->saveAnswer($v['right'], $passage->getLastNumberQuestion());
+        if ($passage->hasErrors()) {
+            $this->setErrors($passage->getErrors());
+        }
+    }
+
+    private function buildQuestionDataForAjax($q)
+    {
+        return [
+            'text' => html_entity_decode($q['question']['text']),
+            'cur_num' => $q['cur_num'],
+            'variants' => $this->includeTemplate('answer_' . $q['question']['type'], $q)
+        ];
+    }
 }

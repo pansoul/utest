@@ -48,7 +48,7 @@ class Passage
 
     private static $arTestStatuses = array(
         self::STATUS_WAITED_FOR_START => 'ожидает старта',
-        self::STATUS_IN_PROCESS => 'в процессе прохождения',
+        self::STATUS_IN_PROCESS => 'в процессе',
         self::STATUS_FINISHED => 'пройден'
     );
 
@@ -66,7 +66,7 @@ class Passage
             $this->loadAssign($atid);
         }
 
-        $this->retake = is_null($retake) ? $this->getRetake() : intval($retake);
+        $this->retake = is_null($retake) ? $this->getRealRetake() : intval($retake);
         $this->loadPassageData();
         $this->loadTimeData();
         $this->loadLastAnswerData();
@@ -207,18 +207,43 @@ class Passage
     }
 
     /**
-     * Возвращает текущее значение пересдачи проходимого теста
+     * Возвращает реальный номер пересдачи проходимого теста (значение получается напрямую из БД)
      * @return int
      */
-    public function getRetake()
+    public function getRealRetake()
     {
-        return (int) DB::table(TABLE_STUDENT_TEST_PASSAGE)
-            ->select('retake')
-            ->where([
-                'user_id' => $this->uid,
-                'test_id' => $this->atid
-            ])
-            ->first()['retake'];
+        static $retake = null;
+
+        if (is_null($retake)) {
+            $retake = (int) DB::table(TABLE_STUDENT_TEST_PASSAGE)
+                ->select('retake')
+                ->where([
+                    'user_id' => $this->uid,
+                    'test_id' => $this->atid
+                ])
+                ->first()['retake'];
+        }
+
+        return $retake;
+    }
+
+    /**
+     * Возвращает реальное количество вопросов в тесте
+     * @return int
+     */
+    public function getRealNumberQuestions()
+    {
+        $this->clearErrors();
+        if (!$this->checkPermissions(self::CHECK_ATID)) {
+            return false;
+        }
+
+        static $count = null;
+        if (is_null($count)) {
+            $count = DB::table(TABLE_TEST_QUESTION)->where('test_id', '=', $this->assignedTest->getBaseTestId())->count();
+        }
+
+        return $count;
     }
 
     /**
@@ -233,10 +258,10 @@ class Passage
             return $this->assignedTest;
         }
 
-        // @todo
         $this->assignedTest = null;
         $this->baseTest = null;
         $this->options = $this->customOptions;
+        $this->atid = 0;
 
         $this->clearErrors();
         if (!$this->checkPermissions(self::CHECK_UID)) {
@@ -264,7 +289,7 @@ class Passage
                     $this->customOptions
                 );
                 if ($this->options['count_q'] == 0) {
-                    $this->options['count_q'] = DB::table(TABLE_TEST_QUESTION)->where('test_id', '=', $this->assignedTest->getBaseTestId())->count();
+                    $this->options['count_q'] = $this->getRealNumberQuestions();
                 }
             }
         }
@@ -360,6 +385,15 @@ class Passage
     public function getPassageData()
     {
         return $this->passageData;
+    }
+
+    /**
+     * Возвращает свойства проходимого теста, полученные функцией loadTimeData()
+     * @return array
+     */
+    public function getTimeData()
+    {
+        return $this->timeData;
     }
 
     /**
@@ -473,6 +507,15 @@ class Passage
     }
 
     /**
+     * Возвращает дату завершения теста
+     * @return mixed
+     */
+    public function getTimeFinish()
+    {
+        return $this->passageData['date_finish'];
+    }
+
+    /**
      * Возвращает время (сек.), выделенное на прохождение
      * @return int
      */
@@ -488,6 +531,15 @@ class Passage
     public function getLastNumberQuestion()
     {
         return (int) $this->passageData['last_q_number'];
+    }
+
+    /**
+     * Возвращает текущий номер пересдачи проходимого теста
+     * @return int
+     */
+    public function getRetake()
+    {
+        return $this->retake;
     }
 
     /**
@@ -621,8 +673,12 @@ class Passage
         }
 
         $usedIds = $this->getUsedQuestionsIds();
-        $availableIds = $this->getAvailableQuestionsIds(count($usedIds) == $this->getNumberQuestions());
-        $questionId = $this->isMixing() ? array_rand(array_flip($availableIds)) : $availableIds[0];
+        $isUsedQuestionsExceededReal = count($usedIds) >= $this->getRealNumberQuestions();
+        $availableIds = $this->getAvailableQuestionsIds($isUsedQuestionsExceededReal);
+        $questionId = $availableIds[0];
+        if ($this->isMixing() || $isUsedQuestionsExceededReal) {
+            $questionId = array_rand(array_flip($availableIds));
+        }
 
         if (isset($usedIds[$number])) {
             return $this->getQuestion($number);
@@ -634,7 +690,8 @@ class Passage
         $q = [
             'question' => $this->baseTest->getQuestionData(),
             'answer_list' => $this->baseTest->getAnswersList(Test::ANSWERS_MODE_VARIANTS),
-            'cur_num' => $number
+            'cur_num' => $number,
+            'user_answer' => null
         ];
         $answerFields = [
             'user_id' => $this->uid,
@@ -672,7 +729,6 @@ class Passage
             return false;
         }
 
-
         $number = $number ? intval($number) : $this->getLastNumberQuestion();
         $q = clone $this;
 
@@ -690,6 +746,8 @@ class Passage
             ])
             ->update(['user_answer' => serialize($v)]);
 
+        unset($q);
+
         return true;
     }
 
@@ -703,7 +761,7 @@ class Passage
         $this->setLastNumberQuestion($number);
 
         $q = $this->lastAnswerData['q'];
-        $q['user_answer'] = $this->lastAnswerData['user_answer'];
+        $q['user_answer'] = unserialize($this->lastAnswerData['user_answer']);
 
         return $q;
     }
@@ -720,7 +778,7 @@ class Passage
             return false;
         }
 
-        $res = DB::table(TABLE_TEST_QUESTION)->where('test_id', '=', $this->assignedTest->getBaseTestId())->orderBy('ord')->get()->toArray();
+        $res = DB::table(TABLE_TEST_QUESTION)->where('test_id', '=', $this->assignedTest->getBaseTestId())->orderBy('ord', 'desc')->get()->toArray();
         $ids = array_map(function($item){
             return $item['id'];
         }, $res);

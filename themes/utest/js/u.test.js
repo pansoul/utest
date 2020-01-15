@@ -92,16 +92,19 @@ TestPassage.prototype.start = function() {
     });
 };
 
+/**
+ * Функция одновременно загружает новый и сохраняет выбранные варианты текущего вопроса
+ * @param number
+ */
 TestPassage.prototype.goto = function(number) {
     var self = this;
     this.clearErrors();
 
-    // @todo Реализовать сохранение ответов юзера
-    // https://stackoverflow.com/questions/23287067/converting-serialized-forms-data-to-json-object
-
     $.ajax({
         dataType: 'json',
+        type: 'POST',
         url: this.ajaxGoToUrl + '/' + number,
+        data: self.$testForm.serializeArray(),
         success: function(data) {
             if (data.status === 'OK') {
                 self._showQuestion(data.question);
@@ -111,7 +114,7 @@ TestPassage.prototype.goto = function(number) {
             }
         },
         error: function(jqXHR, textStatus, errorThrown) {
-            self.showErrors('Ошибка при загрузке вопроса.', textStatus + ' | ' + errorThrown);
+            self.showErrors('Ошибка при обработке вопроса.', textStatus + ' | ' + errorThrown);
         },
     });
 };
@@ -122,7 +125,9 @@ TestPassage.prototype.finish = function() {
 
     $.ajax({
         dataType: 'json',
+        type: 'POST',
         url: this.ajaxFinishUrl,
+        data: self.$testForm.serializeArray(),
         success: function(data) {
             if (data.status === 'OK') {
                 self.$testWrapper.fadeOut(150, function() {

@@ -953,8 +953,11 @@ textarea{
     border-radius: 4px;
 }
 
-.resilt-main-info{
+.result-main-info{
     border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .result-main-info, .result-more-info{

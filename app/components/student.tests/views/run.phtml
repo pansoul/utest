@@ -38,7 +38,7 @@ $isLastQuestion = $v['cur_num'] == $data['questions_count'];
     <div class="test-variantsbox">
         <form id="test-form" class="test-formaction">
             <div id="test-form-variants" class="test-formaction__variants">
-                <?= 'component answer' ?>
+                <?= $this->includeTemplate('answer_' . $v['question']['type'], $v) ?>
             </div>
             <div class="test-formaction__control clearfix">
                 <button type="button" id="test-end" class="btn btn-danger">Завершить тестирование</button>

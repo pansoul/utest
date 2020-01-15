@@ -58,4 +58,11 @@ class Match extends AbstractType
 
         return true;
     }
+
+    protected function checkAnswer($userAnswer = null)
+    {
+        $userAnswer = $this->filterRights($userAnswer);
+        $validRights = $this->getValidRights();
+        return strcasecmp($validRights, $userAnswer) == 0;
+    }
 }

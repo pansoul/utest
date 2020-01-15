@@ -4,6 +4,7 @@ namespace UTest\Components;
 
 use UTest\Kernel\Site;
 use UTest\Kernel\DB;
+use UTest\Kernel\HttpRequest;
 
 class AdminSettingModel extends \UTest\Kernel\Component\Model
 {
@@ -19,7 +20,7 @@ class AdminSettingModel extends \UTest\Kernel\Component\Model
                 'name' => $v['univer_name'],
                 'fullname' => $v['univer_fullname'],
                 'address' => $v['address'],
-                'phone' => $v['phone'],
+                'phone' => HttpRequest::convert2safe($v['~phone'], true),
                 //'contacts' => $v['contacts'],
                 //'info' => $v['~info']
             ];

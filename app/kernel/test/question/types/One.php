@@ -68,4 +68,11 @@ class One extends AbstractType
 
         return true;
     }
+
+    protected function checkAnswer($userAnswer = null)
+    {
+        $userAnswer = $this->filterRights($userAnswer);
+        $validRights = $this->getValidRights();
+        return $validRights == $userAnswer;
+    }
 }

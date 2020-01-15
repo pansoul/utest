@@ -11,7 +11,7 @@ class TemplateResult
     protected $errors = [];
     protected $vars = [];
     protected $request = null;
-    protected $data = null; // Данные, которые будут переданы в шаблон
+    protected $data = null; // Глобальные данные, которые будут переданы в шаблон. Собираются внтури методов модели
 
     public $_POST = [];
     public $_GET = [];
@@ -35,14 +35,19 @@ class TemplateResult
         $this->_REQUEST = $this->request->getValue(HttpRequest::REQUEST);
     }
 
-    final public function includeTemplate($templateName)
+    final public function includeTemplate($templateName, $data = null, $errors = null, $vars = null)
     {
-        $templatePath = COMPONENTS_PATH . '/' . $this->componentName . '/views/' . $templateName . '.phtml';
+        $tpl = clone $this;
+        $tpl->errors = !is_null($errors) ? $errors : $this->getErrors(false);
+        $tpl->data = !is_null($data) ? $data : $this->getData();
+        $tpl->vars = !is_null($vars) ? $vars : $this->getVars();
+
+        $templatePath = COMPONENTS_PATH . '/' . $tpl->componentName . '/views/' . $templateName . '.phtml';
 
         if (Base::getConfig('debug > component_debug')) {
             $bt = debug_backtrace();
             $caller = array_shift($bt);
-            $this->debugInfo['template']['value'][] = array(
+            $tpl->debugInfo['template']['value'][] = array(
                 'template' => $templateName,
                 'file' => $caller['file'],
                 'line' => $caller['line']
@@ -54,24 +59,26 @@ class TemplateResult
         }
 
         // Набор локальных переменных для быстрого доступа внутри шаблона
-        $request = $this->_REQUEST;
-        $post = $this->_POST;
-        $get = $this->_GET;
-        $errors = $this->getErrors(false);
-        $data = $this->getData();
-        $vars = $this->getVars();
+        $request = $tpl->_REQUEST;
+        $post = $tpl->_POST;
+        $get = $tpl->_GET;
+        $errors = $tpl->getErrors(false);
+        $data = $tpl->getData();
+        $vars = $tpl->getVars();
 
         // Общий резалт со старой структурой
         $arResult = [
-            'errors' => $this->getErrors(false),
-            'data' => $this->getData(),
-            'request' => $this->getRequest(),
-            'vars' => $this->getVars()
+            'errors' => $errors,
+            'data' => $data,
+            'request' => $request,
+            'vars' => $vars
         ];
 
         ob_start();
         include $templatePath;
         $view = ob_get_clean();
+
+        unset($tpl);
 
         return $view;
     }

@@ -30,7 +30,7 @@ class UtilityModel extends \UTest\Kernel\Component\Model
     public function univerAction($field)
     {
         $data = DB::table(TABLE_UNIVER_DATA)->find(self::UNIVER_DATA_ID);
-        $this->setData(html_entity_decode($data[$field]));
+        $this->setData($data[$field]);
     }
 
     public function breadcrumbAction($arr)
@@ -61,7 +61,6 @@ class UtilityModel extends \UTest\Kernel\Component\Model
 
     public function testResultAction($res)
     {
-        return $this->returnResult($res);
+        $this->setData($res);
     }
-
 }

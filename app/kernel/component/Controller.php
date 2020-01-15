@@ -246,7 +246,7 @@ class Controller
      * @return string
      */
     final public static function loadComponent($args = '', $action = false, $actionArgs = array(), $routeMap = array())
-    {  
+    {
         if ($action) {                        
             $componentName = $args;
         } else {

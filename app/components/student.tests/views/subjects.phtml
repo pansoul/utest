@@ -1,9 +1,13 @@
 <?
 use UTest\Kernel\Form;
 use UTest\Kernel\Site;
+use UTest\Kernel\Test\Passage;
 
 $arTitles = array(
     'Название дисциплины' => 'string',
+    Passage::getTestStatuses(Passage::STATUS_WAITED_FOR_START) => 'int',
+    Passage::getTestStatuses(Passage::STATUS_IN_PROCESS) => 'int',
+    Passage::getTestStatuses(Passage::STATUS_FINISHED) => 'int',
     'Преподаватель' => 'string'
 );
 
@@ -11,6 +15,12 @@ if (count($data) == 0) {
     echo Form::info('Список пуст');
     return;
 }
+
+$arStatusLabelClasses = [
+    Passage::STATUS_WAITED_FOR_START => 'label-default',
+    Passage::STATUS_IN_PROCESS => 'label-info',
+    Passage::STATUS_FINISHED => 'label-success',
+];
 ?>
 
 <table class="table table-hover table-sort">
@@ -31,6 +41,17 @@ if (count($data) == 0) {
                     <a href="<?=Site::getUrl() . '/' . $v['subject_code']?>"><?=$v['subject_name']?></a>
                     <span rel="tooltip" data-placement="right" data-toggle="tooltip" title="Количество тестов" class="badge"><?=$v['test_count']?></span>
                 </td>
+                <?foreach (Passage::getTestStatuses() as $statusCode => $statusText):?>
+                    <td align="center">
+                        <span
+                            class="label <?=$arStatusLabelClasses[$statusCode]?>"
+                            rel="tooltip"
+                            data-placement="right"
+                            data-toggle="tooltip"
+                            title="Кол-во тестов по статусу"
+                        ><?=intval($v['status_count'][$statusCode])?></span>
+                    </td>
+                <?endforeach;?>
                 <td><?=$v['prepod_last_name'].' '.$v['prepod_name'].' '.$v['prepod_surname']?></td>
             </tr>
         <?endforeach?>

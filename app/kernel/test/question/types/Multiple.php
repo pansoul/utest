@@ -64,4 +64,11 @@ class Multiple extends AbstractType
 
         return true;
     }
+
+    protected function checkAnswer($userAnswer = null)
+    {
+        $userAnswer = ksort($this->filterRights($userAnswer));
+        $validRights = ksort($this->getValidRights());
+        return $validRights === $userAnswer;
+    }
 }

@@ -8,6 +8,7 @@ use UTest\Kernel\Test\Test;
 use UTest\Kernel\Test\Assignment;
 use UTest\Kernel\Site;
 use UTest\Kernel\Utilities;
+use UTest\Kernel\HttpRequest;
 
 class PrepodTestsModel extends \UTest\Kernel\Component\Model
 {
@@ -155,6 +156,10 @@ class PrepodTestsModel extends \UTest\Kernel\Component\Model
         
         if ($this->isActionRequest()) {
             $v = $this->_POST;
+
+            if (isset($v['question']['text'])) {
+                $v['question']['text'] = HttpRequest::convert2safe($v['~question']['text']);
+            }
 
             $this->test->createOrEditQuestion($v['question'], $v['variant'], $v['right'], $v['question']['id']);
 

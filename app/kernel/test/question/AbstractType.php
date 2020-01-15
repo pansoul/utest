@@ -59,6 +59,8 @@ abstract class AbstractType implements TypeInterface
 
     abstract protected function filterRights($r = null);
 
+    abstract protected function checkAnswer($userAnswer = null);
+
     protected function filterVariants($v = [])
     {
         $v = array_map(function($item){
@@ -74,10 +76,11 @@ abstract class AbstractType implements TypeInterface
 
     public function loadAnswersList()
     {
-        if (!$this->qid) {
-            $this->setErrors('Вопрос не загружен');
-            return;
+        $this->clearErrors();
+        if (!$this->checkQuestionIdSet()) {
+            return false;
         }
+
         $this->answersList = DB::table(TABLE_TEST_ANSWER)->where('question_id', '=', $this->qid)->orderBy('id')->get()->toArray();
         $this->validVariants = array_reduce($this->answersList, function($acc, $item){
             $acc[$item['id']] = [
@@ -90,14 +93,17 @@ abstract class AbstractType implements TypeInterface
             $acc[$item['id']] = $item['right_answer'];
             return $acc;
         }, []));
+
+        return true;
     }
 
     public function loadAnswer($id = 0)
     {
-        if (!$this->qid) {
-            $this->setErrors('Вопрос не загружен');
-            return [];
+        $this->clearErrors();
+        if (!$this->checkQuestionIdSet()) {
+            return false;
         }
+
         $res = DB::table(TABLE_TEST_ANSWER)->where(['question_id' => $this->qid, 'id' => $id])->first();
         if (!$res) {
             $this->setErrors('Вариант ответа не найден');
@@ -107,6 +113,7 @@ abstract class AbstractType implements TypeInterface
             $this->validVariants = $res['title'];
             $this->validRights = $res['right_answer'];
         }
+
         return $res;
     }
 
@@ -179,6 +186,16 @@ abstract class AbstractType implements TypeInterface
         return $this->answerData;
     }
 
+    public function checkQuestionIdSet()
+    {
+        if (!$this->qid) {
+            $this->setErrors('Вопрос не загружен');
+            return false;
+        }
+
+        return true;
+    }
+
     public function checkQuestionExists($id = null)
     {
         $id = is_null($id) ? $this->qid : intval($id);
@@ -211,5 +228,20 @@ abstract class AbstractType implements TypeInterface
         }
 
         return true;
+    }
+
+    final public static function getTypeName()
+    {
+        $ref = new \ReflectionClass(get_called_class());
+        return strtolower($ref->getShortName());
+    }
+
+    final public function check($userAnswer = null)
+    {
+        $question = clone $this;
+        $question->loadAnswersList();
+        $result = $question->checkAnswer($userAnswer);
+        unset($question);
+        return $result;
     }
 }

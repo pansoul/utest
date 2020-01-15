@@ -141,9 +141,10 @@ class HttpRequest
     /**
      * Возвращает переданную переменную в безопасном виде
      * @param mixed $str
+     * @param bool $doubleEncode
      * @return mixed
      */
-    public static function convert2safe($str)
+    public static function convert2safe($str = null, $doubleEncode = false)
     {
         switch (gettype($str)) {
             case 'array':
@@ -156,8 +157,8 @@ class HttpRequest
 
             case 'string':
                 return get_magic_quotes_gpc()
-                    ? htmlspecialchars(stripslashes(trim($str)), ENT_COMPAT | ENT_HTML401, 'UTF-8')
-                    : htmlspecialchars(trim($str), ENT_COMPAT | ENT_HTML401, 'UTF-8');
+                    ? htmlspecialchars(stripslashes(trim($str)), ENT_QUOTES | ENT_HTML401, 'UTF-8', boolval($doubleEncode))
+                    : htmlspecialchars(trim($str), ENT_QUOTES | ENT_HTML401, 'UTF-8', boolval($doubleEncode));
                 break;
 
             default:

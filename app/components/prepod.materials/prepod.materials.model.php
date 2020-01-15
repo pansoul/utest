@@ -7,6 +7,7 @@ use UTest\Kernel\User\User;
 use UTest\Kernel\Site;
 use UTest\Kernel\Utilities;
 use \Verot\Upload\Upload;
+use UTest\Kernel\HttpRequest;
 
 class PrepodMaterialsModel extends \UTest\Kernel\Component\Model
 {
@@ -362,7 +363,7 @@ class PrepodMaterialsModel extends \UTest\Kernel\Component\Model
                 $dataRow = [
                     'group_id' => $group['id'],
                     'subject_id' => $subject['id'],
-                    'comment' => $v['comment'],
+                    'comment' => HttpRequest::convert2safe($v['~comment'], true),
                     'date' => Utilities::getDateTime(),
                     'is_hidden' => 0
                 ];
