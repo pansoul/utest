@@ -34,10 +34,10 @@ use UTest\Kernel\Component\Controller;
  */
 return array(    
     'panel' => Controller::loadComponent('utility', 'panel'),
-    'univer_name' => Controller::loadComponent('utility', 'univer', array('name')),
-    'univer_fullname' => Controller::loadComponent('utility', 'univer', array('fullname')),
-    'univer_address' => Controller::loadComponent('utility', 'univer', array('address')),
-    'univer_phone' => Controller::loadComponent('utility', 'univer', array('phone')),
+    'univer_name' => Controller::loadComponent('admin.setting', 'univer', array('name'), false),
+    'univer_fullname' => Controller::loadComponent('admin.setting', 'univer', array('fullname'), false),
+    'univer_address' => Controller::loadComponent('admin.setting', 'univer', array('address'), false),
+    'univer_phone' => Controller::loadComponent('admin.setting', 'univer', array('phone'), false),
     'breadcrump' => Controller::loadComponent('utility', 'breadcrumb', array(UTest\Kernel\AppBuilder::getBreadcrumb())),
     'copyright' => '2019. Боровских Павел Сергеевич'
 );

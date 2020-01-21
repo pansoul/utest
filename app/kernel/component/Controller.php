@@ -299,7 +299,7 @@ class Controller
      * @param string $componentName - имя компонента
      * @return boolean|string
      */
-    private static function includeComponentFiles($componentName)
+    public static function includeComponentFiles($componentName)
     {
         // Расположение компонента
         $componentPath = COMPONENTS_PATH . '/' . $componentName;

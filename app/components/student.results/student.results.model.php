@@ -1,56 +1,53 @@
 <?php
 
-class StudentResultsModel extends ComponentModel {
-    
-    private $table_student_passage = 'u_student_test_passage';
-    private $table_student_test = 'u_student_test';
-    private $table_student_time = 'u_student_test_time';
-    private $table_test = 'u_test';
-    private $table_subject = 'u_prepod_subject';
+namespace UTest\Components;
 
-    public function testlistAction()
-    {   
-        $sql = "
-            SELECT r.*, s.title as test_title, j.title as subject, i.date_finish
-            FROM {$this->table_student_passage} AS r 
-            LEFT JOIN {$this->table_student_test} AS s 
-                ON (s.id = r.test_id)
-            LEFT JOIN {$this->table_test} AS t 
-                ON (t.id = s.test_id)
-            LEFT JOIN {$this->table_subject} AS j 
-                ON (j.id = t.subject_id)
-            LEFT JOIN {$this->table_student_time} AS i 
-                ON (i.test_id = s.id)
-            WHERE
-                r.user_id = " . UUser::user()->getUID() . "
-                AND r.status = 2
-                AND i.retake_value = r.retake
-                AND i.user_id = " . UUser::user()->getUID() . "
-            ORDER BY i.date_finish DESC
-        ";
-        $res = R::getAll($sql);  
+use UTest\Kernel\DB;
+use UTest\Kernel\User\User;
+use UTest\Kernel\Test\Passage;
+use UTest\Kernel\Test\Result;
+use UTest\Kernel\Component\Controller;
 
-        if ($this->vars['tid']) {
-            $test = new UTResult($this->vars['tid']);                          
-            $tprop = $test->getTProp();
-            $answer = $test->getResult($tprop['test_show_true'], isset($this->request->_GET['retake']) ? intval($this->request->_GET['retake']) : null);
-            // it's not bag! After getResult with custom 'retake' we must to update the $tprop for correct date_start and date_finish
-            $tprop = $test->getTProp();
-            $this->errors = UTResult::$last_errors;
-            
-            if (!$test)
-                $res = array();
-            else {
-                UAppBuilder::addBreadcrumb($tprop['test_title'], USite::getUrl());
-                
-                $res = array(
-                    'test' => $tprop,
-                    'answer' => $answer
-                );
-            }
-        }
+class StudentResultsModel extends \UTest\Kernel\Component\Model
+{
+    public function testListAction()
+    {
+        $res = DB::table(TABLE_STUDENT_TEST_PASSAGE)
+            ->select(
+                TABLE_STUDENT_TEST_PASSAGE.'.id',
+                TABLE_STUDENT_TEST_PASSAGE.'.retake',
+                TABLE_STUDENT_TEST.'.title as test_title',
+                TABLE_STUDENT_TEST.'.id as test_id',
+                TABLE_PREPOD_SUBJECT.'.title as subject',
+                TABLE_STUDENT_TEST_TIME.'.date_finish'
+            )
+            ->leftJoin(TABLE_STUDENT_TEST, TABLE_STUDENT_TEST.'.id', '=', TABLE_STUDENT_TEST_PASSAGE.'.test_id')
+            ->leftJoin(TABLE_PREPOD_SUBJECT, TABLE_PREPOD_SUBJECT.'.id', '=', TABLE_STUDENT_TEST.'.subject_id')
+            ->leftJoin(TABLE_STUDENT_TEST_TIME, function($join){
+                $join->on(TABLE_STUDENT_TEST_TIME.'.test_id', '=', TABLE_STUDENT_TEST_PASSAGE.'.test_id')
+                    ->where(TABLE_STUDENT_TEST_TIME.'.retake_value', '=', TABLE_STUDENT_TEST_PASSAGE.'.retake');
+            })
+            ->where([
+                TABLE_STUDENT_TEST_PASSAGE.'.user_id' => User::user()->getUID(),
+                TABLE_STUDENT_TEST_PASSAGE.'.status' => Passage::STATUS_FINISHED
+            ])
+            ->orderBy(TABLE_STUDENT_TEST_TIME.'.date_finish')
+            ->groupBy(TABLE_STUDENT_TEST_PASSAGE.'.id')
+            ->get()
+            ->toArray();
 
-        return $this->returnResult($res);
+        $this->setData($res);
     }
 
+    public function resultAction($id)
+    {
+        Controller::includeComponentFiles('utility');
+        $result = new Result(User::user()->getUID(), $id);
+        $resultTemplate = Controller::loadComponent('utility', 'test_result', [
+            'result' => $result,
+            'mode' => UtilityModel::RESULT_MODE_DETAIL
+        ]);
+        $this->setData($resultTemplate);
+        $this->setErrors($result->getErrors());
+    }
 }

@@ -160,21 +160,25 @@ class StudentTestsModel extends \UTest\Kernel\Component\Model
     public function ajaxFinishAction($id)
     {
         $result = [];
+        Controller::includeComponentFiles('utility');
 
         $passage = new Passage(User::user()->getUID(), $id);
         $this->saveUserAnswerAction($passage);
 
         if (!$this->hasErrors()) {
             $testResult = new Result(User::user()->getUID(), $id);
-            $testResultData = $testResult->getResult();
+            $this->setErrors($testResult->getErrors());
         }
 
         if (!$this->hasErrors() && $passage->finish()) {
             $result['status'] = 'OK';
-            $result['result'] = Controller::loadComponent('utility', 'testresult', [$testResultData]);
+            $result['result'] = Controller::loadComponent('utility', 'test_result', [
+                'result' => $testResult,
+                'mode' => UtilityModel::RESULT_MODE_SHORT
+            ]);
         } else {
             $result['status'] = 'ERROR';
-            $result['message'] = $passage->getErrors();
+            $result['message'] = $this->getErrors();
         }
 
         $this->setData($result);

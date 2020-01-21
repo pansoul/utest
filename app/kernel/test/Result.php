@@ -2,7 +2,12 @@
 namespace UTest\Kernel\Test;
 
 use UTest\Kernel\DB;
+use UTest\Kernel\User\User;
 
+/**
+ * Класс по результатам тестирования
+ * @package UTest\Kernel\Test
+ */
 class Result
 {
     use \UTest\Kernel\Traits\ErrorsManageTrait;
@@ -33,6 +38,7 @@ class Result
 
         if ($this->passage->hasErrors()) {
             $this->setErrors($this->passage->getErrors());
+            $this->passage = null;
         } else {
             $this->options = $this->passage->getOptions();
             $this->passageData = $this->passage->getPassageData();
@@ -194,6 +200,25 @@ class Result
             'passage_percent' => round(100 / $this->getNumberQuestions() * $this->amountRightUserAnswers, 1),
             'answers_list' => $this->userAnswersList
         ];
+    }
+
+    public function getMeta()
+    {
+        $this->clearErrors();
+        if (!$this->checkPermissions(self::CHECK_PASSAGE)) {
+            return false;
+        }
+
+        static $meta = null;
+        if (is_null($meta)) {
+            $subject = DB::table(TABLE_PREPOD_SUBJECT)->find($this->assignData['subject_id'], ['title']);
+            $meta = [
+                'subject' => $subject['title'],
+                'author' => User::user($this->assignData['user_id'])->getFullName()
+            ];
+        }
+
+        return $meta;
     }
 
     private function loadUserAnswersList()

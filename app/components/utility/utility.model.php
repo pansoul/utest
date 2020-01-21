@@ -3,15 +3,15 @@
 namespace UTest\Components;
 
 use UTest\Kernel\User\User;
-use UTest\Kernel\Errors\AppException;
 use UTest\Kernel\Base;
-use UTest\Kernel\DB;
 
 class UtilityModel extends \UTest\Kernel\Component\Model
 {
-    const UNIVER_DATA_ID = 1;
+    const RESULT_MODE_SHORT = 'short';
+    const RESULT_MODE_DETAIL = 'detail';
+    const RESULT_MODE_FULL = 'full';
 
-    public function menuAction($role = '')
+    public function menuAction($role)
     {
         $menu = Base::getConfig('menus > ' . $role);
 //        if (!$menu) {
@@ -25,12 +25,6 @@ class UtilityModel extends \UTest\Kernel\Component\Model
         if (isset($this->_GET['logout']) && $this->_GET['logout'] == 'Y') {
             User::logout();
         }
-    }
-
-    public function univerAction($field)
-    {
-        $data = DB::table(TABLE_UNIVER_DATA)->find(self::UNIVER_DATA_ID);
-        $this->setData($data[$field]);
     }
 
     public function breadcrumbAction($arr)
@@ -59,8 +53,11 @@ class UtilityModel extends \UTest\Kernel\Component\Model
         ));
     }
 
-    public function testResultAction($res)
+    public function testResultAction(\UTest\Kernel\Test\Result $result, $mode)
     {
-        $this->setData($res);
+        $this->setData([
+            'result' => $result,
+            'mode' => $mode
+        ]);
     }
 }

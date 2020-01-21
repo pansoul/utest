@@ -1,0 +1,16 @@
+<?
+$v = $data['variants'];
+$a = $data['user_answer'];
+$r = $data['right'];
+?>
+
+<td>
+    <?foreach ($v as $id => $item):?>
+        [<?=$a[$id]?>] - <?=$item['title']?><br/>
+    <?endforeach;?>
+</td>
+<td>
+    <?foreach ($v as $id => $item):?>
+        [<?=$r[$id]?>] - <?=$item['title']?><br/>
+    <?endforeach;?>
+</td>

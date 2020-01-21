@@ -21,11 +21,6 @@ class UtilityController extends \UTest\Kernel\Component\Controller
                 $html = $this->loadView('panel');
                 break;
 
-            case 'univer':
-                $this->doAction($this->action, $this->actionArgs);
-                $html = $this->loadView('univer_' . $this->actionArgs[0]);
-                break;
-
             case 'breadcrumb':
                 $this->doAction($this->action, $this->actionArgs);
                 $html = $this->loadView('breadcrumb');
@@ -46,8 +41,8 @@ class UtilityController extends \UTest\Kernel\Component\Controller
                 $html = $this->loadView('test_answer_' . $this->actionArgs[0]);
                 break;
 
-            case 'testresult':
-                $this->doAction($this->action, $this->actionArgs);
+            case 'test_result':
+                $this->doAction($this->action, [$this->actionArgs['result'], $this->actionArgs['mode']]);
                 $html = $this->loadView('test_result');
                 break;
         }

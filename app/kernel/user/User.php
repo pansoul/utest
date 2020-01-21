@@ -254,6 +254,16 @@ class User
     }
 
     /**
+     * Возвращает полное имя пользователя: ФИО
+     * @return string
+     */
+    public function getFullName()
+    {
+        $arFields = $this->getFields(['last_name', 'name', 'surname']);
+        return join(' ', $arFields);
+    }
+
+    /**
      * Возвращает название роли пользователя
      * @return string
      */

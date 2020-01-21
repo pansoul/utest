@@ -1,0 +1,18 @@
+<?
+use UTest\Kernel\Form;
+
+$v = $data['variants'];
+$a = $data['user_answer'];
+$r = $data['right'];
+?>
+
+<td>
+    <?foreach ($v as $id => $item):?>
+        <?=Form::checkbox("user_answer_{$data['id']}[{$id}]", 0, false, false, $a[$id], true)?>&nbsp;<?=$item['title']?><br/>
+    <?endforeach;?>
+</td>
+<td>
+    <?foreach ($v as $id => $item):?>
+        <?=Form::checkbox("right_answer_{$data['id']}[{$id}]", 0, false, false, $r[$id], true)?>&nbsp;<?=$item['title']?><br/>
+    <?endforeach;?>
+</td>

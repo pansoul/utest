@@ -295,6 +295,7 @@ class Form
      *
      * @return string
      */
+    // @todo Убрать безобразие $params и во всех подобных функциях
     public static function btnResult($url = '#', $params, $attr = array())
     {
         $fullUrl = $url . '/' . $params;

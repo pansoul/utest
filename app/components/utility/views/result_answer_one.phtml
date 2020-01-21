@@ -1,0 +1,18 @@
+<?
+use UTest\Kernel\Form;
+
+$v = $data['variants'];
+$a = $data['user_answer'];
+$r = $data['right'];
+?>
+
+<td>
+    <?foreach ($v as $id => $item):?>
+        <?=Form::radio("user_answer_{$data['id']}", 0, false, false, $id == $a, true)?>&nbsp;<?=$item['title']?><br/>
+    <?endforeach;?>
+</td>
+<td>
+    <?foreach ($v as $id => $item):?>
+        <?=Form::radio("right_answer_{$data['id']}", 0, false, false, $id == $r, true)?>&nbsp;<?=$item['title']?><br/>
+    <?endforeach;?>
+</td>

@@ -1,39 +1,39 @@
 <?php
 
-class StudentResultsController extends USiteController {    
+namespace UTest\Components;
 
+class StudentResultsController extends \UTest\Kernel\Component\Controller
+{
     protected $routeMap = array(
-        'setTitle' => 'Результаты тестирования',
-        'actionDefault' => 'testlist',
-        'paramsPath' => array(
-            'testlist' => '/<tid>',           
+        'title' => 'Список завершённых тестов',
+        'add_breadcrumb' => true,
+        'action_main' => 'test_list',
+        'actions_params' => array(
+            '/<id>' => [
+                'action' => 'result',
+                'title' => 'Результаты теста',
+                'add_breadcrumb' => true
+            ],
         ),
-        'params' => array(
-            'tid' => array(
-                'mask' => '',
-                'rule' => '[0-9]',
-                'default' => 0
-            )
+        'vars_rules' => array(
+            'id' => '[0-9]'
         )
     );
 
     public function run()
     {
-        $result = $this->model->doAction($this->action);              
-        
         switch ($this->action) {
-            case 'testlist':
-                $html = $this->model->vars['tid'] 
-                    ? $this->loadView('result', $result)
-                    : $this->loadView($this->action, $result);
+            case 'result':
+                $this->doAction($this->action, $this->getVars('id'));
+                $html = $this->loadView($this->action);
                 break;
-            
+
             default:
-                $html = $this->loadView($this->action, $result);
+                $this->doAction($this->action);
+                $html = $this->loadView($this->action);
                 break;
-        }        
-        
+        }
+
         $this->putContent($html);
     }
-
 }

@@ -1029,73 +1029,26 @@ textarea{
 }
 
 .table-result-wrapper{
-    border: 2px solid #bbb !important;
     border-radius: 4px;
-    overflow: hidden;
 }
 
 .table-result{
     margin: 0;
     font-size: 14px;
-    border-collapse: collapse;
 }
 
-.table-result thead > tr > th, .table-result tbody > tr > td{    
-    border: 1px solid #bbb;
+.table-result tbody > tr:hover{
+    outline: 2px solid #373F48;
+    position: relative;
+    z-index: 10;
 }
 
 .table-result thead > tr > th{
-    background: #eee;
-    color: inherit;    
     text-align: center;
 }
 
-.row-delimiter{
-    /* */
-}
-
-.table-result tbody > tr:hover > td{
-    /*background: #FBFCFC*/
-}
-
-.cell-result, .cell-number, .cell-header{
-    text-align: center;
-}
-
-.cell-number{
-    border-left: none !important;
-}
-
-.cell-result{
-    border-right: none !important;
-}
-
-.cell-header{
-    background: #F5F9FD;
-}
-
-.cell-result--true{
-    background: #D7EDD7 !important;
-}
-
-.table-result > tbody > tr:hover > td.result-true{
-    /*background: #C1E3C1 !important;*/
-}
-
-.cell-result--false{
-    background: #F2DEDE !important;
-}
-
-.table-result > tbody > tr:hover > td.result-false{
-    /*background: #EBCBCB !important;*/
-}
-
-.cell-result--unknow{
-    background: #F6F6F6 !important;
-}
-
-.table-result > tbody > tr:hover > td.result-unknow{
-    /*background: #EBEBEB !important;*/
+.result-text-danger{
+    color: #b94a48;
 }
 
 .breadcrumb > li{

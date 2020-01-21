@@ -503,7 +503,7 @@ class Passage
      */
     public function getTimeStart()
     {
-        return $this->passageData['date_start'];
+        return $this->timeData['date_start'];
     }
 
     /**
@@ -512,7 +512,7 @@ class Passage
      */
     public function getTimeFinish()
     {
-        return $this->passageData['date_finish'];
+        return $this->timeData['date_finish'];
     }
 
     /**

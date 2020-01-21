@@ -1,12 +1,107 @@
-<header class="result-header">
-    <div class="result-main-info">
-        <span class="result-q-count">Количество верных ответов: <b><?=$data['right_count']?> / <?=$data['all_count']?></b></span>
-        <div class="result-percent-passage">
-            тест пройден на
-            <div class="result-test"><?=$data['passage_percent']?>%</div>
+<?
+use UTest\Kernel\Form;
+use UTest\Kernel\Site;
+use UTest\Components\UtilityModel;
+
+/**
+ * Объект результата тестирования
+ * @var \UTest\Kernel\Test\Result
+ */
+$result = $data['result'];
+
+/**
+ * Тип просмотра результата тестирования
+ * @var string
+ */
+$mode = $data['mode'];
+
+$resultData = $result->getResult();
+$passageData = $result->getPassageData();
+$assignData = $result->getAssignData();
+$meta = $result->getMeta();
+?>
+
+
+<?if($mode != UtilityModel::RESULT_MODE_SHORT && $passageData['retake']):?>
+    <div class="result-retake-wrapper clearfix">
+        <span>Пересдача:</span>
+        <menu class="result-retake-list">
+            <?for ($i = 0; $i <= $passageData['retake']; $i++):
+                $classActive = intval($get['retake']) === $i ? 'active' : '';
+                ?>
+                <a class="<?=$classActive?>" href="<?=Site::getModurl() . '/' . $vars['id']?>?retake=<?=$i?>"><?=$i?></a>
+            <?endfor;?>
+        </menu>
+    </div>
+<?endif?>
+
+<div class="result-wrapper">
+    <header class="result-header">
+        <div class="result-main-info">
+            <span class="result-q-count">Количество верных ответов: <b><?=$resultData['right_count']?> / <?=$resultData['all_count']?></b></span>
+            <div class="result-percent-passage">
+                тест пройден на
+                <div class="result-test"><?=$resultData['passage_percent']?>%</div>
+            </div>
         </div>
-    </div>
-    <div class="result-more-info result-after">
-        <a href="/student/results/<?=$data['atid']?>" class="btn btn-info">Подробнее</a>
-    </div>
-</header>
+        <div class="result-more-info <?= $mode == UtilityModel::RESULT_MODE_SHORT ? 'result-after' : '' ?>">
+            <?if($mode == UtilityModel::RESULT_MODE_SHORT):?>
+                <a href="/student/results/<?=$resultData['atid']?>" class="btn btn-info">Подробнее</a>
+            <?else:?>
+                <ul class="noliststyle">
+                    <li><span class="r-m-key">Дисциплина</span> <span class="r-m-value"><?=$meta['subject']?></span></li>
+                    <li><span class="r-m-key">Преподаватель</span> <span class="r-m-value"><?=$meta['author']?></span></li>
+                    <li><span class="r-m-key">Дата начала</span> <span class="r-m-value"><?=date("d.m.Y H:i:s",strtotime($result->getTimeStart()))?></span></li>
+                    <li><span class="r-m-key">Дата завершения</span> <span class="r-m-value"><?=date("d.m.Y H:i:s",strtotime($result->getTimeFinish()))?></span></li>
+                </ul>
+            <?endif;?>
+        </div>
+    </header>
+
+    <?if($mode != UtilityModel::RESULT_MODE_SHORT):?>
+        <?if (!$result->isShowTrue()):?>
+
+            <div class="bs-callout bs-callout-warning">
+                <p>У данного теста выставлено ограничение на разбор ошибок.</p>
+            </div>
+
+        <?else:?>
+
+            <h3>Разбор ошибок</h3>
+            <div class="table-result-wrapper table-responsive">
+                <table class="table table-bordered table-result">
+                    <thead>
+                        <tr>
+                            <th class="column-min">№</th>
+                            <th width="50%">Текст вопроса</th>
+                            <th>Мой ответ</th>
+                            <th>Верный ответ</th>
+                            <th class="column-min">Результат</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <? foreach ($resultData['answers_list'] as $number => $q):
+                            $question = @$q['question'];
+                        ?>
+                            <tr>
+                                <td class="column-disabled" align="center"><?= $number ?></td>
+
+                                <? if (!$q):?>
+                                    <td class="result-text-danger" colspan="3">Вопрос был пропущен</td>
+                                <? else:?>
+                                    <td><?= html_entity_decode($question['text']) ?></td>
+                                    <?= $this->includeTemplate('result_answer_' . $question['type'], $q) ?>
+                                <? endif; ?>
+
+                                <td align="center" class="column-activity-<?= intval($q['isUserAnswerRight']) ?>">
+                                    <span class="glyphicon <?= $q['isUserAnswerRight'] ? 'glyphicon-ok' : 'glyphicon-remove' ?>"></span>
+                                </td>
+                            </tr>
+                        <? endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+
+        <?endif;?>
+    <?endif;?>
+</div>
