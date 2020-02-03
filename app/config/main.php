@@ -137,15 +137,15 @@ return array(
     ),
 
     // Список меню для каждого типа (роли) пользователя
-    'menus' => require 'menus.php',
+    'menus' => require 'extra/menus.php',
 
     // Список ролей пользователей
-    'roles' => require 'roles.php',
+    'roles' => require 'extra/roles.php',
 
     // Список должностей
-    'positions' => require 'positions.php',
+    'positions' => require 'extra/positions.php',
 
     // Список типов вопросов
-    'question_types' => require 'question_types.php'
+    'question_types' => require 'extra/question_types.php'
 );
 

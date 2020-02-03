@@ -283,7 +283,7 @@ class Controller
         if (!class_exists($componentModel)) {
             return Form::warning("Класс модели {$componentModel} компонента '{$componentName}' не найден");
         }
-        
+
         $component = new $componentController($componentName, $action, $actionArgs, $routeMap);
         $component->init($componentModel);
 
@@ -524,7 +524,7 @@ class Controller
     }
 
     /**
-     * По сути алиас для доступа к аналогичному методу модели компонента
+     * Алиас для доступа к аналогичному методу модели компонента
      *
      * @param string $action
      * @param array $args
@@ -535,7 +535,7 @@ class Controller
     }
 
     /**
-     * По сути алиас для доступа к аналогичному методу модели компонента
+     * Алиас для доступа к аналогичному методу модели компонента
      *
      * @param null $key
      * @param null $default
@@ -548,7 +548,7 @@ class Controller
     }
 
     /**
-     * По сути алиас для доступа к методу getData() модели компонента
+     * Алиас для доступа к методу getData() модели компонента
      * @return mixed
      */
     protected function getActionData()

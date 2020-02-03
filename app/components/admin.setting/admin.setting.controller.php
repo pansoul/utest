@@ -19,7 +19,7 @@ class AdminSettingController extends \UTest\Kernel\Component\Controller
 
             default:
                 $this->doAction($this->action);
-                $html = $this->loadView($this->action);
+                $html = $this->loadView();
                 break;
         }
 

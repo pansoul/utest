@@ -42,6 +42,7 @@ class TemplateResult
         $tpl->data = !is_null($data) ? $data : $this->getData();
         $tpl->vars = !is_null($vars) ? $vars : $this->getVars();
 
+        $templateName = strtolower($templateName);
         $templatePath = COMPONENTS_PATH . '/' . $tpl->componentName . '/views/' . $templateName . '.phtml';
 
         if (Base::getConfig('debug > component_debug')) {

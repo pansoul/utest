@@ -9,7 +9,9 @@
     },
     "autoload": {
         "psr-4": {
-            "UTest\\": "../"
+            "UTest\\": "../",
+            "UTest\\Components\\": "../components/",
+            "UTest\\Kernel\\": "../kernel/"
         }
     }
 }

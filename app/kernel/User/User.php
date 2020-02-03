@@ -188,7 +188,7 @@ class User
     {
         $userRole = ucfirst($role);
         $userClass = '\\UTest\\Kernel\\User\\Roles\\' . $userRole;
-        $userClassPath = KERNEL_PATH . '/user/roles/' . $userRole . '.php';
+        $userClassPath = KERNEL_PATH . '/User/Roles/' . $userRole . '.php';
 
         if (!self::isSysRoleExists($userRole)) {
             throw new AppException("Роль '{$userRole}' не описана в системе");
