@@ -58,6 +58,45 @@ class PrepodResultsModel extends \UTest\Kernel\Component\Model
         return $group;
     }
 
+    public function testsAction($groupCode, $subjectCode)
+    {
+        $group = $this->subjectsAction($groupCode);
+        if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) {
+            $this->setData(null);
+            return;
+        }
+
+        $subject = DB::table(TABLE_PREPOD_SUBJECT)
+            ->where('alias', '=', $subjectCode)
+            ->where('user_id', '=', User::user()->getUID())
+            ->first();
+
+        $res = DB::table(TABLE_STUDENT_TEST)
+            ->select(
+                TABLE_STUDENT_TEST.'.*',
+                TABLE_TEST.'.title as base_title'
+            )
+            ->leftJoin(TABLE_TEST, TABLE_TEST.'.id', '=', TABLE_STUDENT_TEST.'.test_id')
+            ->where([
+                TABLE_STUDENT_TEST.'.group_id' => $group['id'],
+                TABLE_STUDENT_TEST.'.subject_id' => $subject['id'],
+                TABLE_STUDENT_TEST.'.user_id' => User::user()->getUID(),
+            ])
+            ->orderBy(TABLE_STUDENT_TEST.'.date')
+            ->get();
+
+        if (!$subject) {
+            $this->setErrors('Предмет не найден', ERROR_ELEMENT_NOT_FOUND);
+        }
+
+        $this->setData($res);
+
+        return [
+            'group' => $group,
+            'subject' => $subject
+        ];
+    }
+
     public function forAction()
     {   
         // если есть данные о выбранной группе

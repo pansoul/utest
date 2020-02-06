@@ -19,7 +19,7 @@ class PrepodResultsController extends \UTest\Kernel\Component\Controller
                 'title' => 'Результаты тестирования',
                 'add_breadcrumb' => true
             ],
-            '/<group_code>/<subject_code>/retake/<gid>' => [
+            '/<group_code>/<subject_code>/gretake/<gid>' => [
                 'action' => 'gretake',
                 'title' => 'Пересдача теста',
                 'add_breadcrumb' => true
@@ -29,7 +29,7 @@ class PrepodResultsController extends \UTest\Kernel\Component\Controller
                 'title' => 'Результаты тестирования',
                 'add_breadcrumb' => true
             ],
-            '/<group_code>/<subject_code>/<tid>/retake/<uid>' => [
+            '/<group_code>/<subject_code>/<tid>/sretake/<uid>' => [
                 'action' => 'sretake',
                 'title' => 'Пересдача теста',
                 'add_breadcrumb' => true
@@ -63,6 +63,11 @@ class PrepodResultsController extends \UTest\Kernel\Component\Controller
                 $html = $this->loadView($this->action);
                 break;
 
+            case 'tests':
+                $this->doAction($this->action, $this->getVars(['group_code', 'subject_code']));
+                $html = $this->loadView($this->action);
+                break;
+
 
             case 'for':                
                 if ($this->model->vars['tid'])
@@ -76,13 +81,13 @@ class PrepodResultsController extends \UTest\Kernel\Component\Controller
                 break;
             
             case 'sretake':
-                $this->model->doAction($this->action, array($this->model->vars['for_tid'], $this->model->vars['uid']));
-                $html = $this->loadView('sretake');
+                $this->doAction($this->action, $this->getVars(['for_tid', 'uid']));
+                $html = $this->loadView($this->action);
                 break;
             
             case 'gretake':
-                $this->model->doAction($this->action, array($this->model->vars['for_tid'], $this->model->vars['gid']));
-                $html = $this->loadView('gretake');
+                $this->doAction($this->action, $this->getVars(['for_tid', 'gid']));
+                $html = $this->loadView($this->action);
                 break;
             
             case 'r':                
