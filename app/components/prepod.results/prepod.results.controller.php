@@ -1,47 +1,47 @@
 <?php
 
-class PrepodResultsController extends USiteController {
+namespace UTest\Components;
 
+class PrepodResultsController extends \UTest\Kernel\Component\Controller
+{
     protected $routeMap = array(
-        'setTitle' => 'Результаты тестирования',
-        'actionDefault' => 'for',
-        'paramsPath' => array(
-            'for' => '/<group_code>/<subject_code>/<tid>',
-            'sretake' => '/<for_tid>/<uid>',
-            'gretake' => '/<for_tid>/<gid>',
-            'r' => '/<for_tid>/<uid>'
+        'title' => 'Результаты тестирования',
+        'add_breadcrumb' => true,
+        'action_main' => 'groups',
+        'actions_params' => array(
+            '/<group_code>' => [
+                'action' => 'subjects',
+                'title' => 'Результаты тестирования',
+                'add_breadcrumb' => true
+            ],
+            '/<group_code>/<subject_code>' => [
+                'action' => 'tests',
+                'title' => 'Результаты тестирования',
+                'add_breadcrumb' => true
+            ],
+            '/<group_code>/<subject_code>/retake/<gid>' => [
+                'action' => 'gretake',
+                'title' => 'Пересдача теста',
+                'add_breadcrumb' => true
+            ],
+            '/<group_code>/<subject_code>/<tid>' => [
+                'action' => 'students',
+                'title' => 'Результаты тестирования',
+                'add_breadcrumb' => true
+            ],
+            '/<group_code>/<subject_code>/<tid>/retake/<uid>' => [
+                'action' => 'sretake',
+                'title' => 'Пересдача теста',
+                'add_breadcrumb' => true
+            ],
         ),
-        'params' => array(
-            'subject_code' => array(
-                'mask' => '',
-                'rule' => '[-_a-zA-Z0-9]',
-                'default' => 0
-            ),
-            'group_code' => array(
-                'mask' => '',
-                'rule' => '[-_a-zA-Z0-9]',
-                'default' => 0
-            ),            
-            'tid' => array(
-                'mask' => '',
-                'rule' => '[0-9]',
-                'default' => 0
-            ),
-            'for_tid' => array(
-                'mask' => 'for-<?>',
-                'rule' => '[0-9]',
-                'default' => 0
-            ),
-            'uid' => array(
-                'mask' => '',
-                'rule' => '[0-9]',
-                'default' => 0
-            ),
-            'gid' => array(
-                'mask' => '',
-                'rule' => '[0-9]',
-                'default' => 0
-            )
+        'vars_rules' => array(
+            'subject_code' => '[-_a-zA-Z0-9]',
+            'group_code' => '[-_a-zA-Z0-9]',
+            'tid' => '[0-9]',
+            'for_tid' => '[0-9]',
+            'uid' => '[0-9]',
+            'gid' => '[0-9]',
         )
     );
     
@@ -53,42 +53,49 @@ class PrepodResultsController extends USiteController {
 
     public function run()
     {
-        if (!in_array($this->action, $this->arNotResult))
-            $result = $this->model->doAction($this->action);                      
+        /*if (!in_array($this->action, $this->arNotResult)) {
+            $this->model->doAction($this->action);
+        }*/
         
         switch ($this->action) {
+            case 'subjects':
+                $this->doAction($this->action, $this->getVars('group_code'));
+                $html = $this->loadView($this->action);
+                break;
+
+
             case 'for':                
                 if ($this->model->vars['tid'])
-                    $html = $this->loadView('testlist', $result);
+                    $html = $this->loadView('testlist');
                 elseif ($this->model->vars['subject_code'])
-                    $html = $this->loadView('fortests', $result);
+                    $html = $this->loadView('fortests');
                 elseif ($this->model->vars['group_code'])
-                    $html = $this->loadView('forsubject', $result);
+                    $html = $this->loadView('forsubject');
                 else
-                    $html = $this->loadView($this->action, $result);
+                    $html = $this->loadView($this->action);
                 break;
             
             case 'sretake':
-                $result = $this->model->doAction($this->action, array($this->model->vars['for_tid'], $this->model->vars['uid']));
-                $html = $this->loadView('sretake', $result);
+                $this->model->doAction($this->action, array($this->model->vars['for_tid'], $this->model->vars['uid']));
+                $html = $this->loadView('sretake');
                 break;
             
             case 'gretake':
-                $result = $this->model->doAction($this->action, array($this->model->vars['for_tid'], $this->model->vars['gid']));
-                $html = $this->loadView('gretake', $result);
+                $this->model->doAction($this->action, array($this->model->vars['for_tid'], $this->model->vars['gid']));
+                $html = $this->loadView('gretake');
                 break;
             
             case 'r':                
-                $result = $this->model->doAction($this->action, array($this->model->vars['for_tid'], $this->model->vars['uid']));
-                $html = $this->loadView('result', $result);
+                $this->model->doAction($this->action, array($this->model->vars['for_tid'], $this->model->vars['uid']));
+                $html = $this->loadView('result');
                 break;
             
             default:
-                $html = $this->loadView($this->action, $result);
+                $this->doAction($this->action);
+                $html = $this->loadView($this->action);
                 break;
         }        
         
         $this->putContent($html);
     }
-
 }

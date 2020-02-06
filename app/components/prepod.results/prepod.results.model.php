@@ -1,7 +1,12 @@
 <?php
 
-class PrepodResultsModel extends ComponentModel {
+namespace UTest\Components;
 
+use UTest\Kernel\DB;
+use UTest\Kernel\User\User;
+
+class PrepodResultsModel extends \UTest\Kernel\Component\Model
+{
     private $table_subject = 'u_prepod_subject';
     private $table_test = 'u_test';
     private $table_group = 'u_univer_group';
@@ -9,6 +14,49 @@ class PrepodResultsModel extends ComponentModel {
     private $table_user = 'u_user';
     private $table_student_passage = 'u_student_test_passage';
     private $table_student_time = 'u_student_test_time';
+
+    public function groupsAction()
+    {
+        $res = DB::table(TABLE_UNIVER_GROUP)
+            ->select(
+                TABLE_UNIVER_GROUP.'.*',
+                TABLE_UNIVER_SPECIALITY.'.title as speciality_title',
+                TABLE_UNIVER_FACULTY.'.title as faculty_title'
+            )
+            ->leftJoin(TABLE_UNIVER_SPECIALITY, TABLE_UNIVER_SPECIALITY.'.id', '=', TABLE_UNIVER_GROUP.'.speciality_id')
+            ->leftJoin(TABLE_UNIVER_FACULTY, TABLE_UNIVER_FACULTY.'.id', '=', TABLE_UNIVER_SPECIALITY.'.faculty_id')
+            ->orderBy(TABLE_UNIVER_GROUP.'.title')
+            ->get();
+
+        $this->setData($res);
+    }
+
+    public function subjectsAction($groupCode)
+    {
+        $group = DB::table(TABLE_UNIVER_GROUP)->where('alias', '=', $groupCode)->first();
+
+        $res = DB::table(TABLE_PREPOD_SUBJECT)
+            ->select(
+                TABLE_PREPOD_SUBJECT.'.*',
+                DB::raw('count('.TABLE_STUDENT_TEST.'.id) as test_count')
+            )
+            ->leftJoin(TABLE_STUDENT_TEST, function($join) use ($group) {
+                $join->on(TABLE_STUDENT_TEST.'.subject_id', '=', TABLE_PREPOD_SUBJECT.'.id')
+                    ->where(TABLE_STUDENT_TEST.'.group_id', '=', $group['id'])
+                    ->where(TABLE_STUDENT_TEST.'.user_id', '=', User::user()->getUID());
+            })
+            ->where(TABLE_PREPOD_SUBJECT.'.user_id', '=', User::user()->getUID())
+            ->groupBy(TABLE_PREPOD_SUBJECT.'.id')
+            ->orderBy(TABLE_PREPOD_SUBJECT.'.title')
+            ->get();
+
+        if (!$group) {
+            $this->setErrors('Группа не найдена', ERROR_ELEMENT_NOT_FOUND);
+        }
+
+        $this->setData($res);
+        return $group;
+    }
 
     public function forAction()
     {   
