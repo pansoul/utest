@@ -42,12 +42,12 @@ class StudentResultsModel extends \UTest\Kernel\Component\Model
     public function resultAction($id)
     {
         Controller::includeComponentFiles('utility');
-        $result = new Result(User::user()->getUID(), $id);
+        $result = new Result(User::user()->getUID(), $id, $this->_GET['retake']);
+        $this->setErrors($result->getErrors());
         $resultTemplate = Controller::loadComponent('utility', 'test_result', [
             'result' => $result,
             'mode' => UtilityModel::RESULT_MODE_DETAIL
         ]);
         $this->setData($resultTemplate);
-        $this->setErrors($result->getErrors());
     }
 }

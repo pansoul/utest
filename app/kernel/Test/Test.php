@@ -42,7 +42,7 @@ class Test
     private $answersList = [];
 
     /**
-     * @var \UTest\Kernel\Test\Types\AbstractType
+     * @var \UTest\Kernel\Test\Types\AbstractType $qTypeEntity
      */
     private $qTypeEntity = null;
 

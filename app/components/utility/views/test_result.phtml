@@ -1,11 +1,11 @@
 <?
-use UTest\Kernel\Form;
 use UTest\Kernel\Site;
 use UTest\Components\UtilityModel;
+use UTest\Kernel\Test\Passage;
 
 /**
  * Объект результата тестирования
- * @var \UTest\Kernel\Test\Result
+ * @var \UTest\Kernel\Test\Result $result
  */
 $result = $data['result'];
 
@@ -19,17 +19,23 @@ $resultData = $result->getResult();
 $passageData = $result->getPassageData();
 $assignData = $result->getAssignData();
 $meta = $result->getMeta();
-?>
+$curRetake = isset($get['retake']) ? intval($get['retake']) : $result->getRetake();
 
+$arStatusLabelClasses = [
+    Passage::STATUS_WAITED_FOR_START => 'label-default',
+    Passage::STATUS_IN_PROCESS => 'label-info',
+    Passage::STATUS_FINISHED => 'label-success',
+];
+?>
 
 <?if($mode != UtilityModel::RESULT_MODE_SHORT && $passageData['retake']):?>
     <div class="result-retake-wrapper clearfix">
         <span>Пересдача:</span>
         <menu class="result-retake-list">
             <?for ($i = 0; $i <= $passageData['retake']; $i++):
-                $classActive = intval($get['retake']) === $i ? 'active' : '';
-                ?>
-                <a class="<?=$classActive?>" href="<?=Site::getModurl() . '/' . $vars['id']?>?retake=<?=$i?>"><?=$i?></a>
+                $classActive = $curRetake === $i ? 'active' : '';
+            ?>
+                <a class="<?=$classActive?>" href="<?=Site::getUrl() . '?retake=' . $i?>"><?=$i?></a>
             <?endfor;?>
         </menu>
     </div>
@@ -49,10 +55,26 @@ $meta = $result->getMeta();
                 <a href="/student/results/<?=$resultData['atid']?>" class="btn btn-info">Подробнее</a>
             <?else:?>
                 <ul class="noliststyle">
+                    <?if($mode == UtilityModel::RESULT_MODE_FULL):?>
+                        <li>
+                            <span class="r-m-key">Статус</span>
+                            <span class="r-m-value">
+                                <span class="label <?=$arStatusLabelClasses[$result->getStatus()]?>"><?=$result->getStatus(true)?></span>
+                            </span>
+                        </li>
+                        <li><span class="r-m-key">Студент</span> <span class="r-m-value"><?=$result->getUserData(true)?></span></li>
+                    <?endif;?>
+
+                    <?if($result->getStatus() != Passage::STATUS_WAITED_FOR_START):?>
+                        <li><span class="r-m-key">Дата начала</span> <span class="r-m-value"><?=date("d.m.Y H:i:s",strtotime($result->getTimeStart()))?></span></li>
+                        <li><span class="r-m-key">Дата завершения</span> <span class="r-m-value"><?=date("d.m.Y H:i:s",strtotime($result->getTimeFinish()))?></span></li>
+                    <?endif;?>
+
+                    <hr/>
                     <li><span class="r-m-key">Дисциплина</span> <span class="r-m-value"><?=$meta['subject']?></span></li>
                     <li><span class="r-m-key">Преподаватель</span> <span class="r-m-value"><?=$meta['author']?></span></li>
-                    <li><span class="r-m-key">Дата начала</span> <span class="r-m-value"><?=date("d.m.Y H:i:s",strtotime($result->getTimeStart()))?></span></li>
-                    <li><span class="r-m-key">Дата завершения</span> <span class="r-m-value"><?=date("d.m.Y H:i:s",strtotime($result->getTimeFinish()))?></span></li>
+                    <hr/>
+                    <li><span class="r-m-key">№ пересдачи</span> <span class="r-m-value"><?=$curRetake?></span></li>
                 </ul>
             <?endif;?>
         </div>
@@ -87,7 +109,7 @@ $meta = $result->getMeta();
                                 <td class="column-disabled" align="center"><?= $number ?></td>
 
                                 <? if (!$q):?>
-                                    <td class="result-text-danger" colspan="3">Вопрос был пропущен</td>
+                                    <td class="result-text-danger" colspan="3"><?= $result->getStatus() == Passage::STATUS_WAITED_FOR_START ? 'Вопрос не сформирован' : 'Вопрос был пропущен' ?></td>
                                 <? else:?>
                                     <td><?= html_entity_decode($question['text']) ?></td>
                                     <?= $this->includeTemplate('result_answer_' . $question['type'], $q) ?>

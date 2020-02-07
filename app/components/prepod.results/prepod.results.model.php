@@ -4,6 +4,10 @@ namespace UTest\Components;
 
 use UTest\Kernel\DB;
 use UTest\Kernel\User\User;
+use UTest\Kernel\Test\Assignment;
+use UTest\Kernel\Test\Result;
+use UTest\Kernel\Component\Controller;
+use UTest\Kernel\Site;
 
 class PrepodResultsModel extends \UTest\Kernel\Component\Model
 {
@@ -97,112 +101,85 @@ class PrepodResultsModel extends \UTest\Kernel\Component\Model
         ];
     }
 
-    public function forAction()
-    {   
-        // если есть данные о выбранной группе
-        if ($this->vars['group_code']) {
-            $gparent = R::findOne($this->table_group, '`alias` = ?', array($this->vars['group_code']));
-
-            // группа найдена
-            if ($gparent) {
-                UAppBuilder::addBreadcrumb($gparent['title'], USite::getModurl() . '/for/' . $gparent['alias']);
-
-                // если есть данные о выбранном предмете
-                if ($this->vars['subject_code']) {
-                    $sparent = R::findOne($this->table_subject, '`alias` = :alias AND user_id = :uid ', array(
-                                ':alias' => $this->vars['subject_code'],
-                                ':uid' => UUser::user()->getUID()
-                    ));
-
-                    // предмет найден
-                    if ($sparent) {
-                        UAppBuilder::addBreadcrumb($sparent['title'], USite::getModurl() . '/for/' . $gparent['alias'] . '/' . $sparent['alias']);
-                        
-                        // Если есть Id о выбранном тесте
-                        if ($this->vars['tid']) {
-                            $tparent = R::findOne($this->table_student_test, 'id = :tid AND user_id = :uid AND group_id = :gid AND subject_id = :sid', array(
-                                        ':tid' => $this->vars['tid'],
-                                        ':uid' => UUser::user()->getUID(),
-                                        ':gid' => $gparent['id'],
-                                        ':sid' => $sparent['id']
-                            ));
-                            
-                            // Назначенный тест найден
-                            if ($tparent) {
-                                UAppBuilder::addBreadcrumb($tparent['title'], USite::getUrl());
-                                
-                                $sql = "
-                                    SELECT u.*, t.status as test_status, t.retake as retake_value
-                                    FROM {$this->table_user} AS u 
-                                    LEFT JOIN {$this->table_student_passage} AS t 
-                                        ON (t.user_id = u.id AND t.test_id = {$tparent['id']})
-                                    WHERE
-                                        u.group_id = {$gparent['id']}
-                                    ORDER BY u.last_name
-                                ";   
-                                $res = R::getAll($sql);
-                                
-                                foreach ($res as &$u) {
-                                    $u['test_status'] = is_null($u['test_status']) ? 0 : (int)$u['test_status'];
-                                    $u['retake_value'] = is_null($u['retake_value']) ? 0 : (int)$u['retake_value'];
-                                }
-                            }
-                        }
-                        // Выводим списк назначенных тестов выбранной группе по выбранному предмету
-                        else {
-                            $sql = "
-                                SELECT *
-                                FROM {$this->table_student_test}
-                                WHERE
-                                    group_id = {$gparent['id']}
-                                    AND subject_id = {$sparent['id']}
-                                    AND user_id = " . UUser::user()->getUID() . "                                
-                                ORDER BY date DESC
-                            ";                   
-                            $res = R::getAll($sql);                            
-
-                            $_list = R::find($this->table_test, 'subject_id = :sid AND user_id = :uid ', array(
-                                        ':sid' => $sparent['id'],
-                                        ':uid' => UUser::user()->getUID()
-                            ));
-                            $tList = array();
-                            foreach ($_list as $k => $j)
-                            {
-                                $tList[$k] = $j['title'];
-                            }
-                            
-                            $res = array(
-                                'form' => $res,
-                                'test_list' => $tList,
-                                'group_id' => $gparent['id']
-                            );
-                        }
-                    }
-                }
-                // Выводим список предметов
-                else {
-                    $res = R::find($this->table_subject, 'user_id = ? ORDER BY title', array(UUser::user()->getUID()));
-                    foreach ($res as &$item)                    
-                    {
-                        $item['test_count'] = R::count($this->table_student_test, 'subject_id = :sid AND user_id = :uid AND group_id = :gid', array(
-                                    ':sid' => $item['id'],
-                                    ':uid' => UUser::user()->getUID(),
-                                    ':gid' => $gparent['id']
-                        ));
-                    }
-                }
-            }
+    public function studentsAction($groupCode, $subjectCode, $atid)
+    {
+        $data = $this->testsAction($groupCode, $subjectCode);
+        if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) {
+            $this->setData(null);
+            return;
         }
-        // Выбор групп
-        else {
-            $res = R::findAll($this->table_group, 'ORDER BY title');
+
+        $group = $data['group'];
+        $subject = $data['subject'];
+        $assignedTest = new Assignment(User::user()->getUID(), $atid);
+
+        if ($assignedTest->hasErrors()) {
+            $this->setErrors($assignedTest->getErrors(), ERROR_ELEMENT_NOT_FOUND);
+            $this->setData(null);
+            return;
         }
-        return $this->returnResult($res);
+
+        $res = DB::table(TABLE_USER)
+            ->select(
+                TABLE_USER.'.id',
+                TABLE_USER.'.last_name',
+                TABLE_USER.'.name',
+                TABLE_USER.'.surname',
+                TABLE_STUDENT_TEST_PASSAGE.'.id as atid',
+                TABLE_STUDENT_TEST_PASSAGE.'.retake as retake_value',
+                TABLE_STUDENT_TEST_PASSAGE.'.status as test_status'
+            )
+            ->leftJoin(TABLE_STUDENT_TEST_PASSAGE, function($join) use ($assignedTest) {
+                $join->on(TABLE_STUDENT_TEST_PASSAGE.'.user_id', '=', TABLE_USER.'.id')
+                    ->where(TABLE_STUDENT_TEST_PASSAGE.'.test_id', '=', $assignedTest->getAssignedTestId());
+            })
+            ->where(TABLE_USER.'.group_id', '=', $group['id'])
+            ->orderBy(TABLE_USER.'.last_name')
+            ->get();
+
+        $this->setData($res);
+    }
+
+    public function resultAction($atid, $uid)
+    {
+        $assignedTest = new Assignment(User::user()->getUID(), $atid);
+
+        if ($assignedTest->hasErrors()) {
+            $this->setErrors($assignedTest->getErrors());
+            return;
+        }
+
+        Controller::includeComponentFiles('utility');
+        $result = new Result($uid, $atid, $this->_GET['retake']);
+        $this->setErrors($result->getErrors());
+        $resultTemplate = Controller::loadComponent('utility', 'test_result', [
+            'result' => $result,
+            'mode' => UtilityModel::RESULT_MODE_FULL
+        ]);
+        $this->setData($resultTemplate);
     }
     
-    public function sRetakeAction($tid, $uid)
-    {   
-        if (!($tid && $uid))
+    public function retakeStudentAction($atid, $uid)
+    {
+        $assignedTest = new Assignment(User::user()->getUID(), $atid);
+
+        if ($assignedTest->hasErrors()) {
+            $this->setErrors($assignedTest->getErrors(), ERROR_ELEMENT_NOT_FOUND);
+            return;
+        }
+
+        if ($this->isActionRequest()) {
+            $v = $this->_POST;
+
+
+            if ($assignedTest->hasErrors()) {
+                $this->setErrors($assignedTest->getErrors());
+            } else {
+                Site::redirect(Site::getModurl() . '/for/' . $this->vars['group_code'] . '/' . $this->vars['subject_code']);
+            }
+        }
+
+        /*if (!($tid && $uid))
             return;
         
         $sql = "
@@ -257,10 +234,10 @@ class PrepodResultsModel extends \UTest\Kernel\Component\Model
             USite::redirect($url);
         }
         
-        return $this->returnResult($res);
+        return $this->returnResult($res);*/
     }
     
-    public function gRetakeAction($tid, $gid)
+    public function retakeGroupAction($tid, $gid)
     {   
         if (!($tid && $gid))
             return;
@@ -318,64 +295,6 @@ class PrepodResultsModel extends \UTest\Kernel\Component\Model
                 }
             }
             USite::redirect($url);
-        }
-        
-        return $this->returnResult($res);
-    }
-    
-    public function rAction($tid, $uid)
-    {
-        if (!($tid && $uid))
-            return; 
-        
-        $sql = "
-            SELECT t.*, 
-                g.alias as group_alias, 
-                g.title as group_title, 
-                s.alias as subject_alias, 
-                s.title as subject_title, 
-                st.title as test_title, 
-                u.name as u_name, 
-                u.last_name as u_last_name, 
-                u.surname as u_surname
-            FROM {$this->table_student_passage} AS t 
-            LEFT JOIN {$this->table_user} AS u 
-                ON (u.id = t.user_id)
-            LEFT JOIN {$this->table_group} AS g
-                ON (g.id = u.group_id)
-            LEFT JOIN {$this->table_student_test} AS st
-                ON (st.id = t.test_id)
-            LEFT JOIN {$this->table_subject} AS s
-                ON (s.id = st.subject_id)
-            WHERE
-                t.test_id = {$tid}
-                AND t.user_id = {$uid}
-        ";
-        $res = R::getRow($sql);
-        
-        $url = USite::getModurl() . '/for/' . $res['group_alias'];
-        UAppBuilder::addBreadcrumb($res['group_title'], $url);
-        
-        $url .= '/' . $res['subject_alias'];
-        UAppBuilder::addBreadcrumb($res['subject_title'], $url);
-        
-        $url .= '/' . $res['test_id'];
-        UAppBuilder::addBreadcrumb($res['test_title'], $url);
-        
-        $test = new UTResult($tid, $this->request->_GET['retake'], true, $uid, false);         
-        $answer = $test->getResult(true, null, $uid);                
-        $tprop = $test->getTProp();
-        $this->errors = UTResult::$last_errors;
-
-        if (!$test)
-            $res = array();
-        else {
-            UAppBuilder::addBreadcrumb('Результаты теста', USite::getUrl());
-            $res = array(
-                'test' => $tprop,
-                'answer' => $answer,
-                'user' => $res['u_last_name'].' '.$res['u_name'].' '.$res['u_surname']
-            );
         }
         
         return $this->returnResult($res);

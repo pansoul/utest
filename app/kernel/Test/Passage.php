@@ -24,6 +24,7 @@ class Passage
     const CHECK_UID = 'uid';
     const CHECK_ATID = 'atid';
     const CHECK_AID = 'aid';
+    const CHECK_RETAKE = 'retake';
 
     private $uid = 0; // {userId} - Id учащегося
     private $atid = 0; // {assignedTestId} - Id назначенного теста
@@ -37,12 +38,12 @@ class Passage
     private $lastAnswerData = [];
 
     /**
-     * @var \UTest\Kernel\Test\Assignment
+     * @var \UTest\Kernel\Test\Assignment $assignedTest
      */
     private $assignedTest = null;
 
     /**
-     * @var \UTest\Kernel\Test\Test
+     * @var \UTest\Kernel\Test\Test $baseTest
      */
     private $baseTest = null;
 
@@ -316,7 +317,11 @@ class Passage
             ])
             ->first();
 
-        return true;
+        if (!$this->passageData) {
+            $this->setErrors('Данные проходимого теста не найдены');
+        }
+
+        return !empty($this->passageData);
     }
 
     /**
@@ -326,7 +331,7 @@ class Passage
     private function loadTimeData()
     {
         $this->clearErrors();
-        if (!$this->checkPermissions([self::CHECK_UID, self::CHECK_ATID])) {
+        if (!$this->checkPermissions([self::CHECK_UID, self::CHECK_ATID, self::CHECK_RETAKE])) {
             return false;
         }
 
@@ -348,7 +353,7 @@ class Passage
     private function loadLastAnswerData()
     {
         $this->clearErrors();
-        if (!$this->checkPermissions([self::CHECK_UID, self::CHECK_ATID])) {
+        if (!$this->checkPermissions([self::CHECK_UID, self::CHECK_ATID, self::CHECK_RETAKE])) {
             return false;
         }
 
@@ -559,7 +564,7 @@ class Passage
     public function start()
     {
         $this->clearErrors();
-        if (!$this->checkPermissions([self::CHECK_UID, self::CHECK_ATID]) || ($this->getStatus() != self::STATUS_WAITED_FOR_START && $this->hasEqualComplexRetake())) {
+        if (!$this->checkPermissions([self::CHECK_UID, self::CHECK_ATID, self::CHECK_RETAKE]) || ($this->getStatus() != self::STATUS_WAITED_FOR_START && $this->hasEqualComplexRetake())) {
             return false;
         }
 
@@ -725,7 +730,7 @@ class Passage
     public function saveAnswer($v = [], $number = null)
     {
         $this->clearErrors();
-        if (!$this->checkPermissions([self::CHECK_UID, self::CHECK_ATID])) {
+        if (!$this->checkPermissions([self::CHECK_UID, self::CHECK_ATID, self::CHECK_RETAKE])) {
             return false;
         }
 
@@ -798,7 +803,7 @@ class Passage
     public function getUsedQuestionsIds()
     {
         $this->clearErrors();
-        if (!$this->checkPermissions([self::CHECK_UID, self::CHECK_ATID])) {
+        if (!$this->checkPermissions([self::CHECK_UID, self::CHECK_ATID, self::CHECK_RETAKE])) {
             return false;
         }
 
@@ -855,7 +860,8 @@ class Passage
         $errorMessages = [
             self::CHECK_UID => 'Учащийся не загружен',
             self::CHECK_ATID => 'Тест не загружен',
-            self::CHECK_AID => 'Вопрос не загружен'
+            self::CHECK_AID => 'Вопрос не загружен',
+            self::CHECK_RETAKE => 'Несуществующий номер пересдачи'
         ];
 
         $result = 0;
@@ -872,6 +878,10 @@ class Passage
 
                 case self::CHECK_AID:
                     $check = !empty($this->aid);
+                    break;
+
+                case self::CHECK_RETAKE:
+                    $check = $this->retake == $this->passageData['retake'];
                     break;
 
                 default:

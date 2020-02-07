@@ -20,17 +20,22 @@ class PrepodResultsController extends \UTest\Kernel\Component\Controller
                 'add_breadcrumb' => true
             ],
             '/<group_code>/<subject_code>/gretake/<gid>' => [
-                'action' => 'gretake',
+                'action' => 'retake_group',
                 'title' => 'Пересдача теста',
                 'add_breadcrumb' => true
             ],
-            '/<group_code>/<subject_code>/<tid>' => [
+            '/<group_code>/<subject_code>/<atid>' => [
                 'action' => 'students',
                 'title' => 'Результаты тестирования',
                 'add_breadcrumb' => true
             ],
-            '/<group_code>/<subject_code>/<tid>/sretake/<uid>' => [
-                'action' => 'sretake',
+            '/<group_code>/<subject_code>/<atid>/result/<uid>' => [
+                'action' => 'result',
+                'title' => 'Пересдача теста',
+                'add_breadcrumb' => true
+            ],
+            '/<group_code>/<subject_code>/<atid>/sretake/<uid>' => [
+                'action' => 'retake_student',
                 'title' => 'Пересдача теста',
                 'add_breadcrumb' => true
             ],
@@ -38,25 +43,14 @@ class PrepodResultsController extends \UTest\Kernel\Component\Controller
         'vars_rules' => array(
             'subject_code' => '[-_a-zA-Z0-9]',
             'group_code' => '[-_a-zA-Z0-9]',
-            'tid' => '[0-9]',
-            'for_tid' => '[0-9]',
+            'atid' => '[0-9]',
             'uid' => '[0-9]',
             'gid' => '[0-9]',
         )
     );
-    
-    // Список контроллеров, для которых не нужно обрабатывать "общий" result
-    private $arNotResult = array(
-        'sretake',
-        'gretake',
-    );
 
     public function run()
     {
-        /*if (!in_array($this->action, $this->arNotResult)) {
-            $this->model->doAction($this->action);
-        }*/
-        
         switch ($this->action) {
             case 'subjects':
                 $this->doAction($this->action, $this->getVars('group_code'));
@@ -68,31 +62,20 @@ class PrepodResultsController extends \UTest\Kernel\Component\Controller
                 $html = $this->loadView($this->action);
                 break;
 
+            case 'students':
+                $this->doAction($this->action, $this->getVars(['group_code', 'subject_code', 'atid']));
+                $html = $this->loadView($this->action);
+                break;
 
-            case 'for':                
-                if ($this->model->vars['tid'])
-                    $html = $this->loadView('testlist');
-                elseif ($this->model->vars['subject_code'])
-                    $html = $this->loadView('fortests');
-                elseif ($this->model->vars['group_code'])
-                    $html = $this->loadView('forsubject');
-                else
-                    $html = $this->loadView($this->action);
-                break;
-            
-            case 'sretake':
-                $this->doAction($this->action, $this->getVars(['for_tid', 'uid']));
+            case 'result':
+            case 'retake_student':
+                $this->doAction($this->action, $this->getVars(['atid', 'uid']));
                 $html = $this->loadView($this->action);
                 break;
             
-            case 'gretake':
-                $this->doAction($this->action, $this->getVars(['for_tid', 'gid']));
+            case 'retake_group':
+                $this->doAction($this->action, $this->getVars(['atid', 'gid']));
                 $html = $this->loadView($this->action);
-                break;
-            
-            case 'r':                
-                $this->model->doAction($this->action, array($this->model->vars['for_tid'], $this->model->vars['uid']));
-                $html = $this->loadView('result');
                 break;
             
             default:

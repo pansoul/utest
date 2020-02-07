@@ -303,6 +303,27 @@ class Assignment
         return $this->assignData['test_id'];
     }
 
+    public function assignRetake($id, $isGroup = false, $force = false)
+    {
+        $this->clearErrors();
+        if (!$this->checkPermissions(self::CHECK_ATID)) {
+            return false;
+        }
+
+        $dataSeek = [
+            'test_id' => $this->getAssignedTestId(),
+            'user_id' => $id
+        ];
+
+        $rows = DB::table(TABLE_STUDENT_TEST_PASSAGE)->where($dataSeek)->update(['retake' => DB::raw('retake + 1')]);
+
+        if (!$rows) {
+            //$this->setErrors('Отсутствуют ');
+        }
+
+        return !empty($rows);
+    }
+
     /**
      * Проверяет на наличие необходимых загруженных данных
      * @param null $types

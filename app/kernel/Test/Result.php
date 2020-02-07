@@ -21,6 +21,7 @@ class Result
     private $retake = 0; // Номер пересдачи
     private $amountRightUserAnswers = 0;
 
+    private $userData = [];
     private $options = [];
     private $passageData = [];
     private $timeData = [];
@@ -28,9 +29,14 @@ class Result
     private $userAnswersList = [];
 
     /**
-     * @var \UTest\Kernel\Test\Passage
+     * @var \UTest\Kernel\Test\Passage $passage
      */
     private $passage = null;
+
+    /**
+     * @var \UTest\Kernel\User\User $user
+     */
+    private $user = null;
 
     public function __construct($uid, $atid, $retake = null)
     {
@@ -40,6 +46,8 @@ class Result
             $this->setErrors($this->passage->getErrors());
             $this->passage = null;
         } else {
+            $this->user = User::user($uid);
+
             $this->options = $this->passage->getOptions();
             $this->passageData = $this->passage->getPassageData();
             $this->assignData = $this->passage->getAssignData();
@@ -221,8 +229,19 @@ class Result
         return $meta;
     }
 
+    public function getUserData($fullNameOnly = false)
+    {
+        $this->clearErrors();
+        if (!$this->checkPermissions(self::CHECK_UID)) {
+            return false;
+        }
+
+        return $fullNameOnly ? $this->user->getFullName() : $this->user->getFields();
+    }
+
     private function loadUserAnswersList()
     {
+        $this->clearErrors();
         $amountRightUserAnswers = 0;
         $userAnswersList = array_fill(1, $this->getNumberQuestions(), null);
         $answers = DB::table(TABLE_STUDENT_TEST_ANSWER)
@@ -237,6 +256,12 @@ class Result
             $question = unserialize($item['q'])['question'];
             $userAnswer = unserialize($item['user_answer']);
             $qTypeClass = Test::getQuestionTypeClass($question['type']);
+
+            if (!$qTypeClass) {
+                $this->setErrors("Вопрос [{$item['id']}] имеет несуществующий тип вопроса");
+                return false;
+            }
+
             $qTypeEntity = new $qTypeClass($item['question_id']);
             $qTypeEntity->loadAnswersList();
             $amountRightUserAnswers += $qTypeEntity->check($userAnswer);
@@ -253,6 +278,8 @@ class Result
 
         $this->userAnswersList = $userAnswersList;
         $this->amountRightUserAnswers = $amountRightUserAnswers;
+
+        return true;
     }
 
     private function checkPermissions($types = null)
