@@ -1,17 +1,22 @@
 <form class="main-form" action="" method="post">
-    
-    <? 
-    if (!empty($arResult['errors'])) {
-        echo UForm::error($arResult['errors'], true);
-    } 
-    ?>
-    
+    <?if (!empty($arResult['errors'])):?>
+        <div class="alert alert-danger">
+            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+            <ul class="noliststyle">
+            <?foreach ($arResult['errors'] as $k => $v):?>
+                <li><?=$v?></li>
+            <?endforeach;?>
+            </ul>
+        </div>
+    <?endif;?>
     <div class="form-group">
-        <?=UForm::input('text', 'login', $arResult['request']->_POST['login'], 'form-control', false, array('placeholder'=>'Ваш логин', 'autocomplete'=>'off'))?>        
-    </div>    
+        <?=UForm::input('text', 'login', $arResult['request']->_post['login'], 'form-control', false, array('placeholder'=>'Ваш логин', 'autocomplete'=>'off'))?>        
+    </div>
+    
     <div class="form-group">
         <?=UForm::input('password', 'pass', false, 'form-control', false, array('placeholder'=>'Ваш пароль'))?>        
-    </div>    
+    </div>
+    
     <div>
         <?=UForm::button('Войти', 'btn btn-warning')?>
     </div>  

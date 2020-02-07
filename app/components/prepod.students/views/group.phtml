@@ -9,29 +9,30 @@ $arTitles = array(
 $items = $arResult['data']['form'];
 ?>
 
-<? 
-if (empty($items)) { 
-    echo UForm::info('Список пуст');
-    return;     
-} 
-?>
+<?if (empty($items)):?>
+    Список пуст
+<?else:?>
 
-<div class="bs-callout bs-callout-warning">    
-    Для смены паролей студентам необходимо перейти в <b>группу</b>    
-</div>
-
-<table class="table table-hover">
-    <thead>
-        <tr>
-        <?foreach($arTitles as $title):?>
-            <th><?=$title?></th>
+    <div class="bs-callout bs-callout-warning">
+        <p>
+            Для смены паролей студентам необходимо перейти в <b>группу</b>
+        </p>
+    </div>
+    
+    <table class="table table-hover">
+        <thead>
+            <tr>
+            <?foreach($arTitles as $title):?>
+                <th><?=$title?></th>
+            <?endforeach?>
+            </tr>
+        </thead>
+        <?foreach($items as $k => $v):?>
+            <tr>                    
+                <td><a href="<?=USite::getModurl()?>/group/<?=$v['alias']?>"><?=$v['title']?></a> <span rel="tooltip" data-placement="right" data-toggle="tooltip" title="Количество студентов в группе" class="badge"><?=$v['students_count']?></span></td>
+                <td><?=$v['speciality_name']?></td>                    
+            </tr>
         <?endforeach?>
-        </tr>
-    </thead>
-    <?foreach($items as $k => $v):?>
-        <tr>                    
-            <td><a href="<?=USite::getModurl()?>/group/<?=$v['alias']?>"><?=$v['title']?></a> <span rel="tooltip" data-placement="right" data-toggle="tooltip" title="Количество студентов в группе" class="badge"><?=$v['students_count']?></span></td>
-            <td><?=$v['speciality_name']?></td>                    
-        </tr>
-    <?endforeach?>
-</table>            
+    </table>            
+    
+<?endif;?>

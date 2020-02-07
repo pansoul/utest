@@ -1,13 +1,13 @@
 <?
-$v = $arResult['request']->_POST ?: $arResult['data'];
+$v = $arResult['request']->_post ? $arResult['request']->_post : $arResult['data'];
 ?>
 
+<?if($_SESSION['update'] == 'Y'):?>
+    <div class="alert alert-success">Данные успешно изменены</div>
 <?
-if ($_SESSION['update'] == 'Y') {
-    echo UForm::success('Данные успешно изменены');
-    unset($_SESSION['update']);
-}
-?>  
+unset($_SESSION['update']);
+endif;
+?>   
 
 <form class="form-horizontal" method="post" action="">
     <div class="form-group">
@@ -23,29 +23,17 @@ if ($_SESSION['update'] == 'Y') {
         </div>
     </div>   
     <div class="form-group">
-        <label class="col-lg-2 control-label">Адрес(а):</label>
+        <label class="col-lg-2 control-label">Адрес:</label>
         <div class="col-lg-10">
             <?=UForm::textarea('address', $v['address'], 'form-control')?>            
         </div>
     </div>
     <div class="form-group">
-        <label class="col-lg-2 control-label">Телефон(ы):</label>
+        <label class="col-lg-2 control-label">Телефон:</label>
         <div class="col-lg-10">
-            <?=UForm::textarea('phone', htmlspecialchars($v['phone']), 'form-control ckeditor')?>            
+            <?=UForm::textarea('phone', $v['phone'], 'form-control')?>            
         </div>
     </div> 
-    <div class="form-group">
-        <label class="col-lg-2 control-label">Контакты:</label>
-        <div class="col-lg-10">
-            <?=UForm::textarea('contacts', $v['contacts'], 'form-control')?>            
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-lg-2 control-label">Информация:</label>
-        <div class="col-lg-10">
-            <?=UForm::textarea('info', htmlspecialchars($v['info']), 'form-control ckeditor')?>            
-        </div>
-    </div>
     <div class="form-group">
         <div class="col-lg-offset-2 col-lg-10">
             <?=UForm::button('Применить', 'btn btn-default')?>            

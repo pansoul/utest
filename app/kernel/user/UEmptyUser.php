@@ -16,11 +16,11 @@ final class UEmptyUser {
     
     public function __call($name, $arguments)
     {   
-        print UForm::warning("Не удалось вызвать метод '{$name}'! Объект пользователя (Id = {$this->uid}) не создан");        
+        print USiteErrors::warning("Объект пользователя (Id = {$this->uid}) не создан");        
     }
     
     public function __callStatic($name, $arguments)
     {
-        print UForm::warning("Не удалось вызвать метод '{$name}'! Объект пользователя (Id = {$this->uid}) не создан");        
+        print USiteErrors::warning("Объект пользователя (Id = {$this->uid}) не создан");        
     }
 }

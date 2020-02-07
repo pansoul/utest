@@ -53,8 +53,8 @@ class StudentMaterialsModel extends UModel {
                 $records = R::getAll($sql);
                 $res = R::convertToBeans($this->table_student_material, $records);
                 
-                if ($this->request->_GET['download']) 
-                    $this->fileDownload($this->request->_GET['download']);
+                if ($this->request->_get['download']) 
+                    $this->fileDownload($this->request->_get['download']);
             }
         }
 
@@ -91,7 +91,7 @@ class StudentMaterialsModel extends UModel {
         if (file_exists($file)) {
             // сбрасываем буфер вывода PHP, чтобы избежать переполнения памяти выделенной под скрипт
             // если этого не сделать файл будет читаться в память полностью!
-            if (ob_GET_level()) {
+            if (ob_get_level()) {
                 ob_end_clean();
             }
 

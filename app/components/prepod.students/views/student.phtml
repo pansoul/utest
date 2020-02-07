@@ -7,7 +7,7 @@ $arTitles = array(
     'Логин',
     'Контактный телефон',
     'Контактный e-mail',
-    'Управление'
+    ''
 );
 
 $newDataUsers = $arResult['data']['users'];
@@ -22,38 +22,41 @@ if (is_array($newDataUsers)) {
 }
 ?>
 
-<? 
-if (empty($items)) { 
-    echo UForm::info('Список пуст');
-    return;     
-} 
-?>
+<?if (empty($items)):?>
+    Список пуст
+<?else:?>
     
-<? 
-if (!empty($arResult['errors'])) {
-    echo UForm::error($arResult['errors'], true);
-} 
-?>
-
-<form action="" method="post" class="formaction">
-    <table class="table table-hover">
-        <thead>
-            <tr>
-            <?foreach($arTitles as $title):?>
-                <th><?=$title?></th>
+    <?if (!empty($arResult['errors'])):?>
+        <div class="alert alert-danger">
+            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+            <ul class="noliststyle">
+            <?foreach ($arResult['errors'] as $k => $e):?>
+                <li><?=$e?></li>
+            <?endforeach;?>
+            </ul>
+        </div>
+    <?endif;?>
+    
+    <form action="" method="post" class="formaction">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                <?foreach($arTitles as $title):?>
+                    <th><?=$title?></th>
+                <?endforeach?>
+                </tr>
+            </thead>
+            <?foreach($items as $k => $v):?>
+                <tr>
+                    <td><?=UForm::checkbox("i[item_{$v['id']}]", $v['id'], 'check-one')?></td>
+                    <td><?=$v['last_name']?> <?=$v['name']?> <?=$v['surname']?></td>
+                    <td><?=$v['login']?></td>
+                    <td><?=$v['phone'] ? $v['phone'] : '-'?></td>
+                    <td><?=$v['email'] ? $v['email'] : '-'?></td>
+                    <td class="last-column"><?=UForm::btnEdit(USite::getModurl().'/editstudent/', $v['id'])?></td>
+                </tr>
             <?endforeach?>
-            </tr>
-        </thead>
-        <?foreach($items as $k => $v):?>
-            <tr>
-                <td class="checkbox-column"><?=UForm::checkbox("i[item_{$v['id']}]", $v['id'], 'check-one')?></td>
-                <td><?=$v['last_name']?> <?=$v['name']?> <?=$v['surname']?></td>
-                <td><?=$v['login']?></td>
-                <td><?=$v['phone'] ? $v['phone'] : '-'?></td>
-                <td><?=$v['email'] ? $v['email'] : '-'?></td>
-                <td class="last-column"><?=UForm::btnEdit(USite::getModurl().'/editstudent/', $v['id'])?></td>
-            </tr>
-        <?endforeach?>
-    </table>
-    <?=UForm::button('Сгенерировать нов. пароли и распечатать', 'btn btn-primary newpass-selected', 'newpass_all', 'Y', 'submit', true)?>
-</form>
+        </table>
+        <?=UForm::button('Сгенерировать нов. пароли и распечатать', 'btn btn-primary newpass-selected', 'newpass_all', 'Y', 'submit', true)?>
+    </form>
+<?endif?>

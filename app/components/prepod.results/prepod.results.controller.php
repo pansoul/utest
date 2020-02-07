@@ -54,7 +54,7 @@ class PrepodResultsController extends USiteController {
     public function run()
     {
         if (!in_array($this->action, $this->arNotResult))
-            $result = $this->model->doAction($this->action);                      
+            $result = $this->model->doAction($this->action);              
         
         switch ($this->action) {
             case 'for':                
@@ -78,7 +78,7 @@ class PrepodResultsController extends USiteController {
                 $html = $this->loadView('gretake', $result);
                 break;
             
-            case 'r':                
+            case 'r':
                 $result = $this->model->doAction($this->action, array($this->model->vars['for_tid'], $this->model->vars['uid']));
                 $html = $this->loadView('result', $result);
                 break;
@@ -88,7 +88,7 @@ class PrepodResultsController extends USiteController {
                 break;
         }        
         
-        $this->putModContent($html);
+        return $html;
     }
 
 }

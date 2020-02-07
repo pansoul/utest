@@ -1,12 +1,12 @@
 $(document).ready(function() {
     
-    $("#answer-type-select").on('change', function() {
+    $("#answer-type-select").change(function() {
         var type = $(this).val(),
             url = $('input[name="url"]').val(),
-            $al = $('#answer-list');
+            al = $('#answer-list');
             
-        if (type == 0) {
-            $al.html('Создание вариантов ответов будет доступно после выбора типа вопроса.');
+        if (type === '0') {
+            al.html('Создание вариантов ответов будет доступно после выбора типа вопроса.');
             return false;
         }
             
@@ -15,7 +15,7 @@ $(document).ready(function() {
             url: url + '/newtype/' + type,
             success: function(data)
             {
-                $al.html(data);
+                al.html(data);
                 $('.answer-table tr:last-child .answer-text').focus();
             },
             error: function()
@@ -25,15 +25,11 @@ $(document).ready(function() {
         });
     });
     
-    $(document).on('click', '.btn-add-answer', function(e){
-        e.preventDefault();
-        
-        var $tbody = $('.answer-table tbody'),
+    $('.btn-add-answer').live('click', function(){
+        var tbody = $('.answer-table tbody'),
             url = $('input[name="url"]').val(),            
-            type = $('#answer-type-select').length 
-                ? $('#answer-type-select option:selected').val() 
-                : $('input[name="question[type]"]').val(),
-            curCount = $tbody.find('tr').length;
+            type = $('#answer-type-select').length  ? $('#answer-type-select option:selected').val() : $('input[name="question[type]"]').val(),
+            curCount = $('.answer-table tbody tr').length;
         
         $.ajax({
             dataType: 'html',
@@ -45,23 +41,22 @@ $(document).ready(function() {
             },
             success: function(data)
             {
-                $tbody.append(data);
+                tbody.append(data);
                 
-                // только для типа вопроса "Порядок значимости"
-                if (type === 'order') {                    
-                    curCount++;
+                // only for order-type answer
+                if (type === 'order') {
+                    var newCount = ++curCount;
                     $('.answer-select-order').each(function(){
-                        var $select = $(this),
-                            count = $select.find('option').length;
-                        if (count !== curCount) {
-                            for (var i = ++count; i <= curCount; i++)
+                        var count = $(this).find('option').length;
+                        if (count !== newCount) {
+                            for (var i = ++count; i <= newCount; i++)
                             {
-                                $select.append('<option value=' + i + '>' + i + '</option>');
+                                $(this).append('<option value=' + i + '>' + i + '</option>');
                             }
                         }
                     });
                 }
-                // конец
+                //end
                 
                 $('.answer-table tr:last-child .answer-text').focus();                
             },
@@ -70,69 +65,54 @@ $(document).ready(function() {
                 alert('Error adding a new answer');                
             }
         });
+        
+        return false;
     });
     
-    $(document).on('click', '.answer-table .btn-delete', function(e){    
-        e.preventDefault();
-        
-        if (!confirm("Вы точно хотите удалить данный вариант?\nВариант удалится безвозвратно.")) {
-            return false;
-        }
-        
-        var $this = $(this),
-            url = $('input[name="url"]').val(), 
-            type = $('#answer-type-select').length 
-                ? $('#answer-type-select option:selected').val() 
-                : $('input[name="question[type]"]').val(),
-            params = $this.data('ids');
-            
-        // Удаление нового, ещё не сохранённого ответа
-        if (!params) {
-            _removeAnswerRow($this, type);
-            return false;
-        }
-
-        $.ajax({
-            dataType: 'json',
-            type: "GET",
-            url: url + '/delanswer/test-' + params,
-            success: function(data)
-            {
-                if (data.status === 'OK') {
-                    _removeAnswerRow($this, type);
-                } else {
-                    alert(data.status_message);
+    $('.answer-table .btn-delete').live('click', function() {
+        if (confirm("Вы точно хотите удалить данный вариант?\nВариант удалится безвозвратно.")) {
+            var url = $('input[name="url"]').val(), 
+                type = $('#answer-type-select').length  ? $('#answer-type-select option:selected').val() : $('input[name="question[type]"]').val(),
+                params = $(this).data('ids'),
+                that = $(this);
+                
+            $.ajax({
+                dataType: 'json',
+                type: "GET",
+                url: url + '/delanswer/test-' + params,
+                success: function(data)
+                {
+                    if (data.status === 'OK') {
+                        that.closest("tr").fadeOut('normal', function() {
+                            
+                            // only for order-type answer
+                            if (type === 'order') {
+                                $('.answer-select-order').each(function() {
+                                    var last = $(this).find('option:last-child');
+                                    var selected = $(this).find('option:selected');   
+                                    if (selected.val() === last.val()) {                                        
+                                        var index = selected.index();
+                                        $(this).find('option').eq(--index).attr('selected','selected');
+                                    }                                    
+                                    last.remove();
+                                });
+                            }
+                            //end
+                            
+                            $(this).remove();
+                        });
+                    } else {
+                        alert(data.status_message);
+                    }
+                },
+                error: function()
+                {
+                    alert('Error deleting the answer');
                 }
-            },
-            error: function()
-            {
-                alert('Error deleting the answer');
-            }
-        });        
+            });
+        }
+        return false;
     });
-    
-    function _removeAnswerRow($o, type)
-    {
-        $o.closest("tr").fadeOut('normal', function() {
-
-            // только для типа вопроса "Порядок значимости"
-            if (type === 'order') {
-                $('.answer-select-order').each(function() {
-                    var $select = $(this),
-                        $last = $select.find('option:last-child'),
-                        selected = $select.find('option:selected');   
-                    if (selected.val() === $last.val()) {                                        
-                        var index = selected.index();
-                        $select.find('option').eq(--index).attr('selected','selected');
-                    }                                    
-                    $last.remove();
-                });
-            }
-            // конец
-
-            $(this).remove();
-        });
-    }
 
 });
 

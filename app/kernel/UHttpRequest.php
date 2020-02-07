@@ -6,25 +6,25 @@ class UHttpRequest {
      * $_GET массив
      * @var array
      */
-    public $_GET;
+    public $_get;
     
     /**
      * $_POST массив
      * @var array
      */
-    public $_POST;
+    public $_post;
     
     /**
      * $_REQUEST массив
      * @var array
      */
-    public $_REQUEST;
+    public $_requset;
     
     public function __construct()
     {
-        $this->_GET = $this->get();
-        $this->_POST = $this->post();
-        $this->_REQUEST = $this->request();
+        $this->_get = $this->get();
+        $this->_post = $this->post();
+        $this->_requset = $this->request();
     }
     
     /**
@@ -33,14 +33,7 @@ class UHttpRequest {
      */
     private function get()
     {
-        $safe = $this->convert2safe($_GET);
-        $original = array();
-        foreach ($_GET as $key => $value)
-        {
-            $value = get_magic_quotes_gpc() ? stripslashes($value) : $value;
-            $original['~' . $key] = $value;
-        }
-        return array_merge($safe, $original);
+        return $this->convert2safe($_GET);
     }
 
     /**
@@ -49,14 +42,7 @@ class UHttpRequest {
      */
     private function post()
     {
-        $safe = $this->convert2safe($_POST);
-        $original = array();
-        foreach ($_POST as $key => $value)
-        {
-            $value = get_magic_quotes_gpc() ? stripslashes($value) : $value;
-            $original['~' . $key] = $value;
-        }
-        return array_merge($safe, $original);        
+        return $this->convert2safe($_POST);
     }
 
     /**
@@ -65,14 +51,7 @@ class UHttpRequest {
      */
     private function request()
     {
-        $safe = $this->convert2safe($_REQUEST);
-        $original = array();
-        foreach ($_REQUEST as $key => $value)
-        {
-            $value = get_magic_quotes_gpc() ? stripslashes($value) : $value;
-            $original['~' . $key] = $value;
-        }
-        return array_merge($safe, $original);      
+        return $this->convert2safe($_REQUEST);
     }
     
     /**
@@ -125,7 +104,7 @@ class UHttpRequest {
      */
     public static function convert2safe($str)
     {        
-        switch (gettype($str)) {            
+        switch (gettype($str)) {
             case 'array':
                 $arClean = array();
                 foreach ($str as $k => $v)
@@ -137,13 +116,12 @@ class UHttpRequest {
                 
             case 'string':                                
                 return get_magic_quotes_gpc() 
-                    ? htmlspecialchars (stripslashes(trim($str)), ENT_COMPAT | ENT_HTML401, 'UTF-8')
-                    : htmlspecialchars (trim($str), ENT_COMPAT | ENT_HTML401, 'UTF-8');
+                    ? htmlspecialchars(stripslashes(trim($str)))
+                    : htmlspecialchars(trim($str));
                 break;
             
             default:
                 return $str;
-                break;
         }
     }
 }

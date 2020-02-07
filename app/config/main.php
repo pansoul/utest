@@ -1,7 +1,5 @@
 <?php
 
-session_start();
-
 /** 
  * Определим переменную корня нашего приложения
  */
@@ -24,26 +22,6 @@ define('KERNEL_PATH', APP_PATH . '/kernel');
 
 // Автозагрузчик классов
 $LOADER = require APP_PATH . '/autoload.php';
-
-// Таблицы
-define('TABLE_USER', 'u_user');
-define('TABLE_USER_ROLES', 'u_user_roles');
-define('TABLE_UNIVER_DATA', 'u_univer_data');
-define('TABLE_UNIVER_FACULTY', 'u_univer_faculty');
-define('TABLE_UNIVER_GROUP', 'u_univer_group');
-define('TABLE_UNIVER_SPECIALITY', 'u_univer_speciality');
-define('TABLE_PREPOD_MATERIAL', 'u_prepod_material');
-define('TABLE_PREPOD_SUBJECT', 'u_prepod_subject');
-define('TABLE_STUDENT_MATERIAL', 'u_student_material');
-define('TABLE_STUDENT_TEST', 'u_student_test');
-define('TABLE_STUDENT_TEST_ANSWER', 'u_student_test_answer');
-define('TABLE_STUDENT_TEST_PASSAGE', 'u_student_test_passage');
-define('TABLE_STUDENT_TEST_TIME', 'u_student_test_time');
-define('TABLE_TEST', 'u_test');
-define('TABLE_TEST_ANSWER', 'u_test_answer');
-define('TABLE_TEST_QUESTION', 'u_test_question');
-
-define('ERROR_ELEMENT_NOT_FOUND', 404);
  
 /**
  * Возвращаемый массив настроек для работы приложения
@@ -54,40 +32,22 @@ define('ERROR_ELEMENT_NOT_FOUND', 404);
 return array(
     // Ветвь для подключения БД
     'db' => array(
-        'host' => $_SERVER['REMOTE_ADDR'],	// адрес MySQL хоста
-        'port' => '',	// номер порта для подключения
-        'user' => 'root',	// имя пользователя БД
-        'pass' => '',	// пароль пользователя БД
-        'name' => 'utest'	// название БД
+        'host' => '#host#',	// адрес MySQL хоста
+		'port' => '#port#',	// номер порта для подключения
+        'user' => '#user#',	// имя пользователя БД
+        'pass' => '#pass#',	// пароль пользователя БД
+        'name' => '#name#'	// название БД
     ),
     
     // Ветвь для отладки приложения
     // Функционал рекомендован чисто для разработки
-    'debug' => array(                
-        // Активность режима отладки в целом
-        'enable' => true, 
-        
-        // Режим отладки при работе с БД.
-        // При включенном состоянии показывает диагностические сообщения работы sql        
-        'db_debug' => false, 
-        
-        // Режим отладки при работе с компонентами.
-        // При включенном режиме показывает диагностическую информацию о каждом 
-        // подключенном компоненте на странице
-        'component_debug' => 0,
-        
-        // Протоколирования ошибок. Содержит битовую маску или именованные константы ошибок.
-        // При указании значения 1 будут включены все PHP ошибки.
-        'register_errors' => E_ALL ^ E_NOTICE ^ E_WARNING, 
-        
-        // Отображать ли сообщения об ошибках на экран или записывать их в файл
-        'display_errors' => true, 
-        
-        // Куда будут сохраняться сообщения об ошибках  
-        'error_log' => __DIR__ . '/php_error.log',     
-        
-        // @TODO куда будут записываться сообщения и другие данные о работе приложения
-        //'logfile' => __DIR__ . '/work.log' 
+    'debug' => array(
+        'enable' => true, // принимает 2 значения (true|false). При отключении будут проигнорированы все настройки кроме logfile-файла
+        'db_debug' => false, // принимает 2 значений (true|false). При включенном состоянии показывает диагностические сообщения работы sql
+        'register_errors_all' => 0, // показывать абсолютно все ошибки и предупреждения(1), или с ограничениями(0)
+        'display_errors' => 1, // Показывать ли выводимые сообщения об ошибках на экран(1) или в файл(0)
+        'error_log' => __DIR__ . '/php_error.log', // Куда будут сохраняться сообщения об ошибках        
+        //'logfile' => __DIR__ . '/work.log' // куда будут записываться сообщения и другие данные о работе приложения. @todo!!!
     ),    
     
     // Здесь определяем какую тему применить
@@ -124,8 +84,9 @@ return array(
         // загружен компонент "test", при этом страница будет доступна всем
         // 
         // Внимание! Переопределение системных алиасов на пользовательские или же
-        // запуск компонетов, зависящих от типа пользователя (авторизации),
-        // на пользовательских алиасах может иметь непредсказуемый результат! 
+        // определение компонетов, зависящих от типа пользователя (авторизации),
+        // к пользовательским алиасам может иметь непредсказуемый исход! 
+        // Будьте внимательны!
     )
 );
 

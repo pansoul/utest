@@ -2,17 +2,20 @@
 
 abstract class AbstractType {
     
-    protected $qid;    
+    protected $qid;
     
     protected $arRequired = array();
     protected $validVariant;
-    protected $validRight;    
+    protected $validRight;
+
+    protected $table_answer = 'u_test_answer';
+    protected $table_question = 'u_test_question';
     
     public $last_error;
 
     public function __construct($qid = 0)
     {
-        $this->qid = $qid;        
+        $this->qid = $qid;
     }
     
     abstract public function validate();
@@ -21,7 +24,7 @@ abstract class AbstractType {
     
     public function delete($aid) 
     {
-        $bean = R::findOne(TABLE_TEST_ANSWER, 'id = ? AND question_id = ?', array($aid, $this->qid));
+        $bean = R::load($this->table_answer, $aid);
         
         if ($bean->id) {
             R::trash($bean);
@@ -35,17 +38,6 @@ abstract class AbstractType {
     public function getValidVariant()
     {
         return $this->validVariant;
-    }
-    
-    public function checkQuestionExists()
-    {
-        $bean = R::load(TABLE_TEST_QUESTION, $this->qid);
-        if ($bean->id) {
-            return true;
-        } else {
-            $this->last_error = array('Id вопроса не найден или указан неверно');
-            return false;
-        }
     }
     
 }

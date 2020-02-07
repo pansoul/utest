@@ -3,20 +3,23 @@ UAppBuilder::setH($arResult['vars']['id'] ? 'Редактирование спе
 UAppBuilder::addBreadcrumb (UAppBuilder::getH(), USite::getUrl());
 
 $v = $arResult['data']['form'];
-?>
 
-<? 
-if ($arResult['errors_code'] == ERROR_ELEMENT_NOT_FOUND) {
-    echo UForm::error( $arResult['errors'] );
-    return; 
-} 
-?>
-
-<?
-if (!empty($arResult['errors'])) {    
-    echo UForm::error($arResult['errors'], true);
+if($arResult['vars']['id'] && empty($v['id']) || empty($arResult)) {
+    echo 'Специальность не найдена';
+    return;
 }
 ?>
+
+<?if (!empty($arResult['errors'])):?>
+    <div class="alert alert-danger">
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+        <ul class="noliststyle">
+        <?foreach ($arResult['errors'] as $k => $e):?>
+            <li><?=$e?></li>
+        <?endforeach;?>
+        </ul>
+    </div>
+<?endif;?>
 
 <form class="form-horizontal" method="post" action="">
     <div class="form-group">
@@ -28,7 +31,7 @@ if (!empty($arResult['errors'])) {
     <div class="form-group">
         <label class="col-lg-2 control-label">Код специальности:<?=UForm::isRequired()?></label>
         <div class="col-lg-10">
-            <?=UForm::input('text', 'code', $v['code'] , 'form-control', false)?>            
+            <?=UForm::input('text', 'code', $v['code'] , 'form-control', false, array('autofocus' => 'autofocus'))?>            
         </div>
     </div>
     <div class="form-group">

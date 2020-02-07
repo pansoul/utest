@@ -10,9 +10,9 @@ class PrepodStudentsModel extends UModel {
 
     public function groupAction()
     {
-        if ($this->request->_POST['newpass_all']) {
+        if ($this->request->_post['newpass_all']) {
             $users = array();
-            foreach ($this->request->_POST['i'] as $id)
+            foreach ($this->request->_post['i'] as $id)
             {
                 if (!intval($id))
                     continue;
@@ -66,8 +66,8 @@ class PrepodStudentsModel extends UModel {
                 UAppBuilder::addBreadcrumb($r['title'], USite::getModurl().$in);                
             }
         }
-        if ($this->request->_POST['a']) {
-            $v = $this->request->_POST;            
+        if ($this->request->_post['a']) {
+            $v = $this->request->_post;            
             
             $user = UUser::user()->doAction('admin', 'edit', array(array('password' => $v['password']), $v['id']));
             if ($user && empty($v['password']))

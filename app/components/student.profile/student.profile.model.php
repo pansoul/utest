@@ -11,8 +11,8 @@ class StudentProfileModel extends UModel {
     {   
         $v = UUser::user()->getFields($this->arAvailableEdit);        
         
-        if ($this->request->_POST['a']) {             
-            $v = array_intersect_key($this->request->_POST, $v);     
+        if ($this->request->_post['a']) {             
+            $v = array_intersect_key($this->request->_post, $v);     
             
             if (UUser::user()->doAction('admin', 'edit', array($v, UUser::user()->getUID()))) {
                 $_SESSION['update'] = 'Y';

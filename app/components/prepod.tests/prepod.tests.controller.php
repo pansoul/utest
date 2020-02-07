@@ -3,29 +3,6 @@
 class PrepodTestsController extends USiteController {
     
     public $arTabs;
-    
-    /*
-     * 'mySubjects' => '/my',
-            'myTests' => '/my/<subject_code>',
-            'myTestNew' => '/my/<subject_code>/new',
-            'myTestEdit' => '/my/<subject_code>/<my_test_edit>',
-            'myTestDelete' => '/my/<subject_code>/<my_test_delete>',
-            'myTestQuestions' => '/my/<subject_code>/<tid>',
-            'myTestQuestionNew' => '/my/<subject_code>/<tid>/new',
-            'myTestQuestionEdit' => '/my/<subject_code>/<tid>/<my_question_edit>',
-            'myTestQuestionDelete' => '/my/<subject_code>/<tid>/<my_question_delete>',
-     * 
-     * 
-     * 'mySubjects' => '/my',
-'myTests' => '/my/<subject_code>',
-'myTestNew' => '/my/<subject_code>/new',
-'myTestEdit' => '/my/<subject_code>/<my_test_edit>',
-'myTestDelete' => '/my/<subject_code>/<my_test_delete>',
-'myTestQuestions' => '/my/<subject_code>/<tid>',
-'myTestQuestionNew' => '/my/<subject_code>/<tid>/new',
-'myTestQuestionEdit' => '/my/<subject_code>/<tid>/<my_question_edit>',
-'myTestQuestionDelete' => '/my/<subject_code>/<tid>/<my_question_delete>',
-     */
 
     protected $routeMap = array(
         'setTitle' => 'Тесты',
@@ -100,8 +77,7 @@ class PrepodTestsController extends USiteController {
         'editmyquestion',
         'delquestion',
         'delanswer',
-        'delete',
-        'answerdisplay'
+        'delete'
     );
 
     public function run()
@@ -117,9 +93,8 @@ class PrepodTestsController extends USiteController {
             )
         );
         
-        if (!in_array($this->action, $this->arNotResult)) {
+        if (!in_array($this->action, $this->arNotResult))
             $result = $this->model->doAction($this->action);              
-        }
         
         switch ($this->action) {
             case 'my':
@@ -164,13 +139,13 @@ class PrepodTestsController extends USiteController {
             
             // for ajax
             case 'newtype':
-                $html = $this->loadView('answer_' . $this->model->vars['qtype'], $result);
+                $html = $this->loadView($this->model->vars['qtype'], $result);
                 echo $html;
                 exit;
                 break;
             
             // for ajax
-            case 'delanswer':                
+            case 'delanswer':
                 $result = $this->model->doAction($this->action, array($this->model->vars['tid'], $this->model->vars['qid'], $this->model->vars['id']));
                 echo $result;
                 exit;
@@ -184,17 +159,12 @@ class PrepodTestsController extends USiteController {
                 $result = $this->model->doAction($this->action, array($this->model->vars['type'], $this->model->vars['id']));
                 break;
             
-            case 'answerdisplay':
-                $result = $this->model->doAction($this->action, $this->actionArgs);     
-                $html = $this->loadView('answer_'.$this->actionArgs[0], $result);
-                break;
-            
             default:
                 $html = $this->loadView($this->action, $result);
                 break;
         }        
         
-        $this->putModContent($html);
+        return $html;
     }
 
 }

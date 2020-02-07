@@ -5,7 +5,7 @@ $arTitles = array(
     'ФИО студента',
     'Статус теста',
     'Количество пересдач',    
-    'Управление'
+    ''
 );
 
 
@@ -46,10 +46,10 @@ $arClassOfStatus = array(
                 </td>
                 <td><?=$v['retake_value']?></td>      
                 <td class="last-column">
-                    <?=UForm::btnResult(USite::getModurl().'/r/', 'for-'.$this->model->vars['tid'].'/'.$v['id'])?>
                     <?if($v['test_status'] == 2):?>
-                        <?=UForm::btnRetake(USite::getModurl().'/sretake/', 'for-'.$this->model->vars['tid'].'/'.$v['id'], array('title'=>'Назначить пересдачу данному студенту'))?>
-                    <?endif;?>
+                        <?=UForm::btnResult(USite::getModurl().'/r/', 'for-'.$this->model->vars['tid'].'/'.$v['id'])?><!--
+                    --><?=UForm::btnRetake(USite::getModurl().'/sretake/', 'for-'.$this->model->vars['tid'].'/'.$v['id'], array('title'=>'Назначить пересдачу данному студенту'))?>
+                <?endif;?>
                 </td>
             </tr>
         <?endforeach?>

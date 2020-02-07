@@ -141,7 +141,7 @@ class PrepodResultsModel extends UModel {
                 t.test_id = {$tid}
                 AND t.user_id = {$uid}
         ";
-        $res = R::getRow($sql);          
+        $res = R::getRow($sql);        
         
         $url = USite::getModurl() . '/for/' . $res['group_alias'];
         UAppBuilder::addBreadcrumb($res['group_title'], $url);
@@ -153,8 +153,8 @@ class PrepodResultsModel extends UModel {
         UAppBuilder::addBreadcrumb($res['test_title'], $url);
         
         // Запрос на изменение
-        if ($this->request->_POST['a']) {
-            $v = $this->request->_POST;
+        if ($this->request->_post['a']) {
+            $v = $this->request->_post;
             
             if ($v['set_retake']) {
                 $dataRow = R::findOne($this->table_student_passage, 'test_id = :tid AND user_id = :uid', array(
@@ -203,8 +203,8 @@ class PrepodResultsModel extends UModel {
         UAppBuilder::addBreadcrumb($res['subject_title'], $url);
         
         // Запрос на изменение
-        if ($this->request->_POST['a']) {
-            $v = $this->request->_POST;
+        if ($this->request->_post['a']) {
+            $v = $this->request->_post;
             
             if ($v['set_retake']) {
                 $sql = "
@@ -239,7 +239,7 @@ class PrepodResultsModel extends UModel {
     public function rAction($tid, $uid)
     {
         if (!($tid && $uid))
-            return; 
+            return;        
         
         $sql = "
             SELECT t.*, 
@@ -264,7 +264,7 @@ class PrepodResultsModel extends UModel {
                 t.test_id = {$tid}
                 AND t.user_id = {$uid}
         ";
-        $res = R::getRow($sql);
+        $res = R::getRow($sql);        
         
         $url = USite::getModurl() . '/for/' . $res['group_alias'];
         UAppBuilder::addBreadcrumb($res['group_title'], $url);
@@ -275,8 +275,10 @@ class PrepodResultsModel extends UModel {
         $url .= '/' . $res['test_id'];
         UAppBuilder::addBreadcrumb($res['test_title'], $url);
         
-        $test = new UTResult($tid, $this->request->_GET['retake'], true, $uid, false);         
-        $answer = $test->getResult(true, null, $uid);                
+        $test = new UTResult($tid, true, $uid);                            
+        $tprop = $test->getTProp();
+        $answer = $test->getResult(true, isset($this->request->_get['retake']) ? intval($this->request->_get['retake']) : null, $uid);
+        // it's not bag! After getResult with custom 'retake' we must to update the $tprop for correct date_start and date_finish
         $tprop = $test->getTProp();
         $this->errors = UTResult::$last_errors;
 

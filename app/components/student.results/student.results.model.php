@@ -33,7 +33,7 @@ class StudentResultsModel extends UModel {
         if ($this->vars['tid']) {
             $test = new UTResult($this->vars['tid']);                          
             $tprop = $test->getTProp();
-            $answer = $test->getResult($tprop['test_show_true'], isset($this->request->_GET['retake']) ? intval($this->request->_GET['retake']) : null);
+            $answer = $test->getResult($tprop['test_show_true'], isset($this->request->_get['retake']) ? intval($this->request->_get['retake']) : null);
             // it's not bag! After getResult with custom 'retake' we must to update the $tprop for correct date_start and date_finish
             $tprop = $test->getTProp();
             $this->errors = UTResult::$last_errors;

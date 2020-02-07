@@ -18,8 +18,8 @@ UAppBuilder::setH("Результаты теста &laquo;{$title}&raquo;");
             <span>Пересдача:</span>
             <menu class="result-retake-list">
                 <?for ($i = 0; $i <= $test['retake']; $i++):
-                        if (isset($request->_GET['retake'])) {
-                            $classActive = intval($request->_GET['retake']) === $i ? "class='active'" : '';
+                        if (isset($request->_get['retake'])) {
+                            $classActive = intval($request->_get['retake']) === $i ? "class='active'" : '';
                         } elseif ($test['retake'] == $i) {
                             $classActive = "class='active'";
                         } else {

@@ -7,17 +7,17 @@ class Multiple extends AbstractType {
         parent::__construct($qid);
     }
     
-    public function validate($v = array(), $r = null)
+    public function validate(array $v = array(), $r = null)
     {
         $_e = array();
         
         foreach ($v as $k => $item)
         {
             if (!empty($item['title'])) {
-                $this->validVariant[ $k ] = $item;                                
-                if ($r[ $k ] == 1) {
+                $this->validVariant[ $k ] = $item;                
+                
+                if ($r[ $k ] == 1)
                     $this->validRight[ $k ] = 1;
-                }
             }
         }
         
@@ -27,9 +27,8 @@ class Multiple extends AbstractType {
             $this->validVariant = array($k => $value);
         }
         
-        if (!count($this->validRight)) {
+        if (!count($this->validRight))
             $_e[] = 'Не указаны верные ответы';        
-        }
         
         if (!empty($_e)) {
             $this->last_error = $_e;
@@ -39,31 +38,28 @@ class Multiple extends AbstractType {
         return true;
     }
     
-    public function save()
+    public function save($qid = null)
     {
-        if (!$this->checkQuestionExists()) {
-            return false;
-        }
+        if (intval($qid))
+            $this->qid = intval($qid);
         
         foreach ($this->validVariant as $k => $item)
         {
-            $res = R::findOrDispense(TABLE_TEST_ANSWER, 'id = :id AND question_id = :qid', array(
-                ':id' => $item['id'],
-                ':qid' => $this->qid
+            $res = R::findOrDispense($this->table_answer, 'id = :id AND question_id = :qid', array(
+                        ':id' => $item['id'],
+                        ':qid' => $this->qid
             ));
             
-            $dataRow = reset($res); 
+            $dataRow = reset($res);
             
-            if (!$dataRow->id) {
+            if (!$dataRow->id)
                 $dataRow->question_id = $this->qid;
-            }            
             
             $dataRow->title = $item['title'];
             $dataRow->right_answer = intval(isset($this->validRight[$k]));
+
             R::store($dataRow);
         }
-        
-        return true;
     }
     
 }

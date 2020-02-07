@@ -1,0 +1,47 @@
+<?
+$arTitles = array(
+    'Название варианта ответа',
+    'Укажите верную позицию ответа',
+    ''
+);
+
+$needCount = $arResult['request']->_get['count'] + 1;
+
+$arOptions = array();
+for ($i = 1; $i <= $needCount; $i++)
+{
+    $arOptions[$i] = $i;
+}
+
+?>
+
+<?if($arResult['request']->_get['new'] == 'Y'):
+    $count = microtime(true);?>
+
+    <tr>
+        <td><?=UForm::input('text', "answer[a_{$count}][title]", '', 'form-control answer-text') ?></td>
+        <td><?=UForm::select("right_answer[a_{$count}]", $arOptions , $needCount, null, 'form-control answer-select-order')?></td>
+        <td class="last-column"><?=UForm::btnDelete('#')?></td>
+    </tr>
+
+<?else:?>
+
+    <table class="table table-hover answer-table">
+        <thead>
+            <tr>
+            <?foreach($arTitles as $title):?>
+                <th><?=$title?></th>
+            <?endforeach?>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><?=UForm::input('text', 'answer[a_1][title]', '' , 'form-control answer-text')?></td>
+                <td><?=UForm::select("right_answer[a_1]", array(1=>1) , 1, null, 'form-control answer-select-order')?></td>
+                <td class="last-column"></td>
+            </tr>
+        </tbody>
+    </table>
+    <?=UForm::button('создать новый вариант ответа', 'btn btn-add-answer')?>
+    
+<? endif; ?>

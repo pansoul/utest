@@ -37,7 +37,7 @@ class PrepodSubjectsController extends USiteController {
                 break;
         }        
         
-        $this->putModContent($html);
+        return $html;
     }
 
 }

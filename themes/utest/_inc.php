@@ -2,7 +2,10 @@
 
 /**
  * очень полезный файл, если нужно добавить какую-нибудь информацию в шаблон, 
- * используя шаблонную переменную ([!имя_переменной]).
+ * используя шаблонную переменную ([!<имя_переменной>]).
+ * 
+ * Информация может быть как статичной, так быть представлена фрагментом php-кода.
+ * К примеру, номер телефона или копирайт, или вызов какого-либо компонента.
  * 
  * Также, можно переопределить вывод таких системных шаблонных переменных 
  * как: [!menu], [!title], [!h] и [!content]; однако при этом, информация визуально 
@@ -31,11 +34,11 @@
  * 
  */
 return array(    
-    'panel' => USiteController::loadComponent('utility', 'panel'),
-    'univer_name' => USiteController::loadComponent('utility', 'univer', array('univer_name')),
-    'univer_fullname' => USiteController::loadComponent('utility', 'univer', array('univer_fullname')),
-    'univer_address' => USiteController::loadComponent('utility', 'univer', array('address')),
-    'univer_phone' => USiteController::loadComponent('utility', 'univer', array('phone')),
-    'breadcrump' => USiteController::loadComponent('utility', 'breadcrumb', array(UAppBuilder::getBreadcrumb())),
+    'panel' => "<? return USiteController::loadComponent('utility', 'panel'); ?>",
+    'univer_name' => "<? return USiteController::loadComponent('utility', 'univer', array('univer_name')); ?>",
+    'univer_fullname' => "<? return USiteController::loadComponent('utility', 'univer', array('univer_fullname')); ?>",
+    'univer_address' => "<? return USiteController::loadComponent('utility', 'univer', array('address')); ?>",
+    'univer_phone' => "<? return USiteController::loadComponent('utility', 'univer', array('phone')); ?>",
+    'breadcrump' => "<? return USiteController::loadComponent('utility', 'breadcrumb', array(UAppBuilder::getBreadcrumb())); ?>",
     'copyright' => '2013. Боровских Павел Сергеевич'
 );

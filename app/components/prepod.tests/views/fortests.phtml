@@ -8,7 +8,7 @@ $arCTitles = array(
     'Основа теста',
     'Количество вопросов',
     'Перемешивание',
-    'Управление'
+    ''
 );
 
 $items = $arResult['data']['form'];
@@ -35,7 +35,7 @@ $items = $arResult['data']['form'];
             </thead>
             <?foreach($items as $k => $v):?>
                 <tr>
-                    <td class="checkbox-column"><?=UForm::checkbox("i[item_{$v['id']}]", $v['id'], 'check-one')?></td>
+                    <td><?=UForm::checkbox("i[item_{$v['id']}]", $v['id'], 'check-one')?></td>
                     <td><?=date("d.m.Y",strtotime($v['date']))?></td>
                     <td><?=$v['title']?></td>
                     <td><?=$arResult['data']['test_list'][ $v['test_id'] ]?></td>

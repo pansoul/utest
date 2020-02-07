@@ -6,48 +6,37 @@ $arTitles = array(
     'ID',
     'Название специальности',
     'Код специальности',
-    'Управление'
+    ''
 );
 ?>
 
-<? 
-if ($arResult['errors_code'] == ERROR_ELEMENT_NOT_FOUND) {
-    echo UForm::error( $arResult['errors'] );
-    return; 
-} 
-?>
-
-<div class="setting-panel">    
-    <?=UForm::btnNew('Создать новую специальность', USite::getUrl().'/'.$this->params , 'newspeciality')?>
+<div class="setting-panel">
+    <?//UForm::btnNew('Создать новый факультет', USite::getModurl() . '/newfaculty')?>
+    <?=UForm::btnNew('Создать новую специальность', USite::getModurl() . '/newspeciality/', $this->model->vars['faculty_code'])?>
 </div>
 
-<? if (empty($arResult['data'])) { 
-    echo UForm::info('Список пуст');
-    return; 
-} 
-?>
-
-<form action="" method="post" class="formaction">
-    <table class="table table-hover">
-        <thead>
-            <tr>
-            <?foreach($arTitles as $title):?>
-                <th><?=$title?></th>
+<?if (empty($arResult['data'])):?>
+    Список пуст
+<?else:?>
+    <form action="" method="post" class="formaction">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                <?foreach($arTitles as $title):?>
+                    <th><?=$title?></th>
+                <?endforeach?>
+                </tr>
+            </thead>
+            <?foreach($arResult['data'] as $k => $v):?>
+                <tr>
+                    <td><?=UForm::checkbox("i[item_{$v['id']}]", $v['id'], 'check-one')?></td>
+                    <td><?=$v['id']?></td>
+                    <td><?=$v['title']?></td>
+                    <td><?=$v['code']?></td>
+                    <td class="last-column"><?=UForm::btnEdit(USite::getModurl().'/editspeciality/', $v['id'])?><?=UForm::btnDelete(USite::getModurl().'/delete/', 'speciality/'.$v['id'])?></td>
+                </tr>
             <?endforeach?>
-            </tr>
-        </thead>
-        <?foreach($arResult['data'] as $k => $v):?>
-            <tr>
-                <td class="checkbox-column"><?=UForm::checkbox("i[item_{$v['id']}]", $v['id'], 'check-one')?></td>
-                <td><?=$v['id']?></td>
-                <td><?=$v['title']?></td>
-                <td><?=$v['code']?></td>
-                <td class="last-column">
-                    <?=UForm::btnEdit(USite::getUrl().'/editspeciality/', $v['id'])?>
-                    <?=UForm::btnDelete(USite::getModurl().'/delete/', 'speciality/'.$v['id'])?>
-                </td>
-            </tr>
-        <?endforeach?>
-    </table>
-    <?=UForm::button('Удалить выбранные', 'btn btn-danger delete-selected', 'del_all', 'Y', 'submit', true)?>
-</form>
+        </table>
+        <?=UForm::button('Удалить выбранные', 'btn btn-danger delete-selected', 'del_all', 'Y', 'submit', true)?>
+    </form>
+<?endif?>

@@ -4,7 +4,7 @@
             $class = USite::getModurl() == $item['url'] ? "class='active'" : ''?>
 
         <li <?=$class?>>
-            <a data-trigger="hover" rel="tooltip" data-placement="right" title="<?=$item['tooltip']?>" data-toggle="tooltip" data-html="true" id="ico-<?=$item['name']?>" href="<?= $item['url'] ?>">
+            <a data-trigger="hover" rel="tooltip" data-placement="bottom" title="<?=$item['tooltip']?>" data-toggle="tooltip" data-html="true" id="ico-<?=$item['name']?>" href="<?= $item['url'] ?>">
                 <div class="main-menu-ico ico-<?=$item['name']?>"></div>
                 <div class="main-menu-title"><?= $item['title'] ?></div>
                 <div class="main-menu-hover"></div>

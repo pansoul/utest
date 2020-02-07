@@ -5,7 +5,7 @@ $arCTitles = array(
     UForm::checkbox('check_all', 1, false, 'check-all'),
     'Дата',
     'Текст комментария',
-    'Управление'
+    ''
 );
 
 $arDTitles = array(
@@ -42,7 +42,7 @@ $docs = $arResult['data']['form'];
             </thead>
             <?foreach($items as $k => $v):?>
                 <tr>
-                    <td class="checkbox-column"><?=UForm::checkbox("i[item_{$v['id']}]", $v['id'], 'check-one')?></td>
+                    <td><?=UForm::checkbox("i[item_{$v['id']}]", $v['id'], 'check-one')?></td>
                     <td><?=date("d.m.Y",strtotime($v['date']))?></td>
                     <td><?=nl2br($v['comment'])?></td>
                     <td class="last-column"><?=UForm::btnEdit(USite::getModurl().'/editcomment/', $v['id'])?><?=UForm::btnDelete(USite::getModurl().'/delete/', 'comment/'.$v['id'])?></td>

@@ -6,8 +6,8 @@ class PrepodSubjectsModel extends UModel {
 
     public function subjectAction()
     {
-        if ($this->request->_POST['del_all']) {            
-            foreach ($this->request->_POST['i'] as $item)
+        if ($this->request->_post['del_all']) {            
+            foreach ($this->request->_post['i'] as $item)
             {
                 $res = R::load($this->table_subject, $item);
                 R::trash($res);
@@ -23,8 +23,8 @@ class PrepodSubjectsModel extends UModel {
     public function newSubjectAction($v = array())
     {
         $this->errors = array();
-        if ($this->request->_POST['a']) {
-            $v = $this->request->_POST;
+        if ($this->request->_post['a']) {
+            $v = $this->request->_post;
             if (!$v['title'])
                 $this->errors[] = 'Заполните название предмета';
             if (empty($this->errors)) {

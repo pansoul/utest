@@ -4,13 +4,11 @@ UAppBuilder::addBreadcrumb (UAppBuilder::getH(), USite::getUrl());
 
 $newDataUser = $arResult['data']['user'];
 $v = $arResult['data']['form'];
-?>
 
-<? 
-if ($arResult['vars']['id'] && empty($v['id']) || empty($arResult)) { 
-    echo UForm::error('Пользователь не найден');
-    return;     
-} 
+if($arResult['vars']['id'] && empty($v['id']) || empty($arResult)) {
+    echo 'Пользователь не найден';
+    return;
+}
 ?>
 
 <?
@@ -21,21 +19,31 @@ if (is_array($newDataUser)) {
 ?>
 
 <?if (!$arResult['vars']['id']):?>
-    <div class="bs-callout bs-callout-warning">        
-        После успешного создания нового студента на данной странице выведутся его данные для входа в систему.<br/>
-        Данные будут представлены в табличной форме и содержать: <b>фамилию</b> студента, <b>логин</b> и <b>пароль</b>.        
+    <div class="bs-callout bs-callout-warning">
+        <p>
+            После успешного создания нового студента на данной странице выведутся его данные для входа в систему.<br/>
+            Данные будут представлены в табличной форме и содержать: <b>фамилию</b> студента, <b>логин</b> и <b>пароль</b>.<br/>
+            Для возврата к списку студентов, воспользуйтесь главным меню или навигационной цепочкой.
+        </p>
     </div>
 <?else:?>
-    <div class="bs-callout bs-callout-warning">        
-        При указании <b>нового пароля</b> на данной странице выведутся новые данные для входа в систему.        
+    <div class="bs-callout bs-callout-warning">
+        <p>
+            При задании <b>нового пароля</b> студенту на данной странице выведутся его данные для входа в систему.
+        </p>
     </div>
 <?endif;?>
 
-<? 
-if (!empty($arResult['errors'])) {
-    echo UForm::error($arResult['errors'], true);
-} 
-?>
+<?if (!empty($arResult['errors'])):?>
+    <div class="alert alert-danger">
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+        <ul class="noliststyle">
+        <?foreach ($arResult['errors'] as $k => $e):?>
+            <li><?=$e?></li>
+        <?endforeach;?>
+        </ul>
+    </div>
+<?endif;?>
 
 <form class="form-horizontal" method="post" action="">
     <div class="form-group">

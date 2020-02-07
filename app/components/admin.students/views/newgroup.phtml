@@ -3,20 +3,23 @@ UAppBuilder::setH($arResult['vars']['id'] ? 'Редактирование гру
 UAppBuilder::addBreadcrumb (UAppBuilder::getH(), USite::getUrl());
 
 $v = $arResult['data']['form'];
+
+if($arResult['vars']['id'] && empty($v['id']) || empty($arResult)) {
+    echo 'Группа не найдена';
+    return;
+}
 ?>
 
-<? 
-if ($arResult['errors'] == ERROR_ELEMENT_NOT_FOUND) {
-    echo UForm::error('Группа не найдена');
-    return; 
-} 
-?>
-
-<? 
-if (!empty($arResult['errors'])) {
-    echo UForm::error($arResult['errors'], true);
-} 
-?>
+<?if (!empty($arResult['errors'])):?>
+    <div class="alert alert-danger">
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+        <ul class="noliststyle">
+        <?foreach ($arResult['errors'] as $k => $e):?>
+            <li><?=$e?></li>
+        <?endforeach;?>
+        </ul>
+    </div>
+<?endif;?>
 
 <form class="form-horizontal" method="post" action="">
     <div class="form-group">

@@ -1,0 +1,38 @@
+<?
+$arTitles = array(
+    'Название варианта ответа',
+    'Верный ответ',
+    ''
+);
+?>
+
+<?if($arResult['request']->_get['new'] == 'Y'):
+    $count = microtime(true);?>
+
+    <tr>
+        <td><?= UForm::input('text', "answer[a_{$count}][title]", '', 'form-control answer-text') ?></td>        
+        <td><label for="a-<?=$count?>"><?=UForm::checkbox("right_answer[a_{$count}]", 1, 'answer-checkbox', "a-{$count}")?> отметить</label></td>
+        <td class="last-column"><?=UForm::btnDelete('#')?></td>
+    </tr>
+
+<?else:?>
+
+    <table class="table table-hover answer-table">
+        <thead>
+            <tr>
+            <?foreach($arTitles as $title):?>
+                <th><?=$title?></th>
+            <?endforeach?>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><?=UForm::input('text', 'answer[a_1][title]', '' , 'form-control answer-text')?></td>
+                <td><label for="a-1"><?=UForm::checkbox("right_answer[a_1]", 1, 'answer-checkbox', 'a-1')?> отметить</label></td>
+                <td class="last-column"></td>
+            </tr>
+        </tbody>
+    </table>
+    <?=UForm::button('создать новый вариант ответа', 'btn btn-add-answer')?>
+    
+<? endif; ?>

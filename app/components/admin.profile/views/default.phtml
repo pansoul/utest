@@ -1,14 +1,19 @@
-<? 
-if (!empty($arResult['errors'])) {
-    echo UForm::error($arResult['errors'], true);
-} 
-?>
+<?if (!empty($arResult['errors'])):?>
+    <div class="alert alert-danger">
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+        <ul class="noliststyle">
+        <?foreach ($arResult['errors'] as $k => $e):?>
+            <li><?=$e?></li>
+        <?endforeach;?>
+        </ul>
+    </div>
+<?endif;?>
 
+<?if($_SESSION['update'] == 'Y'):?>
+    <div class="alert alert-success">Пароль успешно изменён</div>
 <?
-if ($_SESSION['update'] == 'Y') {
-    echo UForm::success('Пароль успешно изменён');
-    unset($_SESSION['update']);
-}
+unset($_SESSION['update']);
+endif;
 ?>    
 
 <form class="form-horizontal" method="post" action="">    

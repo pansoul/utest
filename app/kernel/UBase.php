@@ -45,36 +45,17 @@ class UBase {
      */
     public function run($config)
     {
-        // Показывать ли различные предупреждения и ошибки. 
-        // Регулируется через файл конфигурации
-        if ($config['debug']['enable']) {
-            if ($config['debug']['register_errors'] === 1) {
-                error_reporting(E_ALL);
-            } else {
-                error_reporting($config['debug']['register_errors']);
-            }
-            ini_set('display_errors', $config['debug']['display_errors']);
-            if (!$config['debug']['display_errors']) {
-                ini_set("log_errors", 1);
-                ini_set("error_log", $config['debug']['error_log']);
-            }
-        } else {
-            error_reporting(0);
-        }
-
         self::$config = $config;
-        $dbconfig = $config['db'];        
+
+        $dbconfig = $config['db'];
 
         R::setup("mysql:host={$dbconfig['host']};port={$dbconfig['port']};dbname={$dbconfig['name']}", $dbconfig['user'], $dbconfig['pass']);
-        R::freeze(true);              
-        if ($config['debug']['enable'] && $config['debug']['db_debug']) {
-            R::fancyDebug(true);
-            //R::debug(true);
-        }
+        R::freeze(true);
+        if ($config['debug']['db_debug']) {
+            R::debug();
+        }           
         
-        if ($this->simpleMode) {
-            return;
-        }
+        if ($this->simpleMode) return;
 
         $router = new URouter();
         $router->parse();
@@ -91,43 +72,53 @@ class UBase {
             {
                 $this->registerFromDir($path);
             }
-        } elseif (is_dir($arPaths)) {
+        } elseif (is_dir($arPaths)) 
             $this->registerFromDir($arPaths);
-        }
     }
 
     /**
      * Возвращает массив настроек приложения
+     * @param string|array $frond - какую ветвь из настроек вернуть
+     * @return boolean|array|string
+     * @throws Exception
      * 
-     * @param string|array $frond - какую ветвь из настроек вернуть. 
-     * Для указания вложенности между элементами используется знак ">".
-     * Например, UBase::getConfig('tplMap > *') возвратит имя шаблона по умолчанию.
-     * @return boolean|array|string     
+     * @todo Переделать, чтобы ветвь можно было передавать в более интуитивно
+     * понятной форме. К примеру, в виде "Feild1/Field1.1/../Field{N}"
      */
     public static function getConfig($frond)
     {
-        if (!$frond) {
-            return self::$config;
-        }      
-        
-        $value = self::$config;
-        $_arr = explode('>', $frond);            
-        $_arr = array_map('trim', $_arr);                
-        foreach ($_arr as $k)
-        {   
-            if (!isset($value[$k])) {
-                return false;
-            }
-            $value = $value[$k];            
-        }
+        if (!self::$config)
+            return false;
 
-        return $value;
+        if (!$frond)
+            return self::$config;
+        else {
+            if (is_array($frond)) {
+                $_arr = self::$config;
+                $isFind = true;
+                foreach ($frond as $v)
+                {
+                    $_arr = $_arr[$v];
+                    if (isset($_arr))
+                        continue;
+                    else {
+                        $isFind = false;
+                        break;
+                    }
+                }
+                if ($isFind)
+                    return $_arr;
+            } elseif (is_string($frond) && isset(self::$config[$frond]))
+                return self::$config[$frond];
+
+            //throw new Exception('Данная ветвь не найдена в файле настроек! Проверьте правильность написания.');
+            return false;
+        }
     }
 
     /**
-     * Регистрация классов в autoload
+     * Регистрация классов в autoload.
      * Внимание! Наименование файлов должно в точности совпадать с именованием класса.
-     * 
      * @global object $LOADER
      * @param string $path
      */
@@ -148,31 +139,14 @@ class UBase {
     }
 
     /**
-     * Заполняем массив автоподключаемых каталогов
-     */
-    protected function setCoreDir()
-    {
-        $this->arDir = array(
-            KERNEL_PATH,
-            KERNEL_PATH . '/form',
-            KERNEL_PATH . '/test',
-            KERNEL_PATH . '/test/types',
-            KERNEL_PATH . '/user',
-            KERNEL_PATH . '/user/roles',
-            KERNEL_PATH . '/errors'            
-        );
-    }
-    
-    /**
-     * Функция по вылавливанию исключений
+     * Регистрирует функцию по вылавливанию исключений
      * @param object $exception
      * @return void
      */
     public static function exceptionHandler($exception)
     {
-        if (!error_reporting()) {
+        if (!error_reporting())
             return;
-        }
         
         if (self::$config['debug']['display_errors']) {                 
             echo USiteErrors::exception($exception->getMessage(), $exception->getFile(), $exception->getLine(), $exception->getTrace());
@@ -213,18 +187,34 @@ class UBase {
 
         // write tracelines into main template
         $msg = sprintf(
-            $msg, 
-            get_class($exception), 
-            $exception->getMessage(), 
-            $exception->getFile(), 
-            $exception->getLine(), 
-            implode("\n", $result), 
-            $exception->getFile(), 
-            $exception->getLine()
+                $msg, 
+                get_class($exception), 
+                $exception->getMessage(), 
+                $exception->getFile(), 
+                $exception->getLine(), 
+                implode("\n", $result), 
+                $exception->getFile(), 
+                $exception->getLine()
         );
 
         // log or echo as you please
         error_log($msg);
+    }
+
+    /**
+     * Заполняем массив автоподключаемых каталогов
+     */
+    protected function setCoreDir()
+    {
+        $this->arDir = array(
+            KERNEL_PATH,
+            KERNEL_PATH . '/form',
+            KERNEL_PATH . '/test',
+            KERNEL_PATH . '/test/types',
+            KERNEL_PATH . '/user',
+            KERNEL_PATH . '/user/roles',
+            KERNEL_PATH . '/errors'
+        );
     }
 
 }

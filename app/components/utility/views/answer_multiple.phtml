@@ -1,0 +1,40 @@
+<?
+$arTitles = array(
+    'Название варианта ответа',
+    'Верный ответ',
+    ''
+);
+
+$v = $arResult['data']['form_question'];
+$a = $arResult['data']['form_answer'];
+$r = $arResult['data']['form_right'];
+
+$request = new UHttpRequest();
+
+?>
+
+<table class="table table-hover answer-table">
+    <thead>
+        <tr>
+            <?foreach($arTitles as $title):?>
+                <th><?=$title?></th>
+            <?endforeach?>
+        </tr>
+    </thead>
+    <tbody>
+        <?foreach($a as $k => $item):            
+            static $isFirst = true;
+            if (count($a) > 1 && empty($item['title'])) continue;?>
+        <tr>
+            <td><?=UForm::input('text', "answer[{$k}][title]", $item['title'] , 'form-control answer-text')?></td>
+            <td><label for="a-<?=$k?>"><?=UForm::checkbox("right_answer[{$k}]", 1, 'answer-checkbox', "a-{$k}", $request->_post['a'] ? ($r[$k]==1) : $item['right_answer'])?> отметить</label></td>
+            <td class="last-column">
+                <?=UForm::input('hidden', "answer[{$k}][id]", $item['id'])?>
+                <?=$isFirst ? '' : UForm::btnDelete('#', '', array('data-ids' => $item['id'] ? "{$v['test_id']}/{$v['id']}/{$item['id']}" : ''))?>
+            </td>
+        </tr>    
+        <?  $isFirst = false;
+        endforeach;?>                    
+    </tbody>
+</table>
+<?=UForm::button('создать новый вариант ответа', 'btn btn-add-answer')?>

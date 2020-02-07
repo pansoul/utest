@@ -6,7 +6,7 @@ return array(
             'url' => '/admin/university',
             'title' => 'ВУЗ',
             'name' => 'university',
-            'tooltip' => 'Управление структурой ВУЗа: создание факультетов и специальностей'
+            'tooltip' => 'Управление структурой Вуза: создание факультетов и специальностей'
         ),
         array(
             'url' => '/admin/prepods',
@@ -30,7 +30,7 @@ return array(
     'prepod' => array(
         array(
             'url' => '/prepod/subjects',
-            'title' => 'Дисциплины',
+            'title' => 'Мои дисциплины',
             'name' => 'subject'
         ),
         array(
@@ -67,7 +67,7 @@ return array(
         ),
         array(
             'url' => '/student/results',
-            'title' => 'Результаты',
+            'title' => 'Мои результаты',
             'name' => 'result',
         ), 
         array(

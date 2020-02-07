@@ -1,8 +1,5 @@
 <?php
 
-// @todo!!!
-// подумать как правильно обернуть условия ошибок. (ну ты должен вспомнить!)
-
 class Prepod extends UUser {
     
     public function __construct()
@@ -12,78 +9,103 @@ class Prepod extends UUser {
     
     public function createTest($arFields)
     {
-        $test = new UTest();
-        $result = $test->create($arFields, self::$uid);
-        self::$last_errors = $test->last_errors;
+        $result = Test::createOrEdit($arFields, self::$uid);
+        self::$last_errors = Test::$last_errors;
         return $result;
     }
     
-    public function editTest($tid, $arFields)
+    public function editTest($arFields)
     {
-        $test = new UTest($tid, self::$uid);
-        $result = $test->edit($arFields);
-        self::$last_errors = $test->last_errors;
+        $result = Test::createOrEdit($arFields, self::$uid);
+        self::$last_errors = Test::$last_errors;
         return $result;
     }
     
     public function deleteTest($tid)
     {
-        $test = new UTest($tid, self::$uid);                    
-        return $test->delete();
+        return Test::delete($tid, self::$uid);        
     }
     
     public function getTestList($sid)
     {
-        return UTest::getList(self::$uid, $sid);        
+        return Test::getTestsBySubject($sid);
     }    
     
     public function getQuestionList($tid)
     {
-        $test = new UTest($tid, self::$uid);
-        $result = $test->getQuestionList();
-        self::$last_errors = $test->last_errors;        
-        return $result;
+        $test = new Test($tid, self::$uid, true);
+        
+        if (!empty(Test::$last_errors)) {
+            self::$last_errors = Test::$last_errors;
+            return false;
+        }
+        
+        return $test->getQuestionList();
     }
     
     public function createQuestion($tid, $arQuestion, &$arAnswer, $arRight)
-    {           
-        $test = new UTest($tid, self::$uid);                        
-        $result = $test->createFullQuestion($arQuestion, $arAnswer, $arRight);                                        
-        self::$last_errors = $test->last_errors;
-        $arAnswer = $test->getAnswerList(true);
-        return $result;
+    {
+        $test = new Test($tid, self::$uid, true);
+        $qResult = $test->createQuestion($arQuestion);
+        self::$last_errors = Test::$last_errors;
+        $aResult = $test->saveAnswerList($arAnswer, $arRight);
+        $arAnswer = $test->getAnswerList();        
+        self::$last_errors = array_merge(self::$last_errors, Test::$last_errors);
+
+        if ($qResult && $aResult) {
+            $test->runStackExecuting();
+            return true;
+        }
+        
+        return false;
     }
     
     public function _prepareEditQuestion($tid, $qid)
     {
-        $test = new UTest($tid, self::$uid);
-        return $test->loadFullQuestion($qid);
-    }    
+        $v = array();
+        $test = new Test($tid, UUser::user()->getUID(), true);
+        $test->loadFullQuestion($qid);
+        $v['question'] = $test->getAdvTextQuestion();  
+        $v['answer'] = $test->getAnswerList();    
+        foreach ($v['answer'] as $item)
+        {
+            if ($item['right_answer'])
+                $v['right_answer'] = $item['right_answer'];
+        }
+        
+        return $v;
+    }
     
     public function editQuestion($tid, $qid, $arQuestion, &$arAnswer, $arRight)
     {
-        $test = new UTest($tid, self::$uid);
-        $result = $test->loadQuestion($qid)->editFullQuestion($arQuestion, $arAnswer, $arRight);
-        self::$last_errors = $test->last_errors;
-        $arAnswer = $test->getAnswerList(true);
-        return $result;
+        $test = new Test($tid, self::$uid, true);
+        $test->loadFullQuestion($qid);
+        $qResult = $test->editQuestion($arQuestion);
+        self::$last_errors = Test::$last_errors;
+        $aResult = $test->saveAnswerList($arAnswer, $arRight);
+        $arAnswer = $test->getAnswerList();
+        self::$last_errors = array_merge(self::$last_errors, Test::$last_errors);
+
+        if ($qResult && $aResult) {
+            $test->runStackExecuting();
+            return true;
+        }
+        
+        return false;
     }
     
     public function deleteQuestion($tid, $qid)
     {
-        $test = new UTest($tid, self::$uid);
-        $result = $test->deleteQuestion($qid);
-        self::$last_errors = $test->last_errors;
-        return $result;
-    }
-    
-    public function deleteAnswer($tid, $qid, $aid)
-    {
-        $test = new UTest($tid, self::$uid);
-        $test->loadQuestion($qid);
-        $result = $test->deleteAnswer($aid);
-        self::$last_errors = $test->last_errors;
-        return $result;
+        $test = new Test($tid, self::$uid, true);
+        $test->loadFullQuestion($qid);
+        
+        if (!empty(Test::$last_errors)) {
+            self::$last_errors = Test::$last_errors;
+            return false;
+        }
+        
+        $test->deleteQuestion();
+        return true;
     }
     
 }

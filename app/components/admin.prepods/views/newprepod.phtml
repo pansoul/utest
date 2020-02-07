@@ -4,39 +4,46 @@ UAppBuilder::addBreadcrumb (UAppBuilder::getH(), USite::getUrl());
 
 $newDataUser = $arResult['data']['user'];
 $v = $arResult['data']['form'];
-?>
 
-<? 
-if ($arResult['errors_code'] == ERROR_ELEMENT_NOT_FOUND) {
-    echo UForm::error( $arResult['errors'] );
-    return; 
-} 
-?>
-
-<? 
-if (is_array($newDataUser)) { 
-    echo USiteController::loadComponent('utility', 'pastable', array($newDataUser));
-    return;     
+if($arResult['vars']['id'] && empty($v['id']) || empty($arResult)) {
+    echo 'Пользователь не найден';
+    return;
 }
 ?>
 
-<? if (!$arResult['vars']['id']): ?>
-    <div class="bs-callout bs-callout-warning">        
-        После успешного создания нового преподавателя на данной странице выведутся его данные для входа в систему.<br/>
-        Данные будут представлены в табличной форме и содержать: <b>фамилию</b> преподавателя, <b>логин</b> и <b>пароль</b>.<br/>
-        Для возврата к списку преподавателей, воспользуйтесь главным меню или навигационной цепочкой.        
-    </div>
-<? else: ?>
-    <div class="bs-callout bs-callout-warning">        
-        При задании <b>нового пароля</b> преподавателю на данной странице выведутся его данные для входа в систему.        
-    </div>
-<? endif; ?>
-
-<? 
-if (!empty($arResult['errors'])) {
-    echo UForm::error($arResult['errors'], true);
-} 
+<?
+if (is_array($newDataUser)) {
+    echo USiteController::loadComponent('utility', 'pastable', array($newDataUser));
+    return;
+}
 ?>
+
+<?if (!$arResult['vars']['id']):?>
+    <div class="bs-callout bs-callout-warning">
+        <p>
+            После успешного создания нового преподавателя на данной странице выведутся его данные для входа в систему.<br/>
+            Данные будут представлены в табличной форме и содержать: <b>фамилию</b> преподавателя, <b>логин</b> и <b>пароль</b>.<br/>
+            Для возврата к списку преподавателей, воспользуйтесь главным меню или навигационной цепочкой.
+        </p>
+    </div>
+<?else:?>
+    <div class="bs-callout bs-callout-warning">
+        <p>
+            При задании <b>нового пароля</b> преподавателю на данной странице выведутся его данные для входа в систему.
+        </p>
+    </div>
+<?endif;?>
+
+<?if (!empty($arResult['errors'])):?>
+    <div class="alert alert-danger">
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+        <ul class="noliststyle">
+        <?foreach ($arResult['errors'] as $k => $e):?>
+            <li><?=$e?></li>
+        <?endforeach;?>
+        </ul>
+    </div>
+<?endif;?>
 
 <form class="form-horizontal" method="post" action="">
     <div class="form-group">

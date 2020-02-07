@@ -1,0 +1,23 @@
+<?
+
+$request = new UHttpRequest();
+
+$a = $request->_post['a'] 
+    ? $arResult['data']['form_answer'] 
+    : reset($arResult['data']['form_answer']);
+
+?>
+
+<table class="table table-hover answer-table">
+    <thead>
+        <tr>
+            <th>Точное написание верного ответа</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><?=UForm::input('text', "answer[right_answer]", $a['right_answer'], 'form-control answer-text')?></td>
+        </tr>    
+    </tbody>
+</table>
+<?=UForm::input('hidden', "answer[id]", $a['id'])?>

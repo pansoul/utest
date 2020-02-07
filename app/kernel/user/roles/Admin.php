@@ -4,40 +4,6 @@ class Admin extends UUser {
     
     const VIP_ID = 1;
     
-    private $arFields = array(
-        'role' => array(
-            'for_action' => array('add'),
-            'required' => array('add')
-        ),
-        'password' => array(
-            'for_action' => array('add', 'edit'),
-            'required' => array('add')
-        ),
-        'name' => array(
-            'for_action' => array('add', 'edit'),
-            'required' => array('add', 'edit')
-        ),
-        'last_name' => array(
-            'for_action' => array('add', 'edit'),
-            'required' => array('add', 'edit')
-        ),
-        'surname' => array(
-            'for_action' => array('add', 'edit'),            
-        ),
-        'phone' => array(
-            'for_action' => array('add', 'edit'),            
-        ),
-        'email' => array(
-            'for_action' => array('add', 'edit'),            
-        ),
-        'group_id' => array(
-            'for_action' => array('add', 'edit'),            
-        ),
-        'post' => array(
-            'for_action' => array('add', 'edit'),            
-        ),
-    );
-    
     private $arAvailableAdd = array(
         'role',
         'password',
@@ -89,9 +55,8 @@ class Admin extends UUser {
         
         foreach ($arFields as $k => $v)
         {
-            if (!in_array($k, $this->arAvailableAdd) || !is_string($k)) {
+            if (!in_array($k, $this->arAvailableAdd) || !is_string($k))
                 unset($arFields[$k]);
-            }
         }
         
         if (empty($arFields)) {
@@ -102,13 +67,12 @@ class Admin extends UUser {
         
         foreach ($this->arRequiredAdd as $oneRequired)
         {
-            if (!key_exists($oneRequired, $arFields) || empty($arFields[$oneRequired])) {
+            if (!key_exists($oneRequired, $arFields) || empty($arFields[$oneRequired]))
                 $_e[] = "Заполните поле '{$_translate[$oneRequired]}'";
-            } elseif ($oneRequired == 'role') {                
-                $isset = R::count(self::$table_roles, "`type` = ?", array('prepod'));                
-                if (!$isset) {
+            elseif ($oneRequired == 'role') {
+                $isset = R::count(self::$table_roles, "`type` = ?", (array)$arFields[$oneRequired]);
+                if (!$isset)
                     $_e[] = "Роль '{$arFields[$oneRequired]}' не найдена в системе";
-                }
             }
         }
         if (!empty($_e)) {
@@ -116,9 +80,8 @@ class Admin extends UUser {
             return false;
         }
         
-        if (empty($arFields['group_id'])) {
-            $arFields['group_id'] = null;  
-        }
+        if (empty($arFields['group_id']))
+            $arFields['group_id'] = null;        
         
         $newUser = R::dispense(self::$table);
         foreach ($arFields as $k => $v)
@@ -166,9 +129,8 @@ class Admin extends UUser {
         $uid = is_null($uid) ? $this->getUID() : $uid;
         
         $curUser = R::load(self::$table, $uid);
-        if (!$curUser) {
+        if (!$curUser)
             $_e[] = "Пользователя с Id = $uid не существует";
-        }
         
         if (!empty($_e)) {
             self::$last_errors = $_e;
@@ -177,9 +139,8 @@ class Admin extends UUser {
         
         foreach ($arFields as $k => $v)
         {
-            if (!in_array($k, $this->arAvailableEdit) || !is_string($k)) {
+            if (!in_array($k, $this->arAvailableEdit) || !is_string($k))
                 unset($arFields[$k]);
-            }
         }
         
         if (empty($arFields)) {
@@ -190,9 +151,8 @@ class Admin extends UUser {
         
         foreach ($this->arRequiredEdit as $oneRequired)
         {
-            if (isset($arFields[$oneRequired]) && empty($arFields[$oneRequired])) {
+            if (isset($arFields[$oneRequired]) && empty($arFields[$oneRequired]))
                 $_e[] = "Заполните поле '{$_translate[$oneRequired]}'";
-            }
         }
         if (!empty($_e)) {
             self::$last_errors = $_e;
@@ -224,11 +184,10 @@ class Admin extends UUser {
         $_e = array();
         
         $bean = R::load(self::$table, $uid);
-        if (!$bean) {
+        if (!$bean)
             $_e[] = "Пользователя с Id = $uid не существует";        
-        } elseif ($bean['id'] == self::VIP_ID) {
-            $_e[] = "Невозможно удалить пользователя с Id = " . self::VIP_ID;        
-        }
+        elseif ($bean['id'] == self::VIP_ID)
+            $_e[] = "Невозможно удалить пользователя с Id = 1!";        
         
         if (!empty($_e)) {
             self::$last_errors = $_e;

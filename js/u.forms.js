@@ -3,28 +3,28 @@ $(document).ready(function() {
     var numCheckBox = $('.check-one').length;
     
     $('.table-hover:not(.answer-table) .btn-delete').click(function() {
-        if (!confirm("Вы точно хотите удалить данную запись?")) {
-            return false;
+        if (confirm("Вы точно хотите удалить данную запись?")) {
+            return true;
         }
-        return true;
+        return false;
     });
     
-    $('.delete-selected').on('click', function(){
-        if (!confirm("Вы уверены, что хотите удалить отмеченные записи?")) {
-            return false;
+    $('.delete-selected').click(function(){
+        if (confirm("Вы уверены, что хотите удалить отмеченные записи?")) {
+            return true;
         }
-        return true;
+        return false;
     });
     
-    $('.newpass-selected').on('click', function(){
-        if (!confirm("Вы уверены, что хотите сгенерировать выбранным пользователям новые пароли?")) {
-            return false;
+    $('.newpass-selected').click(function(){
+        if (confirm("Вы уверены, что хотите сгенерировать выбранным пользователям новые пароли?")) {
+            return true;
         }
-        return true;
+        return false;
     });
 
-    $('#check-all').on('change', function() {        
-        if ($(this).is(':checked')) {
+    $('#check-all').change(function() {
+        if ($(this).attr("checked")) {
             $('.check-one').attr('checked', true);
             $('.delete-selected, .newpass-selected').removeAttr('disabled');
         } else {
@@ -33,20 +33,17 @@ $(document).ready(function() {
         }
     });
     
-    $('.check-one').on('change', function() {        
+    $('.check-one').change(function() {        
         var numCheckedBox = $('.check-one:checked').length;
-        if ($(this).is(':checked')) {
-            if (numCheckedBox == numCheckBox) {
+        if ($(this).attr("checked")) {
+            if (numCheckedBox == numCheckBox)
                 $('#check-all').attr('checked', true);
-            }
-            if ($('.delete-selected, .newpass-selected').attr('disabled')) {
+            if ($('.delete-selected, .newpass-selected').attr('disabled'))
                 $('.delete-selected, .newpass-selected').removeAttr('disabled');
-            }
         } else {            
             $('#check-all').attr('checked', false);
-            if (numCheckedBox == 0) {
+            if (numCheckedBox == 0)
                 $('.delete-selected, .newpass-selected').attr('disabled', true);
-            }
         }
     });
 

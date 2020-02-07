@@ -1,1 +1,7 @@
 /nbproject/
+/.idea/
+/uploads/*
+!/uploads/.htaccess
+/*.txt
+/*.log
+/*.sql

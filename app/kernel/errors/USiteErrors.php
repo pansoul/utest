@@ -4,6 +4,7 @@ class USiteErrors {
     
     public static function exception($msg, $file, $line, $trace)
     {
+        //var_dump($trace);die;
         $traceline = "%s(<b>%s</b>): %s -> %s(%s)";
         foreach ($trace as $key => $stackPoint)
         {
@@ -103,6 +104,16 @@ class USiteErrors {
             </body>
             </html>
 EOF;
+    }
+    
+    public static function notice($msg)
+    {
+        return "<span class='alert alert-warning alert-mini'>$msg</span>";
+    }
+    
+    public static function warning($msg)
+    {
+        return "<div class='alert alert-danger'>$msg</div>";
     }
     
 }

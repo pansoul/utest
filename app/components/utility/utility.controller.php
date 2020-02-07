@@ -35,6 +35,11 @@ class UtilityController extends USiteController {
                 $html = $this->loadView('tabs', $result);
                 break;
             
+            case 'answerdisplay':
+                $result = $this->model->doAction($this->action, $this->actionArgs);     
+                $html = $this->loadView('answer_'.$this->actionArgs[0], $result);
+                break;
+            
             case 'testanswer':
                 $result = $this->model->doAction($this->action, $this->actionArgs);     
                 $html = $this->loadView('test_answer_'.$this->actionArgs[0], $result);                
@@ -45,7 +50,6 @@ class UtilityController extends USiteController {
                 $html = $this->loadView('test_result', $result);                
                 break;
         }
-        
-        $this->putModContent($html);
+        return $html;
     }
 }

@@ -2,98 +2,80 @@
 
 class AdminUniversityModel extends UModel {
     
+    private $table_faculty = 'u_univer_faculty';
+    private $table_speciality = 'u_univer_speciality';
+    
     public function facultyAction()
     {   
-        if ($this->request->_POST['del_all']) {            
-            foreach ($this->request->_POST['i'] as $item)
+        if ($this->request->_post['del_all']) {
+            $t = $this->vars['faculty_code'] ? $this->table_speciality : $this->table_faculty;
+            foreach ($this->request->_post['i'] as $item)
             {
-                $res = R::load(TABLE_UNIVER_FACULTY, $item);
+                $res = R::load($t, $item);
                 R::trash($res);
             }
             USite::redirect(USite::getUrl());
         }
-        $res = R::findAll(TABLE_UNIVER_FACULTY, 'ORDER BY title');           
+        $res = R::findAll($this->table_faculty, 'ORDER BY title');   
+        if ($this->vars['faculty_code']) {
+            $parent = R::findOne($this->table_faculty, '`alias` = ?', array($this->vars['faculty_code']));
+            $res = R::find($this->table_speciality, 'faculty_id = ? ORDER BY title', array($parent->id));       
+            if ($parent)
+                UAppBuilder::addBreadcrumb ($parent['title'], USite::getUrl());
+        }
         return $this->returnResult($res);
-    } 
+    }    
     
     public function newFacultyAction($v = array())
-    {   
-        if ($this->request->_POST['a']) {
-            $this->errors = array();
-            $v = $this->request->_POST;
-            if (!$v['title']) {
+    {        
+        $this->errors = array();
+        if ($this->request->_post['a']) {
+            $v = $this->request->_post;
+            if (!$v['title'])
                 $this->errors[] = 'Заполните название факультета';
-            }
             if (empty($this->errors)) {
-                $dataRow = $v['id'] 
-                    ? R::load(TABLE_UNIVER_FACULTY, $v['id'])
-                    : R::dispense(TABLE_UNIVER_FACULTY);                
+                if ($v['id'])
+                    $dataRow = R::load($this->table_faculty, $v['id']);
+                else
+                    $dataRow = R::dispense($this->table_faculty);
                 $dataRow->title = $v['title'];
                 $dataRow->alias = UAppBuilder::translit($v['title']);  
-                UUtilities::checkUniq($dataRow->alias, TABLE_UNIVER_FACULTY);
-                if (R::store($dataRow)) {
+                $this->checkUniq($dataRow->alias, $this->table_faculty);
+                if (R::store($dataRow))
                     USite::redirect (USite::getModurl());
-                }
             }
         }        
         return $this->returnResult($v);
     }
     
-    public function specialityAction($facultyCode)
-    {
-        if ($this->request->_POST['del_all'] && !$this->watcherStatus) {            
-            foreach ($this->request->_POST['i'] as $item)
-            {
-                $res = R::load(TABLE_UNIVER_SPECIALITY, $item);
-                R::trash($res);
-            }
-            USite::redirect(USite::getUrl());
-        }
-        $parent = R::findOne(TABLE_UNIVER_FACULTY, '`alias` = ?', array($facultyCode));
-        $res = R::find(TABLE_UNIVER_SPECIALITY, 'faculty_id = ? ORDER BY title', array($parent->id));               
-        if ($parent) {
-            UAppBuilder::addBreadcrumb ($parent['title'], USite::getModurl() . '/' . $this->vars['faculty_code']);
-        } else {
-            $this->setErrors('Факультет не найден', ERROR_ELEMENT_NOT_FOUND);            
-        }       
-        return $this->returnResult($res);
-    }
-    
     public function newSpecialityAction($v = array())
-    {   
-        $this->doAction('speciality', $this->vars['faculty_code'], true);          
-        if ($this->errorsCode == ERROR_ELEMENT_NOT_FOUND) {
-            return $this->returnResult();
+    {        
+        if ($this->vars['in']) {
+            $in = '/' . $this->vars['in'];
+            $r = R::findOne($this->table_faculty, "`alias` = ?", (array)$this->vars['in']);
+            if ($r) {
+                $v['faculty_id'] = $r['id'];
+                UAppBuilder::addBreadcrumb($r['title'], USite::getModurl().'/faculty/'.$r['alias']);
+            }
+        } elseif ($this->vars['id']) {
+            $_r = R::load($this->table_speciality, $this->vars['id']);
+            $r = R::load($this->table_faculty, $_r['faculty_id']);
+            if ($r)
+                UAppBuilder::addBreadcrumb($r['title'], USite::getModurl().'/faculty/'.$r['alias']);
         }
-        
-        $in = '/' . $this->vars['faculty_code'];
-        $r = R::findOne(TABLE_UNIVER_FACULTY, "`alias` = ?", (array)$this->vars['faculty_code']);
-        if ($r) {
-            $v['faculty_id'] = $r['id'];
-            UAppBuilder::addBreadcrumb($r['title'], USite::getModurl().'/'.$r['alias']);
-        }        
-        
-        if ($this->request->_POST['a']) {                        
-            $this->errors = array();
-            $v = $this->request->_POST;            
-            $required = array(
-                'title' => 'Заполните название специальности',
-                'code' => 'Укажите код специальности'
-            );
-            foreach ($required as $k => $message)
-            {
-                if (empty($v[$k])) {
-                    $this->errors[] = $message;
-                }
-            }            
-            if (empty($this->errors)) {                
+        if ($this->request->_post['a']) {
+            $v = $this->request->_post;
+            if (!$v['title'])
+                $this->errors[] = 'Заполните название специальности';
+            if (!$v['code'])
+                $this->errors[] = 'Укажите код специальности';
+            if (empty($this->errors)) {
                 if ($v['id']) {
-                    $dataRow = R::load(TABLE_UNIVER_SPECIALITY, $v['id']);
-                    $r = R::load(TABLE_UNIVER_FACULTY, $dataRow['faculty_id']);
+                    $dataRow = R::load($this->table_speciality, $v['id']);
+                    $r = R::load($this->table_faculty, $dataRow['faculty_id']);
                     $in = '/' . $r['alias'];
-                } else {
-                    $dataRow = R::dispense(TABLE_UNIVER_SPECIALITY);
-                }
+                } else
+                    $dataRow = R::dispense($this->table_speciality);
                 $dataRow->title = $v['title'];
                 $dataRow->faculty_id = $v['faculty_id'];
                 $dataRow->code = $v['code'];                
@@ -101,9 +83,8 @@ class AdminUniversityModel extends UModel {
                     USite::redirect (USite::getModurl().$in);
                 }
             }
-        }
-        
-        $_list = R::findAll(TABLE_UNIVER_FACULTY, 'ORDER BY title');    
+        }                
+        $_list = R::findAll($this->table_faculty, 'ORDER BY title');    
         $fList = array();
         foreach ($_list as $k => $j)
         {
@@ -117,37 +98,43 @@ class AdminUniversityModel extends UModel {
     
     public function editFacultyAction($id)
     {
-        $v = R::load(TABLE_UNIVER_FACULTY, $id);        
-        if (!$v['id']) {
-            $this->setErrors('Факультет не найден', ERROR_ELEMENT_NOT_FOUND);            
-        }
+        if (!$id)
+            return;
+        $v = R::load($this->table_faculty, $id);
         return $this->newFacultyAction($v);
     }
     
     public function editSpecialityAction($id)
     {
-        $v = R::load(TABLE_UNIVER_SPECIALITY, $id);
-        if (!$v['id']) {
-            $this->setErrors('Специальность не найдена', ERROR_ELEMENT_NOT_FOUND);            
-        }
+        if (!$id)
+            return;
+        $v = R::load($this->table_speciality, $id);
         return $this->newSpecialityAction($v);
     }
     
     public function deleteAction($type, $id)
     {
-        if (!($type && $id)) {
+        if (!($type && $id))
             return;
+        
+        if ($type == 'faculty')
+            $bean = R::load($this->table_faculty, $id);
+        elseif ($type == 'speciality') {
+            $bean = R::load($this->table_speciality, $id);
+            $faculty = R::load($this->table_faculty, $bean['faculty_id']);            
+            $toback = '/' . $faculty['alias'];
         }
         
-        if ($type == 'faculty') {
-            $bean = R::load(TABLE_UNIVER_FACULTY, $id);
-        } elseif ($type == 'speciality') {
-            $bean = R::load(TABLE_UNIVER_SPECIALITY, $id);
-            $faculty = R::load(TABLE_UNIVER_FACULTY, $bean['faculty_id']);            
-            $toback = $faculty['alias'];
-        }        
-        
-        R::trash($bean);
-        USite::redirect(USite::getModurl() . '/' . $toback);        
+        if ($bean) {
+            R::trash($bean);
+            USite::redirect(USite::getModurl().'/faculty'.$toback);
+        }
+    }
+    
+    protected function checkUniq(&$alias, $table)
+    {        
+        while ($res = R::findOne($table, '`alias` = ?', array($alias))) {
+            $alias .= '-1';
+        }
     }
 }

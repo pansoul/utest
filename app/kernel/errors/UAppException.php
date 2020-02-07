@@ -1,5 +1,3 @@
 <?php
 
-class UAppException extends Exception {
-    //
-}
+class UAppException extends Exception {}

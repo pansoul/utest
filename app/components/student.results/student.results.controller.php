@@ -33,7 +33,7 @@ class StudentResultsController extends USiteController {
                 break;
         }        
         
-        $this->putModContent($html);
+        return $html;
     }
 
 }

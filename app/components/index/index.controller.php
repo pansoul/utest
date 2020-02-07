@@ -9,7 +9,6 @@ class IndexController extends USiteController {
     public function run() 
     {
         $result = $this->model->doAction($this->action);        
-        $html = $this->loadView('mainform', $result);        
-        $this->putModContent($html);
+        return $this->loadView('mainform', $result);        
     }
 }

@@ -3,7 +3,7 @@
 class AdminSettingController extends USiteController {
 
     protected $routeMap = array(    
-        'actionMain' => 'show',
+        'actionDefault' => 'show',
         'setTitle' => 'Информация о вузе'
     );
 
@@ -11,6 +11,6 @@ class AdminSettingController extends USiteController {
     {           
         $result = $this->model->doAction($this->action);        
         $html = $this->loadView('', $result);        
-        $this->putModContent($html);         
+        return $html;                
     }
 }

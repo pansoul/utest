@@ -68,17 +68,6 @@ if($arResult['vars']['id'] && empty($v['id']) || empty($arResult)) {
     </div>
     <div class="form-group">
         <label class="col-lg-2 control-label">
-            Время на выполнение:
-            <?if(!$arResult['vars']['id']):?>
-                <span class="help-block">Указывается в секундах.<br/>Указание времени в "0" будет означать без ограничения.</span>
-            <?endif;?>
-        </label>
-        <div class="col-lg-10">
-            <?=$arResult['vars']['id'] ? (!$v['count_q'] ? 'все': $v['count_q']) : UForm::input('number', 'time', $v['time'] ? $v['time'] : 0 , 'form-control', false, array('min' => 0))?>            
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-lg-2 control-label">
             Перемешивание:
             <span class="help-block">При включенной опции вопросы будут выводиться в случайном порядке.</span>
         </label>

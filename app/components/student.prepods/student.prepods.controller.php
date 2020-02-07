@@ -10,7 +10,7 @@ class StudentPrepodsController extends USiteController {
     {
         $result = $this->model->doAction($this->action);        
         $html = $this->loadView('', $result);        
-        $this->putModContent($html);
+        return $html;
     }
 
 }

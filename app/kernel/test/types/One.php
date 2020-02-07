@@ -13,9 +13,8 @@ class One extends AbstractType {
         
         foreach ($v as $k => $item)
         {
-            if (!empty($item['title'])) {
+            if (!empty($item['title']))
                 $this->validVariant[ $k ] = $item;
-            }
         }
         
         if (!count($this->validVariant)) {
@@ -24,9 +23,8 @@ class One extends AbstractType {
             $this->validVariant = array($k => $value);
         }
         
-        if (!isset($this->validVariant[ $r ])) {
-            $_e[] = 'Не указан верный ответ';   
-        }
+        if (!isset($this->validVariant[ $r ]))
+            $_e[] = 'Не указан верный ответ';        
         
         if (!empty($_e)) {
             $this->last_error = $_e;
@@ -37,31 +35,28 @@ class One extends AbstractType {
         return true;
     }
     
-    public function save()
+    public function save($qid = null)
     {
-        if (!$this->checkQuestionExists()) {
-            return false;
-        }
+        if (intval($qid))
+            $this->qid = intval($qid);
         
         foreach ($this->validVariant as $k => $item)
         {
-            $res = R::findOrDispense(TABLE_TEST_ANSWER, 'id = :id AND question_id = :qid', array(
-                ':id' => $item['id'],
-                ':qid' => $this->qid
+            $res = R::findOrDispense($this->table_answer, 'id = :id AND question_id = :qid', array(
+                        ':id' => $item['id'],
+                        ':qid' => $this->qid
             ));
             
             $dataRow = reset($res);
             
-            if (!$dataRow->id) {
+            if (!$dataRow->id)
                 $dataRow->question_id = $this->qid;
-            }
             
             $dataRow->title = $item['title'];
             $dataRow->right_answer = intval($k==$this->validRight);
+
             R::store($dataRow);
         }
-        
-        return true;
     }
     
 }

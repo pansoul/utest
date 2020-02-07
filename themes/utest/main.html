@@ -1,14 +1,37 @@
 <!DOCTYPE html>
 <html lang="ru">
-    
-    {!/include/head.html}
-    
+    <head>
+        <meta charset="utf-8" />
+        <meta name="author" content="Боровских Павел Сергеевич (pansoul@mail.ru)" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <noscript><meta http-equiv="refresh" content="0; URL=/nojs.html"></noscript>
+        
+        <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+
+        <title>[!title] | UTest</title>
+
+        <link media="screen" rel="stylesheet" href="/css/reset.css" />
+        <link media="screen" rel="stylesheet" href="/css/bootstrap.css" />
+        <link media="screen" rel="stylesheet" href="/css/style.css" />
+        <link media="print" rel="stylesheet" href="/css/print.css" />
+        
+        <!--script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script-->
+        <script>
+            window.jQuery || document.write('<scr'+'ipt src="/js/jquery.1.8.1.min.js"><\/scr'+'ipt>');
+        </script>
+        <script src="/js/bootstrap.min.js"></script>                
+        
+        <!--[if lte IE 8]>
+            <script src="/js/html5.js"></script>
+        <![endif]-->  
+
+    </head>
     <body>   
 
         <header class="c-box" id="app-header">
             <div class="c-center">
                 [!univer_fullname]
-                [!univer_name]                
+                [!univer_name]
             </div>
         </header>
         
@@ -16,6 +39,7 @@
             <section class="c-center c-box" id="app-content">
                 <div class="u-left-column">
                     [!univer_address]
+
                     [!univer_phone]
                 </div>            
                 <div class="u-right-column">
@@ -24,7 +48,8 @@
             </section>
         </div>
 
-        {!/include/footer.html}
-        
+        <footer id="app-footer" class="c-box">
+            <div class="c-center"><img id="utest" alt="UTest - система онлайн тестирования" title="UTest - система онлайн тестирования" src="/img/sys/utest.png" />[!copyright]</div>
+        </footer>
     </body>
 </html>

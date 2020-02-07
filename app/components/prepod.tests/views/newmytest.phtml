@@ -3,22 +3,25 @@ UAppBuilder::setH($arResult['vars']['id'] ? 'Редактирование тес
 UAppBuilder::addBreadcrumb (UAppBuilder::getH(), USite::getUrl());
 
 $v = $arResult['data']['form'];
-?>
 
-<? 
-if ($arResult['vars']['id'] && empty($v['id']) || empty($arResult)) { 
-    echo UForm::error('Тест не найден');
-    return;     
-} 
+if($arResult['vars']['id'] && empty($v['id']) || empty($arResult)) {
+    echo 'Тест не найден';
+    return;
+}
 ?>
 
 <?=USiteController::loadComponent('utility', 'tabs', array($this->arTabs, 1));?>
 
-<? 
-if (!empty($arResult['errors'])) {
-    echo UForm::error($arResult['errors'], true);
-} 
-?>
+<?if (!empty($arResult['errors'])):?>
+    <div class="alert alert-danger">
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+        <ul class="noliststyle">
+        <?foreach ($arResult['errors'] as $k => $e):?>
+            <li><?=$e?></li>
+        <?endforeach;?>
+        </ul>
+    </div>
+<?endif;?>
 
 <form class="form-horizontal" method="post" action="" enctype="multipart/form-data">
     <div class="form-group">

@@ -10,8 +10,8 @@ class PrepodMaterialsModel extends UModel {
 
     public function myAction()
     {
-        if ($this->request->_POST['del_all']) {
-            foreach ($this->request->_POST['i'] as $item)
+        if ($this->request->_post['del_all']) {
+            foreach ($this->request->_post['i'] as $item)
             {
                 if (!$item)
                     continue;
@@ -45,8 +45,8 @@ class PrepodMaterialsModel extends UModel {
             if ($parent) {
                 UAppBuilder::addBreadcrumb($parent['title'], USite::getUrl());
                 
-                if ($this->request->_GET['download']) 
-                    $this->fileDownload($this->request->_GET['download']);
+                if ($this->request->_get['download']) 
+                    $this->fileDownload($this->request->_get['download']);
             }
         }
 
@@ -74,8 +74,8 @@ class PrepodMaterialsModel extends UModel {
                     if ($sparent) {
                         UAppBuilder::addBreadcrumb($sparent['title'], USite::getUrl());
                         
-                         if ($this->request->_POST['del_all']) {
-                            foreach ($this->request->_POST['i'] as $item)
+                         if ($this->request->_post['del_all']) {
+                            foreach ($this->request->_post['i'] as $item)
                             {
                                 if (!$item)
                                     continue;
@@ -182,8 +182,8 @@ class PrepodMaterialsModel extends UModel {
                 UAppBuilder::addBreadcrumb($r['title'], USite::getModurl() . $in);
             }
         }
-        if ($this->request->_POST['a']) {
-            $v = $this->request->_POST;
+        if ($this->request->_post['a']) {
+            $v = $this->request->_post;
 
             if (!$v['filename'])
                 $this->errors[] = 'Укажите название документа';
@@ -307,8 +307,8 @@ class PrepodMaterialsModel extends UModel {
                         }
 
                         // Запрос на сохранение
-                        if ($this->request->_POST['a']) {
-                            $curList = $this->request->_POST['materials'];
+                        if ($this->request->_post['a']) {
+                            $curList = $this->request->_post['materials'];
                             $diffList = $curList === null ? $sList : array_diff($activeList, $curList);  
                             foreach ($curList as $id)                                                        
                             {                                
@@ -382,8 +382,8 @@ class PrepodMaterialsModel extends UModel {
                         UAppBuilder::addBreadcrumb($sparent['title'], USite::getModurl() . $in);
                         
                         // Запрос на изменение
-                        if ($this->request->_POST['a']) {                            
-                            $v = $this->request->_POST;
+                        if ($this->request->_post['a']) {                            
+                            $v = $this->request->_post;
                             
                             if (!$v['comment'])
                                 $this->errors[] = "Заполните текст комментария";
@@ -506,7 +506,7 @@ class PrepodMaterialsModel extends UModel {
         if (file_exists($file)) {
             // сбрасываем буфер вывода PHP, чтобы избежать переполнения памяти выделенной под скрипт
             // если этого не сделать файл будет читаться в память полностью!
-            if (ob_GET_level()) {
+            if (ob_get_level()) {
                 ob_end_clean();
             }
 

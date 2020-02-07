@@ -20,7 +20,11 @@ class UUser {
      * Данную роль нельзя переопределять.
      * Список пользовательских ролей содержится в файле roles.php в папке конфигурации
      */
-    const VIP_ROLE = 'admin';        
+    const VIP_ROLE = 'admin';    
+    
+    protected $arAvailableGet = array (
+        
+    );
     
     /**
      * Системный список доступных ролей
@@ -36,7 +40,7 @@ class UUser {
     );    
     
     /**
-     * Id текущего авторизованного пользователя
+     * Id текущего пользователя
      * @var integer 
      */
     protected static $uid = 0;
@@ -51,7 +55,7 @@ class UUser {
      * Имя пользователя
      * @var string 
      */
-    protected $name;    
+    protected $name;
     
     /**
      * Какая роль у пользователя
@@ -65,26 +69,14 @@ class UUser {
      * групп-родителей этот параметр будет выводить "0"
      * @var string 
      */
-    protected $roleGroup;
+    protected $group;
     
     /**
      * Содержит название самой корневой группы, от которой произошло 
-     * любое наследование для текущей роли.
+     * любое наследование для текущей группы.
      * @var string 
      */
-    protected $roleRootGroup;
-    
-    /**
-     * Логин пользователя
-     * @var string
-     */
-    protected $login;
-    
-    /**
-     * Идентификатор группы, к которой относится пользователь.
-     * @var integer
-     */
-    protected $groupId;
+    protected $rootgroup;
     
     protected static $table = 'u_user';
     protected static $table_roles = 'u_user_roles';
@@ -109,7 +101,7 @@ class UUser {
      * или же с запрошенным.
      * @var bool
      */
-    protected static $isCurrentAuth; 
+    protected static $isCurrentAuth;
     
     /**
      * Переменная содержит список текстовых ошибок
@@ -124,12 +116,12 @@ class UUser {
     
     public function __call($name, $arguments)
     {
-        print UForm::warning("Метод '$name' не существует у данного пользователя");
+        print USiteErrors::warning("Метод '$name' не существует у данного пользователя");
     }
     
     public static function __callStatic($name, $arguments) 
     {
-        print UForm::warning("Статический метод '$name' не существует у данного пользователя");
+        print USiteErrors::warning("Статический метод '$name' не существует у данного пользователя");
     }
     
     /**
@@ -141,99 +133,91 @@ class UUser {
      */
     public static function user($identification)
     {        
-        // Осуществляем проверку, был ли уже создан объект авторизованного пользователь
-        if (self::isAuth() 
-            && self::$user 
-            && !$identification
-        ) {                 
+        if (self::$user && empty($identification)) {                 
             self::$isCurrentAuth = true;
             return self::$user;
-        } 
-        // Если объект не создан, или пользователь был запрошен через идентификатор,
-        // то посылаем запрос на получение данного объекта пользователя.
-        else {     
+        } else            
             return self::getUser($identification);                     
-        }
     }
     
     /**
-     * Функция находит пользователя по переданному Id. 
-     * Возвращает объект пользователя, в зависимости от его принадлежности к группе.
+     * Функция находит пользователя по текущему Id. 
+     * Возвращает нам объект пользователя, в зависимости от его принадлежности к группе
      * @return object
      * @throws Exception
      */
     private static function getUser($identification)
     {   
-        $identification = intval($identification);
-        
-        // Установим Id текущего авторизованного пользователя
-        if (self::isAuth() && !self::$uid) {            
+        // Если пользователь авторизован (при первом его обращении)
+        if (isset($_SESSION['u_uid']))
             self::$uid = $_SESSION['u_uid'];
-        }                 
+        
+        // Если пользователь не авторизован и нет запроса на получение иного пользователя        
+        if (!self::$uid && !$identification)            
+            return new UEmptyUser($identification);
         
         // Если есть запрос на получение произвольного пользователя и при этом
-        // текущий пользователь не такой же, как запрашиваемый, то формируем запрос ниже.
-        // Примечание! При таком расскладе авторизованность пользователя не учитывается.
-        if ($identification && self::$uid != $identification) {                        
+        // текущий пользователь не такой же, как запрашиваемый
+        if ($identification && self::$uid != $identification && is_integer($identification)) {            
+            
             self::$isCurrentAuth = false;
             
-            // Если запрашиваемый пользователь уже есть в кэше, то выдаём его сразу
-            if (self::$query_uid == $identification) {
+            // Если запрашиваемый пользователь уже есть в "кеше", то выдаём его сразу
+            if (self::$query_uid == $identification) 
                 return self::$query_user;            
-            }
             
-            $user = R::load(self::$table, $identification);
-            if (!$user->id) {
+            $query_user = R::load(self::$table, $identification);            
+            if (!$query_user->id)
                 return new UEmptyUser($identification);           
-            }            
-            self::$query_uid = $identification;
-            $userCache =& self::$query_user;
-        }
-        // Если кэша текущего авторизованного пользователя нет
-        elseif (self::isAuth() && !self::$user) {  
-            self::$isCurrentAuth = true;
-            $user = R::load(self::$table, self::$uid);
-            $userCache =& self::$user;
-        }
-        // Отдаём кэш текущего авторизованного пользователя
-        elseif ((!$identification || self::$uid == $identification) && self::$user) {            
+        
+            $newUserClass = ucfirst($query_user->role);
+            $newUserClass_path = KERNEL_PATH . '/user/roles/' . $newUserClass . '.php';
+
+            if (!file_exists($newUserClass_path))
+                throw new UAppException(sprintf("Файла '%s' для типа пользователя '%s' не нашлось", $newUserClass_path, $newUserClass));
+
+            self::$query_uid = $identification;  
+            self::$query_user = new $newUserClass;
+            self::$query_user->name = $query_user->name;            
+            self::$query_user->role = $query_user->role;   
+            self::$query_user->setGroups($query_user->role);
+            return self::$query_user;            
+            
+        } elseif (self::$uid == $identification)
             return self::$user;
-        }
-        else {            
+        elseif ($identification === 0)
             return new UEmptyUser($identification);        
-        }         
+        
+        self::$isCurrentAuth = true;        
+        $user = R::load(self::$table, self::$uid);
         
         $newUserClass = ucfirst($user->role);
         $newUserClass_path = KERNEL_PATH . '/user/roles/' . $newUserClass . '.php';
         
-        if (!file_exists($newUserClass_path)) {
-            throw new UAppException (sprintf ("Файла '%s' для типа пользователя '%s' не найден", $newUserClass_path, $newUserClass));   
-        }
+        if (!file_exists($newUserClass_path))
+            throw new UAppException (sprintf ("Файла '%s' для типа пользователя '%s' не нашлось", $newUserClass_path, $newUserClass));   
         
-        $userCache = new $newUserClass;
-        $userCache->name = $user->name;
-        $userCache->role = $user->role;  
-        $userCache->login = $user->login;
-        $userCache->groupId = $user->group_id;
-        $userCache->setRoleGroups($user->role);        
+        self::$user = new $newUserClass;
+        self::$user->name = $user->name;
+        self::$user->role = $user->role;  
+        self::$user->setGroups($user->role);        
         
-        return $userCache;        
+        return self::$user;
     }
     
     /**
-     * Устанавливает для пользователя такие значения как "название" и "название 
-     * корневой группы" по его роли.
+     * Устанавливает для пользователя такие значения как "название" и "название корневой группы"
      * @param string $role
      */
-    private function setRoleGroups($role) 
+    private function setGroups($role) 
     {       
         $rootGroup = R::findOne(self::$table_roles, 'type = ?', array($role));
-        $this->roleGroup = $rootGroup->group;        
+        $this->group = $rootGroup->group;        
         
-        while ($rootGroup->group != '0') {
-            $rootGroup = R::findOne(self::$table_roles, 'type = ?', array($rootGroup->group));
-        }
-        $this->roleRootGroup = $rootGroup->type;
+        while ($rootGroup->group != '0') {                                    
+            $rootGroup = R::findOne(self::$table_roles, 'type = ?', array($rootGroup->group));            
+        }                
+        $this->rootgroup = $rootGroup->type;
     }
     
     /**
@@ -246,7 +230,8 @@ class UUser {
         $_e = array();
         $user = R::load(self::$table, $uid);
         if (!$user->id) {
-            $_e[] = "Пользователя с Id = '$uid' не существует";            
+            $_e[] = "Пользователя с Id = '$uid' не существует";
+            
             self::$last_errors = $_e;
             return false;
         }        
@@ -263,7 +248,8 @@ class UUser {
         $_e = array();
         $user = R::findOne(self::$table, 'login = ?', array((string)$login));
         if (!$user->id) {
-            $_e[] = "Пользователя с login = '$login' не существует";            
+            $_e[] = "Пользователя с login = '$login' не существует";
+            
             self::$last_errors = $_e;
             return false;
         }        
@@ -276,9 +262,10 @@ class UUser {
      */
     public function getUID()
     {
-        return self::$isCurrentAuth
-            ? self::$uid
-            : self::$query_uid;        
+        if (self::$isCurrentAuth)
+            return self::$uid;
+        else            
+            return self::$query_uid;
     }
     
     /**
@@ -287,9 +274,10 @@ class UUser {
      */
     public function getName()
     {   
-        return self::$isCurrentAuth
-            ? self::$user->name
-            : self::$query_user->name;        
+        if (self::$isCurrentAuth)
+            return self::$user->name;
+        else            
+            return self::$query_user->name;
     }
 
     /**
@@ -298,54 +286,34 @@ class UUser {
      */
     public function getRole()
     {
-        return self::$isCurrentAuth
-            ? self::$user->role
-            : self::$query_user->role;        
+        if (self::$isCurrentAuth)
+            return self::$user->role;
+        else            
+            return self::$query_user->role;
     }
 
     /**
-     * Возвращает имя группы пользователя, к которой относится его роль
+     * Возвращает название группы пользователя
      * @return string
      */
-    public function getRoleGroup()
+    public function getGroup()
     {
-        return self::$isCurrentAuth
-            ? self::$user->roleGroup
-            : self::$query_user->roleGroup;    
+        if (self::$isCurrentAuth)
+            return self::$user->group;
+        else            
+            return self::$query_user->group;
     }
     
     /**
-     * Возвращает название самой корневой группы пользователя, к коорой относится его роль
+     * Возвращает название самой корневой группы пользователя
      * @return string
      */
-    public function getRoleRootGroup()
+    public function getRGroup()
     {
-        return self::$isCurrentAuth
-            ? self::$user->roleRootGroup
-            : self::$query_user->roleRootGroup;    
-    }
-    
-    /**
-     * Возвращает логин
-     * @return string
-     */
-    public function getLogin()
-    {
-        return self::$isCurrentAuth
-            ? self::$user->login
-            : self::$query_user->login;    
-    }
-    
-    /**
-     * Возвращает идентификатор группы пользователя.
-     * Внимание! Значение заполняется только у пользовтелей "студенты".
-     * @return integer
-     */
-    public function getGroupId()
-    {
-        return self::$isCurrentAuth
-            ? self::$user->groupId
-            : self::$query_user->groupId;    
+        if (self::$isCurrentAuth)
+            return self::$user->rootgroup;
+        else            
+            return self::$query_user->rootgroup;
     }
 
     public function getFields($arFields, $uid)
@@ -355,36 +323,34 @@ class UUser {
         $uid = intval($uid);
         
         if (!$uid) {
-            $uid = self::$isCurrentAuth
-                ? self::$uid
-                : self::$query_uid;            
+            if (self::$isCurrentAuth)
+                $uid = self::$uid;
+            else
+                $uid = self::$query_uid;
         }        
         
         $user = R::load(self::$table, $uid);
         
         if ($arFields === '*') {
             foreach ($user as $k => $v)
-            {
                 $arOut[$k] = $v;
-            }
-        } 
-        elseif (!is_array($arFields) || empty($arFields)) {
+        } elseif (!is_array($arFields) || empty($arFields)) {
             $_e[] = "Запрашиваемые поля пользователя должны быть массивом";
             self::$last_errors = $_e;
             return false;
-        } 
-        else {
+        } else {
             foreach ($arFields as $v)
             {
+                //if (!isset($user->$v)) {
                 if (property_exists($user, $v)) {
                     $_e[] = "Поля '$v' не существует в списке свойств пользователей";
                     self::$last_errors = $_e;
                     return false;
-                }
+                }   
                 $arOut[$v] = $user->$v;
             }
         }
-
+        
         return $arOut;
     }
 
@@ -393,12 +359,10 @@ class UUser {
         $_e = array();
         $arAvailableRoles = glob(KERNEL_PATH . '/user/roles/*.php');
         foreach ($arAvailableRoles as &$oneDir)
-        {
             $oneDir = basename($oneDir, '.php');
-        }
         
         if (!self::$isCurrentAuth) {
-            $_e[] = 'Выполнение методов от других ролей доступно только для будучи авторизованного пользователя';
+            $_e[] = 'Выполнение методов от других ролей доступно только для текущего авторизованного пользователя';
             self::$last_errors = $_e;
             return false;
         }
@@ -491,13 +455,11 @@ class UUser {
      */
     private static function addTreeItems($role, &$output = array())
     {
-        $role = intval($role);
         $arRelatedRoles = R::findAndExport(self::$table_roles, '`group` = ?', array($role));
         $arCurRole = R::findOne(self::$table_roles, '`type` = ?', array($role));
         
-        if (empty($arCurRole) || !$role) {
-            return false;
-        }
+        if (empty($arCurRole) || $role === 0 || $role == '0')
+            return;
         
         $output[] = $role;
         foreach ($arRelatedRoles as $arRole)
@@ -522,21 +484,22 @@ class UUser {
      */
     public static function isAuth()
     {
-        return $_SESSION['u_uid'] ? true : false;
-    }
-    
-    // Флаг, определяющий, введётся ли работа с текущим авторизованным пользователем
-    // или же с запрошенным.
-    public static function curUserIsAuth()
-    {
-        
+        if (self::$uid || $_SESSION['u_uid'])
+            return true;
+        else
+            return false;
     }
 
     public static function login($login, $pass)
     {       
         $_e = array();
         $user = R::findOne(self::$table, '`login` = ?', array(strtolower((string)$login)));        
-              
+        
+        if (empty($user)) {
+            $_e[] = "Неверно введён логин или пароль";
+            self::$last_errors = $_e;
+            return false;
+        }        
         if ($user->password == md5(sha1($pass).$user->salt)) {
             $_SESSION['u_uid'] = $user->id;                        
             return true;
@@ -547,11 +510,11 @@ class UUser {
         }
     }
 
-    public static function logout($redirect_url = '/') {        
-        self::$uid = 0;
-        self::$user = null;
-        unset($_SESSION['u_uid']);  
-        USite::redirect($redirect_url);                    
+    public static function logout($redirect_url = '/') {
+        if (self::$uid != 0) {
+            unset($_SESSION['u_uid']);  
+            USite::redirect($redirect_url);            
+        }
     }
     
     public static function refreshDataRoles()
@@ -562,9 +525,8 @@ class UUser {
         
         foreach ($arFullRoles as $k => $v)
         {         
-            if ($k == self::VIP_ROLE) {
+            if ($k == self::VIP_ROLE)
                 throw new UAppException ("Нельзя переопределять роль 'admin'");
-            }
             
             $result = R::findOne(self::$table_roles, 'type=?', array( strtolower($k) )); 
             

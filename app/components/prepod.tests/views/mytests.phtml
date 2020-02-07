@@ -4,7 +4,7 @@ UAppBuilder::setH('Список тестов');
 $arTitles = array(
     UForm::checkbox('check_all', 1, false, 'check-all'),
     'Название теста',
-    'Управление'
+    ''
 );
 
 $items = $arResult['data'];
@@ -16,33 +16,34 @@ $items = $arResult['data'];
     <?=UForm::btnNew('Создать новый тест', USite::getModurl() . '/newmytest/', $this->model->vars['subject_code'])?>
 </div>
 
-<? 
-if (empty($items)) { 
-    echo UForm::info('Список пуст');
-    return;     
-} 
-?>
+<?if (empty($items)):?>
+    Список пуст
+<?else:?>
     
-<div class="bs-callout bs-callout-warning">    
-    Для создания вопросов и вариантов ответов необходимо перейти в тест.
-</div>
+    <div class="bs-callout bs-callout-warning">
+        <p>
+            Для создания вопросов и вариантов ответов необходимо зайти в <b>тест</b>
+        </p>
+    </div>
 
-<form action="" method="post" class="formaction">
-    <table class="table table-hover">
-        <thead>
-            <tr>
-            <?foreach($arTitles as $title):?>
-                <th><?=$title?></th>
+    <form action="" method="post" class="formaction">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                <?foreach($arTitles as $title):?>
+                    <th><?=$title?></th>
+                <?endforeach?>
+                </tr>
+            </thead>
+            <?foreach($items as $k => $v):?>
+                <tr>
+                    <td><?=UForm::checkbox("i[item_{$v['id']}]", $v['id'], 'check-one')?></td>
+                    <td><a href="<?=USite::getUrl()?>/test-<?=$v['id']?>"><?=$v['title']?></a></td>
+                    <td class="last-column"><?=UForm::btnEdit(USite::getModurl().'/editmytest/', $v['id'])?><?=UForm::btnDelete(USite::getModurl().'/delete/', 'mytest/'.$v['id'])?></td>
+                </tr>
             <?endforeach?>
-            </tr>
-        </thead>
-        <?foreach($items as $k => $v):?>
-            <tr>
-                <td class="checkbox-column"><?=UForm::checkbox("i[item_{$v['id']}]", $v['id'], 'check-one')?></td>
-                <td><a href="<?=USite::getUrl()?>/test-<?=$v['id']?>"><?=$v['title']?></a></td>
-                <td class="last-column"><?=UForm::btnEdit(USite::getModurl().'/editmytest/', $v['id'])?><?=UForm::btnDelete(USite::getModurl().'/delete/', 'mytest/'.$v['id'])?></td>
-            </tr>
-        <?endforeach?>
-    </table>
-    <?=UForm::button('Удалить выбранные', 'btn btn-danger delete-selected', 'del_all', 'Y', 'submit', true)?>
-</form>
+        </table>
+        <?=UForm::button('Удалить выбранные', 'btn btn-danger delete-selected', 'del_all', 'Y', 'submit', true)?>
+    </form>
+    
+<?endif?>

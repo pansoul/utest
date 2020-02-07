@@ -2,13 +2,13 @@
 
 class UtilityModel extends UModel {
     
-    const ID_U_DATA = 1; 
+    const ID_U_DATA = 1;
+    private $table_univer_data = 'u_univer_data';    
 
     public function menuAction($node)
     {
-        if ($node === null) {
+        if ($node === null)
             throw new UAppException('Не указано имя меню для вывода');
-        }
 
         $generalMenu = include APP_CONFIG_PATH . '/menus.php';
         $curMenu = @$generalMenu[$node];
@@ -18,20 +18,18 @@ class UtilityModel extends UModel {
 
     public function panelAction()
     {
-        if (isset($this->request->_GET['logout']) &&  $this->request->_GET['logout'] == 'Y') {
+        if (isset($this->request->_get['logout']) &&  $this->request->_get['logout'] == 'Y')
             UUser::logout();
-        }
         return $this->returnResult();
     }
 
     public function univerAction($field)
     {
-        if ($field == 'univer_name') {
+        if ($field == 'univer_name')
             $field = 'name';
-        } elseif ($field == 'univer_fullname') {
+        elseif ($field == 'univer_fullname')
             $field = 'fullname';
-        }
-        $data = R::load(TABLE_UNIVER_DATA, self::ID_U_DATA);
+        $data = R::load($this->table_univer_data, self::ID_U_DATA);
         return $this->returnResult($data->$field);
     }
     
@@ -50,6 +48,15 @@ class UtilityModel extends UModel {
         return $this->returnResult(array(
             'tabs' => $arr,
             'selected' => $selected
+        ));
+    }
+    
+    public function answerDisplayAction($type, $v, $a, $r)
+    {
+        return $this->returnResult(array(
+            'form_question' => $v,
+            'form_answer' => $a,
+            'form_right' => $r
         ));
     }
     

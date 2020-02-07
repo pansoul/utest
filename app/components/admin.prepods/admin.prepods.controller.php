@@ -4,22 +4,27 @@ class AdminPrepodsController extends USiteController {
 
     protected $routeMap = array(
         'setTitle' => 'Преподаватели',
-        'actionMain' => 'prepod',        
-        'actionsPath' => array(                        
-            'edit' => '/edit/<id>',
-            'delete' => '/delete/<id>',
-            'newPrepod' => '/newprepod'
+        'actionDefault' => 'prepod',
+        'paramsPath' => array(            
+            'edit' => '/<id>',
+            'delete' => '/<id>'
         ),
-        'varsRule' => array(
-            'id' => '[0-9]',
+        'params' => array(            
+            'id' => array(
+                'mask' => '',
+                'rule' => '[0-9]',
+                'default' => 0
+            )
         )
     );
 
     public function run()
-    {   
+    {
+        $result = $this->model->doAction($this->action);        
+        
         switch ($this->action) {
             case 'edit':
-                $result = $this->model->doAction($this->action, array($this->model->vars['id']));                
+                $result = $this->model->doAction($this->action, (array)$this->model->vars['id']);                
                 $html = $this->loadView('newprepod', $result);
                 break;
             
@@ -28,12 +33,11 @@ class AdminPrepodsController extends USiteController {
                 break;
             
             default:
-                $result = $this->model->doAction($this->action);        
                 $html = $this->loadView($this->action, $result);
                 break;
         }        
         
-        $this->putModContent($html);
+        return $html;
     }
 
 }
