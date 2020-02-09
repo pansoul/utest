@@ -1,0 +1,45 @@
+<?
+use UTest\Kernel\Form;
+use UTest\Kernel\Test\Passage;
+
+if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) {
+    echo Form::error($this->getErrors(ERROR_ELEMENT_NOT_FOUND));
+    return;
+}
+
+if ($this->hasErrors()) {
+    echo Form::error($this->getErrors(), true);
+}
+?>
+
+<div class="bs-callout bs-callout-warning">
+    <p>
+        Пересдача применится только тем студентам текущей группы, кто уже завершил тест и чей статус теста отличен от <span class="label label-default"><?= Passage::getTestStatuses(Passage::STATUS_WAITED_FOR_START) ?></span>
+    </p>
+</div>
+
+<form class="form-horizontal" method="post" action="">
+    <div class="form-group">
+        <label class="col-lg-2 control-label">Назначить пересдачу:</label>
+        <div class="col-lg-10">
+            <?=Form::checkbox("set_retake", 1)?>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-lg-2 control-label">
+            Игнорировать статус завершения теста:
+            <span class="help-block">
+                Выбор данной опции без отмеченной "Назначить пересдачу" не имеет смысла
+            </span>
+        </label>
+        <div class="col-lg-10">
+            <?=Form::checkbox("force", 1)?>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-lg-offset-2 col-lg-10">
+            <?=Form::button('Применить', 'btn btn-default')?>
+        </div>
+    </div>
+    <?=Form::input('hidden', 'a', 'Y')?>
+</form>

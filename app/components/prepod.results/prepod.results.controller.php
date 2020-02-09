@@ -19,7 +19,7 @@ class PrepodResultsController extends \UTest\Kernel\Component\Controller
                 'title' => 'Результаты тестирования',
                 'add_breadcrumb' => true
             ],
-            '/<group_code>/<subject_code>/gretake/<gid>' => [
+            '/<group_code>/<subject_code>/gretake/<atid>' => [
                 'action' => 'retake_group',
                 'title' => 'Пересдача теста',
                 'add_breadcrumb' => true
@@ -44,8 +44,7 @@ class PrepodResultsController extends \UTest\Kernel\Component\Controller
             'subject_code' => '[-_a-zA-Z0-9]',
             'group_code' => '[-_a-zA-Z0-9]',
             'atid' => '[0-9]',
-            'uid' => '[0-9]',
-            'gid' => '[0-9]',
+            'uid' => '[0-9]'
         )
     );
 
@@ -74,7 +73,7 @@ class PrepodResultsController extends \UTest\Kernel\Component\Controller
                 break;
             
             case 'retake_group':
-                $this->doAction($this->action, $this->getVars(['atid', 'gid']));
+                $this->doAction($this->action, $this->getVars(['atid', 'group_code']));
                 $html = $this->loadView($this->action);
                 break;
             

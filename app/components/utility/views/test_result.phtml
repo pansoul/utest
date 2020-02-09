@@ -2,6 +2,7 @@
 use UTest\Kernel\Site;
 use UTest\Components\UtilityModel;
 use UTest\Kernel\Test\Passage;
+use UTest\Kernel\Form;
 
 /**
  * Объект результата тестирования
@@ -26,6 +27,8 @@ $arStatusLabelClasses = [
     Passage::STATUS_IN_PROCESS => 'label-info',
     Passage::STATUS_FINISHED => 'label-success',
 ];
+
+// @todo Скрыть части результатов в соответствии с опциями теста
 ?>
 
 <?if($mode != UtilityModel::RESULT_MODE_SHORT && $passageData['retake']):?>
@@ -42,57 +45,64 @@ $arStatusLabelClasses = [
 <?endif?>
 
 <div class="result-wrapper">
-    <header class="result-header">
-        <div class="result-main-info">
-            <span class="result-q-count">Количество верных ответов: <b><?=$resultData['right_count']?> / <?=$resultData['all_count']?></b></span>
-            <div class="result-percent-passage">
-                тест пройден на
-                <div class="result-test"><?=$resultData['passage_percent']?>%</div>
+
+    <?if($mode == UtilityModel::RESULT_MODE_DETAIL && $result->getStatus() != Passage::STATUS_FINISHED):?>
+        <?=Form::error("Тест ещё не пройден")?>
+    <?elseif($result->getStatus() == Passage::STATUS_WAITED_FOR_START):?>
+        <?=Form::info("Тест ещё не запускался")?>
+    <?else:?>
+
+        <header class="result-header">
+            <div class="result-main-info">
+                <span class="result-q-count">Количество верных ответов: <b><?=$resultData['right_count']?> / <?=$resultData['all_count']?></b></span>
+                <div class="result-percent-passage">
+                    тест пройден на
+                    <div class="result-test"><?=$resultData['passage_percent']?>%</div>
+                </div>
             </div>
-        </div>
-        <div class="result-more-info <?= $mode == UtilityModel::RESULT_MODE_SHORT ? 'result-after' : '' ?>">
-            <?if($mode == UtilityModel::RESULT_MODE_SHORT):?>
-                <a href="/student/results/<?=$resultData['atid']?>" class="btn btn-info">Подробнее</a>
-            <?else:?>
-                <ul class="noliststyle">
-                    <?if($mode == UtilityModel::RESULT_MODE_FULL):?>
-                        <li>
-                            <span class="r-m-key">Статус</span>
-                            <span class="r-m-value">
+            <div class="result-more-info <?= $mode == UtilityModel::RESULT_MODE_SHORT ? 'result-after' : '' ?>">
+                <?if($mode == UtilityModel::RESULT_MODE_SHORT):?>
+                    <a href="/student/results/<?=$resultData['atid']?>" class="btn btn-info">Подробнее</a>
+                <?else:?>
+                    <ul class="noliststyle">
+                        <?if($mode == UtilityModel::RESULT_MODE_FULL):?>
+                            <li>
+                                <span class="r-m-key">Статус</span>
+                                <span class="r-m-value">
                                 <span class="label <?=$arStatusLabelClasses[$result->getStatus()]?>"><?=$result->getStatus(true)?></span>
                             </span>
-                        </li>
-                        <li><span class="r-m-key">Студент</span> <span class="r-m-value"><?=$result->getUserData(true)?></span></li>
-                    <?endif;?>
+                            </li>
+                            <li><span class="r-m-key">Студент</span> <span class="r-m-value"><?=$result->getUserData(true)?></span></li>
+                        <?endif;?>
 
-                    <?if($result->getStatus() != Passage::STATUS_WAITED_FOR_START):?>
-                        <li><span class="r-m-key">Дата начала</span> <span class="r-m-value"><?=date("d.m.Y H:i:s",strtotime($result->getTimeStart()))?></span></li>
-                        <li><span class="r-m-key">Дата завершения</span> <span class="r-m-value"><?=date("d.m.Y H:i:s",strtotime($result->getTimeFinish()))?></span></li>
-                    <?endif;?>
+                        <?if($result->getStatus() != Passage::STATUS_WAITED_FOR_START):?>
+                            <li><span class="r-m-key">Дата начала</span> <span class="r-m-value"><?=date("d.m.Y H:i:s",strtotime($result->getTimeStart()))?></span></li>
+                            <li><span class="r-m-key">Дата завершения</span> <span class="r-m-value"><?=date("d.m.Y H:i:s",strtotime($result->getTimeFinish()))?></span></li>
+                        <?endif;?>
 
-                    <hr/>
-                    <li><span class="r-m-key">Дисциплина</span> <span class="r-m-value"><?=$meta['subject']?></span></li>
-                    <li><span class="r-m-key">Преподаватель</span> <span class="r-m-value"><?=$meta['author']?></span></li>
-                    <hr/>
-                    <li><span class="r-m-key">№ пересдачи</span> <span class="r-m-value"><?=$curRetake?></span></li>
-                </ul>
-            <?endif;?>
-        </div>
-    </header>
-
-    <?if($mode != UtilityModel::RESULT_MODE_SHORT):?>
-        <?if (!$result->isShowTrue()):?>
-
-            <div class="bs-callout bs-callout-warning">
-                <p>У данного теста выставлено ограничение на разбор ошибок.</p>
+                        <hr/>
+                        <li><span class="r-m-key">Дисциплина</span> <span class="r-m-value"><?=$meta['subject']?></span></li>
+                        <li><span class="r-m-key">Преподаватель</span> <span class="r-m-value"><?=$meta['author']?></span></li>
+                        <hr/>
+                        <li><span class="r-m-key">№ пересдачи</span> <span class="r-m-value"><?=$curRetake?></span></li>
+                    </ul>
+                <?endif;?>
             </div>
+        </header>
 
-        <?else:?>
+        <?if($mode != UtilityModel::RESULT_MODE_SHORT):?>
+            <?if (!$result->isShowTrue()):?>
 
-            <h3>Разбор ошибок</h3>
-            <div class="table-result-wrapper table-responsive">
-                <table class="table table-bordered table-result">
-                    <thead>
+                <div class="bs-callout bs-callout-warning">
+                    <p>У данного теста выставлено ограничение на разбор ошибок.</p>
+                </div>
+
+            <?else:?>
+
+                <h3>Разбор ошибок</h3>
+                <div class="table-result-wrapper table-responsive">
+                    <table class="table table-bordered table-result">
+                        <thead>
                         <tr>
                             <th class="column-min">№</th>
                             <th width="50%">Текст вопроса</th>
@@ -100,11 +110,11 @@ $arStatusLabelClasses = [
                             <th>Верный ответ</th>
                             <th class="column-min">Результат</th>
                         </tr>
-                    </thead>
-                    <tbody>
+                        </thead>
+                        <tbody>
                         <? foreach ($resultData['answers_list'] as $number => $q):
                             $question = @$q['question'];
-                        ?>
+                            ?>
                             <tr>
                                 <td class="column-disabled" align="center"><?= $number ?></td>
 
@@ -120,10 +130,13 @@ $arStatusLabelClasses = [
                                 </td>
                             </tr>
                         <? endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
+                        </tbody>
+                    </table>
+                </div>
 
+            <?endif;?>
         <?endif;?>
+
     <?endif;?>
+
 </div>

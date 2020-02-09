@@ -67,8 +67,10 @@ class Multiple extends AbstractType
 
     protected function checkAnswer($userAnswer = null)
     {
-        $userAnswer = ksort($this->filterRights($userAnswer));
-        $validRights = ksort($this->getValidRights());
+        $userAnswer = $this->filterRights($userAnswer);
+        $validRights = $this->getValidRights();
+        ksort($userAnswer);
+        ksort($validRights);
         return $validRights === $userAnswer;
     }
 }

@@ -68,8 +68,8 @@ class Passage
         }
 
         $this->retake = is_null($retake) ? $this->getRealRetake() : intval($retake);
-        $this->loadPassageData();
         $this->loadTimeData();
+        $this->loadPassageData();
         $this->loadLastAnswerData();
     }
 
@@ -312,8 +312,7 @@ class Passage
         $this->passageData = DB::table(TABLE_STUDENT_TEST_PASSAGE)
             ->where([
                 'user_id' => $this->uid,
-                'test_id' => $this->atid,
-                'retake' => $this->retake
+                'test_id' => $this->atid
             ])
             ->first();
 
@@ -484,7 +483,7 @@ class Passage
      */
     public function isTimeLeft()
     {
-        if ($this->hasTimeLimit()) {
+        if ($this->hasTimeLimit() && $this->timeData) {
             return $this->getTimeLeft() <= 0;
         }
         return false;
@@ -554,7 +553,10 @@ class Passage
      */
     public function getStatus($getStatusText = false)
     {
-        return $getStatusText ? self::getTestStatuses($this->getStatus()) : intval($this->passageData['status']);
+        $isRealRetake = $this->retake == $this->getRealRetake();
+        $isFinished = isset($this->timeData['date_finish']);
+        $status = (!$isRealRetake && $isFinished) ? self::STATUS_FINISHED : intval($this->passageData['status']);
+        return $getStatusText ? self::getTestStatuses($this->getStatus()) : $status;
     }
 
     /**
@@ -881,7 +883,7 @@ class Passage
                     break;
 
                 case self::CHECK_RETAKE:
-                    $check = $this->retake == $this->passageData['retake'];
+                    $check = $this->retake > 0 && $this->retake <= $this->getRealRetake();
                     break;
 
                 default:

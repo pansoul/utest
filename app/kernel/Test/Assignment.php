@@ -5,6 +5,7 @@ namespace UTest\Kernel\Test;
 use UTest\Kernel\DB;
 use UTest\Kernel\User\User;
 use UTest\Kernel\Traits\FieldsValidateTraitHelper;
+use UTest\Kernel\Test\Passage;
 
 /**
  * Класс по созданию и управлению назначенных тестов группам.
@@ -303,6 +304,16 @@ class Assignment
         return $this->assignData['test_id'];
     }
 
+    /**
+     * Назначает новую пересдачу студенту или всей группе по текущему назначенному тесту.
+     * Пересдача будет назначена только пройденным тестам и чей статус отличен от "ожидает старта". Поведение можно изменить через параметр $force.
+     *
+     * @param $id - Id студента или группы, если указан параметр $isGroup
+     * @param bool $isGroup
+     * @param bool $force - игнорировать статус завершения теста
+     *
+     * @return bool|int
+     */
     public function assignRetake($id, $isGroup = false, $force = false)
     {
         $this->clearErrors();
@@ -310,18 +321,45 @@ class Assignment
             return false;
         }
 
-        $dataSeek = [
-            'test_id' => $this->getAssignedTestId(),
-            'user_id' => $id
-        ];
+        $query = DB::table(TABLE_STUDENT_TEST_PASSAGE);
 
-        $rows = DB::table(TABLE_STUDENT_TEST_PASSAGE)->where($dataSeek)->update(['retake' => DB::raw('retake + 1')]);
+        if ($isGroup) {
+            $query->leftJoin(TABLE_USER, TABLE_USER.'.id', '=', TABLE_STUDENT_TEST_PASSAGE.'.user_id');
 
-        if (!$rows) {
-            //$this->setErrors('Отсутствуют ');
+            if (!$force) {
+                $query->where(TABLE_STUDENT_TEST_PASSAGE.'.status', '=', Passage::STATUS_FINISHED);
+            }
+
+            $rows = $query
+                ->where(TABLE_STUDENT_TEST_PASSAGE.'.test_id', '=', $this->getAssignedTestId())
+                ->where(TABLE_USER.'.group_id', '=', $id)
+                ->where(TABLE_STUDENT_TEST_PASSAGE.'.status', '!=', Passage::STATUS_WAITED_FOR_START)
+                ->update([
+                    TABLE_STUDENT_TEST_PASSAGE.'.retake' => DB::raw(TABLE_STUDENT_TEST_PASSAGE.'.retake + 1'),
+                    TABLE_STUDENT_TEST_PASSAGE.'.status' => Passage::STATUS_WAITED_FOR_START,
+                    TABLE_STUDENT_TEST_PASSAGE.'.last_q_number' => null
+                ]);
+        } else {
+            $dataSeek = [
+                'test_id' => $this->getAssignedTestId(),
+                'user_id' => $id
+            ];
+
+            if (!$force) {
+                $dataSeek['status'] = Passage::STATUS_FINISHED;
+            }
+
+            $rows = $query
+                ->where('status', '!=', Passage::STATUS_WAITED_FOR_START)
+                ->where($dataSeek)
+                ->update([
+                    'retake' => DB::raw('retake + 1'),
+                    'status' => Passage::STATUS_WAITED_FOR_START,
+                    'last_q_number' => null
+                ]);
         }
 
-        return !empty($rows);
+        return $rows;
     }
 
     /**

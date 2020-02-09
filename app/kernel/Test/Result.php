@@ -264,6 +264,7 @@ class Result
 
             $qTypeEntity = new $qTypeClass($item['question_id']);
             $qTypeEntity->loadAnswersList();
+
             $amountRightUserAnswers += $qTypeEntity->check($userAnswer);
 
             $userAnswersList[$item['number']] = [

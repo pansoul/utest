@@ -169,135 +169,43 @@ class PrepodResultsModel extends \UTest\Kernel\Component\Model
         }
 
         if ($this->isActionRequest()) {
-            $v = $this->_POST;
-
+            if ($this->_POST['set_retake']) {
+                $assignedTest->assignRetake($uid, false, true);
+            }
 
             if ($assignedTest->hasErrors()) {
                 $this->setErrors($assignedTest->getErrors());
             } else {
-                Site::redirect(Site::getModurl() . '/for/' . $this->vars['group_code'] . '/' . $this->vars['subject_code']);
+                Site::redirect(Site::getModurl() . '/' . $this->vars['group_code'] . '/' . $this->vars['subject_code'] . '/' . $this->vars['atid']);
             }
         }
-
-        /*if (!($tid && $uid))
-            return;
-        
-        $sql = "
-            SELECT t.*, 
-                g.alias as group_alias, 
-                g.title as group_title, 
-                s.alias as subject_alias, 
-                s.title as subject_title, 
-                st.title as test_title, 
-                u.name as u_name, 
-                u.last_name as u_last_name, 
-                u.surname as u_surname
-            FROM {$this->table_student_passage} AS t 
-            LEFT JOIN {$this->table_user} AS u 
-                ON (u.id = t.user_id)
-            LEFT JOIN {$this->table_group} AS g
-                ON (g.id = u.group_id)
-            LEFT JOIN {$this->table_student_test} AS st
-                ON (st.id = t.test_id)
-            LEFT JOIN {$this->table_subject} AS s
-                ON (s.id = st.subject_id)
-            WHERE
-                t.test_id = {$tid}
-                AND t.user_id = {$uid}
-        ";
-        $res = R::getRow($sql);          
-        
-        $url = USite::getModurl() . '/for/' . $res['group_alias'];
-        UAppBuilder::addBreadcrumb($res['group_title'], $url);
-        
-        $url .= '/' . $res['subject_alias'];
-        UAppBuilder::addBreadcrumb($res['subject_title'], $url);
-        
-        $url .= '/' . $res['test_id'];
-        UAppBuilder::addBreadcrumb($res['test_title'], $url);
-        
-        // Запрос на изменение
-        if ($this->request->_POST['a']) {
-            $v = $this->request->_POST;
-            
-            if ($v['set_retake']) {
-                $dataRow = R::findOne($this->table_student_passage, 'test_id = :tid AND user_id = :uid', array(
-                    ':tid' => $tid,
-                    ':uid' => $uid
-                ));
-                
-                $dataRow->retake = $dataRow->retake + 1;
-                $dataRow->status = 0;
-                $dataRow->last_q_number = null;                
-                R::store($dataRow);
-            }
-            USite::redirect($url);
-        }
-        
-        return $this->returnResult($res);*/
     }
     
-    public function retakeGroupAction($tid, $gid)
-    {   
-        if (!($tid && $gid))
+    public function retakeGroupAction($atid, $groupCode)
+    {
+        $group = $this->subjectsAction($groupCode);
+        if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) {
+            $this->setData(null);
             return;
-        
-        $sql = "
-            SELECT t.*, 
-                g.alias as group_alias, 
-                g.title as group_title, 
-                s.alias as subject_alias, 
-                s.title as subject_title
-            FROM {$this->table_student_test} AS t 
-            LEFT JOIN {$this->table_group} AS g
-                ON (g.id = t.group_id)
-            LEFT JOIN {$this->table_subject} AS s
-                ON (s.id = t.subject_id)
-            WHERE
-                t.id = {$tid}
-                AND t.group_id = {$gid}
-                AND t.user_id = " . UUser::user()->getUID() . "
-        ";
-        $res = R::getRow($sql);        
-        
-        $url = USite::getModurl() . '/for/' . $res['group_alias'];
-        UAppBuilder::addBreadcrumb($res['group_title'], $url);
-        
-        $url .= '/' . $res['subject_alias'];
-        UAppBuilder::addBreadcrumb($res['subject_title'], $url);
-        
-        // Запрос на изменение
-        if ($this->request->_POST['a']) {
-            $v = $this->request->_POST;
-            
-            if ($v['set_retake']) {
-                $sql = "
-                    SELECT t.*
-                    FROM {$this->table_student_passage} AS t
-                    LEFT JOIN {$this->table_user} AS u
-                        ON (t.user_id = u.id)
-                    WHERE
-                        u.group_id = {$gid}
-                        AND t.test_id = {$tid}
-                ";                   
-                $arUsers = R::getAll($sql); 
-
-                foreach ($arUsers as $u)
-                {
-                    if ($u['status'] == 2) {
-                        $dataRow = R::load($this->table_student_passage, $u['id']);
-                        
-                        $dataRow->retake = $dataRow->retake + 1;
-                        $dataRow->status = 0;
-                        $dataRow->last_q_number = null;
-                        R::store($dataRow);
-                    }
-                }
-            }
-            USite::redirect($url);
         }
-        
-        return $this->returnResult($res);
-    }
 
+        $assignedTest = new Assignment(User::user()->getUID(), $atid);
+
+        if ($assignedTest->hasErrors()) {
+            $this->setErrors($assignedTest->getErrors(), ERROR_ELEMENT_NOT_FOUND);
+            return;
+        }
+
+        if ($this->isActionRequest()) {
+            if ($this->_POST['set_retake']) {
+                $assignedTest->assignRetake($group['id'], true, $this->_POST['force']);
+            }
+
+            if ($assignedTest->hasErrors()) {
+                $this->setErrors($assignedTest->getErrors());
+            } else {
+                Site::redirect(Site::getModurl() . '/' . $this->vars['group_code'] . '/' . $this->vars['subject_code']);
+            }
+        }
+    }
 }
