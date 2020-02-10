@@ -2,31 +2,41 @@
 
 namespace UTest\Components;
 
+use UTest\Kernel\DB;
+
 class PrepodStudentsController extends \UTest\Kernel\Component\Controller
 {
-
-    protected $routeMap = array(
-        'title' => 'Группы',
-        'add_breadcrumb' => true,
-        'action_main' => 'group',
-        'actions_params' => array(
-            '/<group_code>' => [
-                'action' => 'student',
-                'title' => 'Cтуденты',
-                'add_breadcrumb' => true
-            ],
-            '/<group_code>/editstudent/<id>' => [
-                'action' => 'editStudent',
-                'title' => 'Редактирование студента',
-                'add_breadcrumb' => true,
-            ]
-        ),
-        'vars_rules' => array(
-            'group_code' => '[-_a-zA-Z0-9]',
-            'in' => '[-_a-zA-Z0-9]',
-            'id' => '[0-9]'
-        )
-    );
+    protected function routeMap()
+    {
+        return [
+            'title' => 'Группы',
+            'subtitle' => function($vars){
+                return DB::table(TABLE_UNIVER_GROUP)
+                    ->select('title')
+                    ->where('alias', $vars['group_code'])
+                    ->first()['title'];
+            },
+            'add_breadcrumb' => true,
+            'action_main' => 'group',
+            'actions_params' => array(
+                '/<group_code>' => [
+                    'action' => 'student',
+                    'title' => 'Cтуденты',
+                    'add_breadcrumb' => true
+                ],
+                '/<group_code>/editstudent/<id>' => [
+                    'action' => 'editStudent',
+                    'title' => 'Редактирование студента',
+                    'add_breadcrumb' => true,
+                ]
+            ),
+            'vars_rules' => array(
+                'group_code' => '[-_a-zA-Z0-9]',
+                'in' => '[-_a-zA-Z0-9]',
+                'id' => '[0-9]'
+            )
+        ];
+    }
 
     public function run()
     {

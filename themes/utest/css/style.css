@@ -1117,3 +1117,10 @@ textarea{
 .pagination__item__link.answered{
     background: #FFF8C5;
 }
+
+.subtitle{
+    color: #333;
+}
+.subtitle__separator{
+    color: #ccc;
+}

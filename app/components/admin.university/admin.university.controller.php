@@ -2,11 +2,20 @@
 
 namespace UTest\Components;
 
+use UTest\Kernel\DB;
+
 class AdminUniversityController extends \UTest\Kernel\Component\Controller
 {
-    function routeMap() {
+    protected function routeMap()
+    {
         return [
             'title' => 'Факультеты',
+            'subtitle' => function($vars){
+                return DB::table(TABLE_UNIVER_FACULTY)
+                    ->select('title')
+                    ->where('alias', $vars['faculty_code'])
+                    ->first()['title'];
+            },
             'add_breadcrumb' => true,
             'action_main' => 'faculty',
             'actions_params' => [
@@ -29,9 +38,6 @@ class AdminUniversityController extends \UTest\Kernel\Component\Controller
                 '/<faculty_code>/newspeciality' => [
                     'action' => 'newSpeciality',
                     'title' => 'Создание новой специальности',
-                    'subtitle' => function(){
-                        // @todo
-                    },
                     'add_breadcrumb' => true,
                 ],
                 '/<faculty_code>/editspeciality/<id>' => [

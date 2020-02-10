@@ -11,6 +11,7 @@ class AppBuilder
 
     private static $title = '';
     private static $h = '';
+    private static $subtitle = '';
     private static $content = '';
     private static $arBreadcrumb = [];
     private static $arDelayedJs = [];
@@ -22,7 +23,8 @@ class AppBuilder
         'content',
         'menu',
         'title',
-        'h'
+        'h',
+        'subtitle'
     );
 
     public function __construct()
@@ -98,6 +100,11 @@ class AppBuilder
         $incFile = CURRENT_THEME_PATH . '/' . self::INC_FILE_NAME;
         if (file_exists($incFile)) {
             $incTplVars = require_once $incFile;
+            array_walk($incTplVars, function(&$v, $k) use ($tplVars) {
+                if (isset($tplVars[$k]) && is_callable($v)) {
+                    $v = $v($tplVars[$k]);
+                }
+            });
             $tplVars = array_merge($tplVars, (array) $incTplVars);
         }
 
@@ -130,6 +137,16 @@ class AppBuilder
     public static function setH($value)
     {
         self::$h = (string) $value;
+    }
+
+    public static function getSubtitle()
+    {
+        return self::$subtitle;
+    }
+
+    public static function setSubtitle($value)
+    {
+        self::$subtitle = (string) $value;
     }
 
     public static function getContent()

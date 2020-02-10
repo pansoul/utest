@@ -2,103 +2,130 @@
 
 namespace UTest\Components;
 
+use UTest\Kernel\DB;
 use UTest\Kernel\Site;
 
 class PrepodTestsController extends \UTest\Kernel\Component\Controller
 {
-    protected $routeMap = array(
-        'title' => 'Тесты',
-        'add_breadcrumb' => true,
-        'action_main' => 'my',
-        'actions_params' => array(
-            '/my' => [
-                'action' => 'my'
-            ],
-            '/my/<subject_code>' => [
-                'action' => 'my_tests',
-                'title' => 'Список тестов',
-                'add_breadcrumb' => true
-            ],
-            '/my/<subject_code>/delete/<id>' => [
-                'action' => 'delete'
-            ],
-            '/my/<subject_code>/new' => [
-                'action' => 'my_new_test',
-                'title' => 'Создание нового теста',
-                'add_breadcrumb' => true
-            ],
-            '/my/<subject_code>/edit/<id>' => [
-                'action' => 'my_edit_test',
-                'title' => 'Редактирование теста',
-                'add_breadcrumb' => true
-            ],
-            '/my/<subject_code>/test-<tid>' => [
-                'action' => 'my_test_questions',
-                'title' => 'Список вопросов',
-                'add_breadcrumb' => true
-            ],
-            '/my/<subject_code>/test-<tid>/new' => [
-                'action' => 'my_new_question',
-                'title' => 'Создание нового вопроса',
-                'add_breadcrumb' => true
-            ],
-            '/my/<subject_code>/test-<tid>/edit/<id>' => [
-                'action' => 'my_edit_question',
-                'title' => 'Редактирование вопроса',
-                'add_breadcrumb' => true
-            ],
-            '/my/<subject_code>/test-<tid>/delete/<id>' => [
-                'action' => 'delete'
-            ],
+    protected function routeMap()
+    {
+        return [
+            'redirect' => Site::getModUrl() . '/my',
+            'actions_params' => array(
+                '/my' => [
+                    'action' => 'my',
+                    'title' => 'Мои тесты',
+                    'subtitle' => function($vars){
+                        return DB::table(TABLE_PREPOD_SUBJECT)
+                            ->select('title')
+                            ->where('alias', $vars['subject_code'])
+                            ->first()['title'];
+                    },
+                    'add_breadcrumb' => true,
+                ],
+                '/my/<subject_code>' => [
+                    'action' => 'my_tests',
+                    'title' => 'Список тестов',
+                    'subtitle' => function($vars){
+                        return DB::table(TABLE_TEST)
+                            ->select('title')
+                            ->find($vars['tid'])['title'];
+                    },
+                    'add_breadcrumb' => true
+                ],
+                '/my/<subject_code>/delete/<id>' => [
+                    'action' => 'delete'
+                ],
+                '/my/<subject_code>/new' => [
+                    'action' => 'my_new_test',
+                    'title' => 'Создание нового теста',
+                    'add_breadcrumb' => true
+                ],
+                '/my/<subject_code>/edit/<id>' => [
+                    'action' => 'my_edit_test',
+                    'title' => 'Редактирование теста',
+                    'add_breadcrumb' => true
+                ],
+                '/my/<subject_code>/test-<tid>' => [
+                    'action' => 'my_test_questions',
+                    'title' => 'Список вопросов',
+                    'add_breadcrumb' => true
+                ],
+                '/my/<subject_code>/test-<tid>/new' => [
+                    'action' => 'my_new_question',
+                    'title' => 'Создание нового вопроса',
+                    'add_breadcrumb' => true
+                ],
+                '/my/<subject_code>/test-<tid>/edit/<id>' => [
+                    'action' => 'my_edit_question',
+                    'title' => 'Редактирование вопроса',
+                    'add_breadcrumb' => true
+                ],
+                '/my/<subject_code>/test-<tid>/delete/<id>' => [
+                    'action' => 'delete'
+                ],
 
-            '/for' => [
-                'action' => 'for',
-                'title' => 'Назначенные тесты',
-                'add_breadcrumb' => true
-            ],
-            '/for/<group_code>' => [
-                'action' => 'for_subject',
-                'title' => 'По дисциплине',
-                'add_breadcrumb' => true
-            ],
-            '/for/<group_code>/<subject_code>' => [
-                'action' => 'for_tests',
-                'title' => 'Список назначенных тестов',
-                'add_breadcrumb' => true
-            ],
-            '/for/<group_code>/<subject_code>/new' => [
-                'action' => 'for_new_test',
-                'title' => 'Назначение нового теста',
-                'add_breadcrumb' => true
-            ],
-            '/for/<group_code>/<subject_code>/edit/<id>' => [
-                'action' => 'for_edit_test',
-                'title' => 'Редактирование назначенного теста',
-                'add_breadcrumb' => true
-            ],
-            '/for/<group_code>/<subject_code>/delete/<id>' => [
-                'action' => 'delete'
-            ],
+                '/for' => [
+                    'action' => 'for',
+                    'title' => 'Назначенные тесты',
+                    'subtitle' => function($vars){
+                        return DB::table(TABLE_UNIVER_GROUP)
+                            ->select('title')
+                            ->where('alias', $vars['group_code'])
+                            ->first()['title'];
+                    },
+                    'add_breadcrumb' => true
+                ],
+                '/for/<group_code>' => [
+                    'action' => 'for_subject',
+                    'title' => 'Дисциплины',
+                    'subtitle' => function($vars){
+                        return DB::table(TABLE_PREPOD_SUBJECT)
+                            ->select('title')
+                            ->where('alias', $vars['subject_code'])
+                            ->first()['title'];
+                    },
+                    'add_breadcrumb' => true
+                ],
+                '/for/<group_code>/<subject_code>' => [
+                    'action' => 'for_tests',
+                    'title' => 'Список назначенных тестов',
+                    'add_breadcrumb' => true
+                ],
+                '/for/<group_code>/<subject_code>/new' => [
+                    'action' => 'for_new_test',
+                    'title' => 'Назначение нового теста',
+                    'add_breadcrumb' => true
+                ],
+                '/for/<group_code>/<subject_code>/edit/<id>' => [
+                    'action' => 'for_edit_test',
+                    'title' => 'Редактирование назначенного теста',
+                    'add_breadcrumb' => true
+                ],
+                '/for/<group_code>/<subject_code>/delete/<id>' => [
+                    'action' => 'delete'
+                ],
 
-            '/ajax/newtype/<qtype>' => [
-                'action' => 'ajax_new_type'
-            ],
+                '/ajax/newtype/<qtype>' => [
+                    'action' => 'ajax_new_type'
+                ],
 
-            '/delete/<type>/<id>' => [
-                'action' => 'delete',
-            ],
-        ),
-        'vars_rules' => [
-            'subject_code' => '[-_a-zA-Z0-9]',
-            'group_code' => '[-_a-zA-Z0-9]',
-            'in' => '[-_a-zA-Z0-9]',
-            'qtype' => '[-_a-zA-Z]',
-            'id' => '[0-9]',
-            'qid' => '[0-9]',
-            'tid' => '[0-9]',
-            'type' => '[a-zA-Z]'
-        ]
-    );
+                '/delete/<type>/<id>' => [
+                    'action' => 'delete',
+                ],
+            ),
+            'vars_rules' => [
+                'subject_code' => '[-_a-zA-Z0-9]',
+                'group_code' => '[-_a-zA-Z0-9]',
+                'in' => '[-_a-zA-Z0-9]',
+                'qtype' => '[-_a-zA-Z]',
+                'id' => '[0-9]',
+                'qid' => '[0-9]',
+                'tid' => '[0-9]',
+                'type' => '[a-zA-Z]'
+            ]
+        ];
+    }
 
     public function run()
     {

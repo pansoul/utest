@@ -58,7 +58,7 @@ class Controller
     
     /**
      * Модель текущего загруженного компонента
-     * @var object
+     * @var \UTest\Kernel\Component\Model $model
      */
     protected $model = null;
     
@@ -177,7 +177,9 @@ class Controller
      * @var array
      */
     private $routeMapDefault = array(
+        'redirect' => false,
         'title' => null,
+        'subtitle' => null,
         'add_breadcrumb' => false,
         'action_main' => 'index',
         'action_default' => null,
@@ -224,8 +226,7 @@ class Controller
      * Даёт команду "старт" работе компонента, выполняя требуемый акшн.<br/>
      * В этот момент весь компонент уже полностью собран.<br/>
      * Должен возвращать итоговый контент, выводимый пользователю.
-     *
-     * @return string
+     * @throws DoActionException
      */
     public function run()
     {   
@@ -342,6 +343,10 @@ class Controller
             }
         }
 
+        if ($actionParams['redirect']) {
+            Site::redirect($actionParams['redirect']);
+        }
+
         $this->model = new $componentModel($this->componentName, $this->action);
         $this->model->setVars($arVars);
 
@@ -358,7 +363,12 @@ class Controller
             : ($this->routeMap['title'] ? $this->routeMap['title'] : self::DEFAULT_TITLE);
 
         if ($this->routeMap['add_breadcrumb']) {
-            AppBuilder::addBreadcrumb($this->routeMap['title'] ? $this->routeMap['title'] : self::DEFAULT_TITLE, Site::getModUrl());
+            $breadcrumbTitle = $this->routeMap['title'] ? $this->routeMap['title'] : self::DEFAULT_TITLE;
+            $breadcrumbSubtitle = $this->getActionSubtitle($this->routeMap['subtitle']);
+            if ($breadcrumbSubtitle) {
+                $breadcrumbTitle .= ' :: ' . $breadcrumbSubtitle;
+            }
+            AppBuilder::addBreadcrumb($breadcrumbTitle, Site::getModUrl());
         }
         if (!AppBuilder::getTitle() || $actionParams['title']) {
             AppBuilder::setTitle($title);
@@ -366,15 +376,23 @@ class Controller
         if (!AppBuilder::getH() || $actionParams['title']) {
             AppBuilder::setH($title);
         }
+        if ($actionParams['subtitle']) {
+            AppBuilder::setSubtitle($this->getActionSubtitle($actionParams['subtitle']));
+        }
 
-        $paramsRowSplitted = array_filter(explode('/', $this->paramsRow));
+        $paramsRowSplit = array_filter(explode('/', $this->paramsRow));
         $locParamsRow = '';
-        foreach ($paramsRowSplitted as $param) {
+        foreach ($paramsRowSplit as $param) {
             $locParamsRow .= '/' . $param;
             $locActionParams = $this->findActionParamsInRouteMap($locParamsRow);
             if ($locActionParams) {
                 if ($locActionParams['add_breadcrumb']) {
-                    AppBuilder::addBreadcrumb($locActionParams['title'], Site::getModurl() . $locParamsRow);
+                    $breadcrumbTitle = $locActionParams['title'] ? $locActionParams['title'] : self::DEFAULT_TITLE;
+                    $breadcrumbSubtitle = $this->getActionSubtitle($locActionParams['subtitle']);
+                    if ($breadcrumbSubtitle) {
+                        $breadcrumbTitle .= ' :: ' . $breadcrumbSubtitle;
+                    }
+                    AppBuilder::addBreadcrumb($breadcrumbTitle, Site::getModurl() . $locParamsRow);
                 }
             }
         }
@@ -391,6 +409,14 @@ class Controller
         } catch (DoActionException $e) {
             $this->putContent(Form::error($e->getMessage() . " в компонете '{$this->componentName}'"));
         }
+    }
+
+    private function getActionSubtitle($subtitle = null)
+    {
+        if (is_callable($subtitle)) {
+            $subtitle = $subtitle($this->model->getVars());
+        }
+        return $subtitle;
     }
 
     private function findActionParamsInRouteMap($paramsRow = '', &$arDebugRules = [], &$arVars = [])

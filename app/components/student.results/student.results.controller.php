@@ -2,23 +2,33 @@
 
 namespace UTest\Components;
 
+use UTest\Kernel\DB;
+
 class StudentResultsController extends \UTest\Kernel\Component\Controller
 {
-    protected $routeMap = array(
-        'title' => 'Список завершённых тестов',
-        'add_breadcrumb' => true,
-        'action_main' => 'test_list',
-        'actions_params' => array(
-            '/<id>' => [
-                'action' => 'result',
-                'title' => 'Результаты теста',
-                'add_breadcrumb' => true
-            ],
-        ),
-        'vars_rules' => array(
-            'id' => '[0-9]'
-        )
-    );
+    protected function routeMap()
+    {
+        return [
+            'title' => 'Список завершённых тестов',
+            'add_breadcrumb' => true,
+            'action_main' => 'test_list',
+            'actions_params' => array(
+                '/<id>' => [
+                    'action' => 'result',
+                    'title' => 'Результаты теста',
+                    'subtitle' => function ($vars) {
+                        return DB::table(TABLE_STUDENT_TEST)
+                            ->select('title')
+                            ->find($vars['id'])['title'];
+                    },
+                    'add_breadcrumb' => true
+                ],
+            ),
+            'vars_rules' => array(
+                'id' => '[0-9]'
+            )
+        ];
+    }
 
     public function run()
     {

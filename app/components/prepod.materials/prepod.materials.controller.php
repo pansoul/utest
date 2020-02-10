@@ -3,75 +3,97 @@
 namespace UTest\Components;
 
 use UTest\Kernel\Site;
+use UTest\Kernel\DB;
 
 class PrepodMaterialsController extends \UTest\Kernel\Component\Controller
 {
-    protected $routeMap = array(
-        'title' => 'Материал',
-        'add_breadcrumb' => true,
-        'action_main' => 'my',
-        'actions_params' => array(
-            '/my' => [
-                'action' => 'my'
-            ],
-            '/my/<subject_code>' => [
-                'action' => 'my_material',
-                'title' => 'Список документов',
-                'add_breadcrumb' => true
-            ],
-            '/my/<subject_code>/new' => [
-                'action' => 'my_new',
-                'title' => 'Загрузка нового материала',
-                'add_breadcrumb' => true
-            ],
-            '/my/<subject_code>/edit/<id>' => [
-                'action' => 'my_edit',
-                'title' => 'Редактирование материала',
-                'add_breadcrumb' => true
-            ],
+    protected function routeMap()
+    {
+        return [
+            'redirect' => Site::getModUrl() . '/my',
+            'actions_params' => array(
+                '/my' => [
+                    'action' => 'my',
+                    'title' => 'Мой материал по дисциплинам',
+                    'subtitle' => function ($vars) {
+                        return DB::table(TABLE_PREPOD_SUBJECT)
+                            ->select('title')
+                            ->where('alias', $vars['subject_code'])
+                            ->first()['title'];
+                    },
+                    'add_breadcrumb' => true,
+                ],
+                '/my/<subject_code>' => [
+                    'action' => 'my_material',
+                    'title' => 'Список документов',
+                    'add_breadcrumb' => true
+                ],
+                '/my/<subject_code>/new' => [
+                    'action' => 'my_new',
+                    'title' => 'Загрузка нового материала',
+                    'add_breadcrumb' => true
+                ],
+                '/my/<subject_code>/edit/<id>' => [
+                    'action' => 'my_edit',
+                    'title' => 'Редактирование материала',
+                    'add_breadcrumb' => true
+                ],
 
-            '/for' => [
-                'action' => 'for',
-                'title' => 'Материал для групп',
-                'add_breadcrumb' => true
-            ],
-            '/for/<group_code>' => [
-                'action' => 'for_subject',
-                'title' => 'По дисциплине',
-                'add_breadcrumb' => true
-            ],
-            '/for/<group_code>/<subject_code>' => [
-                'action' => 'for_material',
-                'title' => 'Список документов',
-                'add_breadcrumb' => true
-            ],
-            '/for/<group_code>/<subject_code>/new' => [
-                'action' => 'for_new',
-                'title' => 'Поделиться материалом',
-                'add_breadcrumb' => true
-            ],
-            '/for/<group_code>/<subject_code>/newcomment' => [
-                'action' => 'for_new_comment',
-                'title' => 'Создание нового комментария',
-                'add_breadcrumb' => true
-            ],
-            '/for/<group_code>/<subject_code>/editcomment/<id>' => [
-                'action' => 'for_edit_comment',
-                'title' => 'Редактирование комментария',
-                'add_breadcrumb' => true
-            ],
+                '/for' => [
+                    'action' => 'for',
+                    'title' => 'Материал для групп',
+                    'subtitle' => function ($vars) {
+                        return DB::table(TABLE_UNIVER_GROUP)
+                            ->select('title')
+                            ->where('alias', $vars['group_code'])
+                            ->first()['title'];
+                    },
+                    'add_breadcrumb' => true
+                ],
+                '/for/<group_code>' => [
+                    'action' => 'for_subject',
+                    'title' => 'Дисциплины',
+                    'subtitle' => function ($vars) {
+                        return DB::table(TABLE_PREPOD_SUBJECT)
+                            ->select('title')
+                            ->where('alias', $vars['subject_code'])
+                            ->first()['title'];
+                    },
+                    'add_breadcrumb' => true
+                ],
+                '/for/<group_code>/<subject_code>' => [
+                    'action' => 'for_material',
+                    'title' => 'Список документов',
+                    'add_breadcrumb' => true
+                ],
+                '/for/<group_code>/<subject_code>/new' => [
+                    'action' => 'for_new',
+                    'title' => 'Поделиться материалом',
+                    'add_breadcrumb' => true
+                ],
+                '/for/<group_code>/<subject_code>/newcomment' => [
+                    'action' => 'for_new_comment',
+                    'title' => 'Создание нового комментария',
+                    'add_breadcrumb' => true
+                ],
+                '/for/<group_code>/<subject_code>/editcomment/<id>' => [
+                    'action' => 'for_edit_comment',
+                    'title' => 'Редактирование комментария',
+                    'add_breadcrumb' => true
+                ],
 
-            '/delete/<type>/<id>' => [
-                'action' => 'delete',
-            ],
-        ),
-        'vars_rules' => array(
-            'subject_code' => '[-_a-zA-Z0-9]',
-            'group_code' => '[-_a-zA-Z0-9]',
-            'id' => '[0-9]',
-            'type' => '[a-zA-Z]'
-        )
-    );
+                '/delete/<type>/<id>' => [
+                    'action' => 'delete',
+                ],
+            ),
+            'vars_rules' => array(
+                'subject_code' => '[-_a-zA-Z0-9]',
+                'group_code' => '[-_a-zA-Z0-9]',
+                'id' => '[0-9]',
+                'type' => '[a-zA-Z]'
+            )
+        ];
+    }
 
     public function run()
     {

@@ -2,51 +2,80 @@
 
 namespace UTest\Components;
 
+use UTest\Kernel\DB;
+use UTest\Kernel\User\User;
+
 class PrepodResultsController extends \UTest\Kernel\Component\Controller
 {
-    protected $routeMap = array(
-        'title' => 'Результаты тестирования',
-        'add_breadcrumb' => true,
-        'action_main' => 'groups',
-        'actions_params' => array(
-            '/<group_code>' => [
-                'action' => 'subjects',
-                'title' => 'Результаты тестирования',
-                'add_breadcrumb' => true
-            ],
-            '/<group_code>/<subject_code>' => [
-                'action' => 'tests',
-                'title' => 'Результаты тестирования',
-                'add_breadcrumb' => true
-            ],
-            '/<group_code>/<subject_code>/gretake/<atid>' => [
-                'action' => 'retake_group',
-                'title' => 'Пересдача теста',
-                'add_breadcrumb' => true
-            ],
-            '/<group_code>/<subject_code>/<atid>' => [
-                'action' => 'students',
-                'title' => 'Результаты тестирования',
-                'add_breadcrumb' => true
-            ],
-            '/<group_code>/<subject_code>/<atid>/result/<uid>' => [
-                'action' => 'result',
-                'title' => 'Пересдача теста',
-                'add_breadcrumb' => true
-            ],
-            '/<group_code>/<subject_code>/<atid>/sretake/<uid>' => [
-                'action' => 'retake_student',
-                'title' => 'Пересдача теста',
-                'add_breadcrumb' => true
-            ],
-        ),
-        'vars_rules' => array(
-            'subject_code' => '[-_a-zA-Z0-9]',
-            'group_code' => '[-_a-zA-Z0-9]',
-            'atid' => '[0-9]',
-            'uid' => '[0-9]'
-        )
-    );
+    protected function routeMap()
+    {
+        return [
+            'title' => 'Результаты тестирования',
+            'subtitle' => function($vars){
+                return DB::table(TABLE_UNIVER_GROUP)
+                    ->select('title')
+                    ->where('alias', $vars['group_code'])
+                    ->first()['title'];
+            },
+            'add_breadcrumb' => true,
+            'action_main' => 'groups',
+            'actions_params' => array(
+                '/<group_code>' => [
+                    'action' => 'subjects',
+                    'title' => 'Дисциплины',
+                    'subtitle' => function($vars){
+                        return DB::table(TABLE_PREPOD_SUBJECT)
+                            ->select('title')
+                            ->where('alias', $vars['subject_code'])
+                            ->first()['title'];
+                    },
+                    'add_breadcrumb' => true
+                ],
+                '/<group_code>/<subject_code>' => [
+                    'action' => 'tests',
+                    'title' => 'Назначенные тесты',
+                    'subtitle' => function($vars){
+                        return DB::table(TABLE_STUDENT_TEST)
+                            ->select('title')
+                            ->find($vars['atid'])['title'];
+                    },
+                    'add_breadcrumb' => true
+                ],
+                '/<group_code>/<subject_code>/gretake/<atid>' => [
+                    'action' => 'retake_group',
+                    'title' => 'Пересдача теста группе',
+                    'add_breadcrumb' => true
+                ],
+                '/<group_code>/<subject_code>/<atid>' => [
+                    'action' => 'students',
+                    'title' => 'Студенты',
+                    'add_breadcrumb' => true
+                ],
+                '/<group_code>/<subject_code>/<atid>/result/<uid>' => [
+                    'action' => 'result',
+                    'title' => 'Результат тестирования',
+                    'subtitle' => function($vars){
+                        return User::user($vars['uid'])->getFullName();
+                    },
+                    'add_breadcrumb' => true
+                ],
+                '/<group_code>/<subject_code>/<atid>/sretake/<uid>' => [
+                    'action' => 'retake_student',
+                    'title' => 'Пересдача теста студенту',
+                    'subtitle' => function($vars){
+                        return User::user($vars['uid'])->getFullName();
+                    },
+                    'add_breadcrumb' => true
+                ],
+            ),
+            'vars_rules' => array(
+                'subject_code' => '[-_a-zA-Z0-9]',
+                'group_code' => '[-_a-zA-Z0-9]',
+                'atid' => '[0-9]',
+                'uid' => '[0-9]'
+            )
+        ];
+    }
 
     public function run()
     {

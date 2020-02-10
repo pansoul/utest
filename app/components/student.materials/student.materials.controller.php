@@ -2,23 +2,34 @@
 
 namespace UTest\Components;
 
+use UTest\Kernel\DB;
+
 class StudentMaterialsController extends \UTest\Kernel\Component\Controller
 {
-    protected $routeMap = array(
-        'title' => 'Материал по дисциплинам',
-        'add_breadcrumb' => true,
-        'action_main' => 'subjects',
-        'actions_params' => array(
-            '/<subject_code>' => [
-                'action' => 'materials',
-                'title' => 'Список документов',
-                'add_breadcrumb' => true
-            ]
-        ),
-        'vars_rules' => array(
-            'subject_code' => '[-_a-zA-Z0-9]'
-        )
-    );
+    protected function routeMap()
+    {
+        return [
+            'title' => 'Материал по дисциплинам',
+            'subtitle' => function ($vars) {
+                return DB::table(TABLE_PREPOD_SUBJECT)
+                    ->select('title')
+                    ->where('alias', $vars['subject_code'])
+                    ->first()['title'];
+            },
+            'add_breadcrumb' => true,
+            'action_main' => 'subjects',
+            'actions_params' => array(
+                '/<subject_code>' => [
+                    'action' => 'materials',
+                    'title' => 'Список документов',
+                    'add_breadcrumb' => true
+                ]
+            ),
+            'vars_rules' => array(
+                'subject_code' => '[-_a-zA-Z0-9]'
+            )
+        ];
+    }
 
     public function run()
     {

@@ -39,5 +39,8 @@ return array(
     'univer_address' => Controller::loadComponent('admin.setting', 'univer', array('address'), false),
     'univer_phone' => Controller::loadComponent('admin.setting', 'univer', array('phone'), false),
     'breadcrump' => Controller::loadComponent('utility', 'breadcrumb', array(UTest\Kernel\AppBuilder::getBreadcrumb())),
-    'copyright' => '2019. Боровских Павел Сергеевич'
+    'copyright' => '2019. Боровских Павел Сергеевич',
+    'subtitle' => function($subtitle){
+        return !empty($subtitle) ? " <span class='subtitle'><span class='subtitle__separator'>::</span> {$subtitle}</span>" : '';
+    }
 );

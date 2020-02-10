@@ -2,12 +2,20 @@
 
 namespace UTest\Components;
 
+use UTest\Kernel\DB;
+
 class AdminStudentsController extends \UTest\Kernel\Component\Controller
 {
-    function routeMap()
+    protected function routeMap()
     {
         return [
             'title' => 'Группы',
+            'subtitle' => function($vars){
+                return DB::table(TABLE_UNIVER_GROUP)
+                    ->select('title')
+                    ->where('alias', $vars['group_code'])
+                    ->first()['title'];
+            },
             'add_breadcrumb' => true,
             'action_main' => 'group',
             'actions_params' => [
