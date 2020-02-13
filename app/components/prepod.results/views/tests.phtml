@@ -37,7 +37,7 @@ if (count($data) == 0) {
                 <td data-sort-value="<?=$v['date']?>"><?=date("d.m.Y",strtotime($v['date']))?></td>
                 <td><a href="<?=Site::getUrl() . '/' . $v['id']?>"><?=$v['title']?></a></td>
                 <td><?=$v['base_title']?></td>
-                <td class="last-column"><?=Form::btnRetake(Site::getUrl() . '/gretake/' . $v['id'], false, ['title'=>'Назначить пересдачу всей группе по данному тесту'])?></td>
+                <td class="last-column"><?=Form::btnRetake(Site::getUrl() . '/gretake/' . $v['id'], ['title'=>'Назначить пересдачу всей группе по данному тесту'])?></td>
             </tr>
         <?endforeach?>
     </tbody>

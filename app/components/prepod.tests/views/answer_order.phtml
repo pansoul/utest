@@ -51,7 +51,7 @@ if($get['new'] == 'Y') :
                     <td><?=Form::select("right[{$k}]", $arOptions , $r[$k], false, 'form-control answer-select-order')?></td>
                     <td class="last-column">
                         <?=Form::input('hidden', "variant[{$k}][id]", $item['id'])?>
-                        <?=Form::btnDelete('#', false, ['data-id' => $item['id']])?>
+                        <?=Form::btnDelete('#', ['data-id' => $item['id']])?>
                     </td>
                 </tr>
             

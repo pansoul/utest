@@ -65,8 +65,8 @@ if ($this->hasErrors()) {
                     <td><?= $v['phone'] ?: '&mdash;' ?></td>
                     <td><?= $v['email'] ?: '&mdash;' ?></td>
                     <td class="last-column">
-                        <?= Form::btnEdit(Site::getModurl() . '/edit/', $v['id']) ?>
-                        <?= Form::btnDelete(Site::getModurl() . '/delete/', $v['id']) ?>
+                        <?= Form::btnEdit(Site::getModurl() . '/edit/' . $v['id']) ?>
+                        <?= Form::btnDelete(Site::getModurl() . '/delete/' . $v['id']) ?>
                     </td>
                 </tr>
             <? endforeach ?>

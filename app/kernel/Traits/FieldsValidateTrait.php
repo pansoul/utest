@@ -65,7 +65,13 @@ trait FieldsValidateTrait
                 }
             }
             if (isset($fieldsMap[$field][FieldsValidateTraitHelper::_VALIDATE])) {
-                // @todo
+                // @todo реализовать предварительную валидацию поля
+                // Предполагаемый массив параметров для указания валидации:
+                // [
+                //    'type' => 'integer',
+                //    'limit' => 11,
+                //    'link' => [TABLE_UNIVER_GROUP, 'id']
+                // ]
             }
         }
 

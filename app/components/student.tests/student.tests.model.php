@@ -77,15 +77,18 @@ class StudentTestsModel extends \UTest\Kernel\Component\Model
                 ->select(
                     TABLE_STUDENT_TEST.'.*',
                     TABLE_STUDENT_TEST_PASSAGE.'.status',
-                    TABLE_STUDENT_TEST_PASSAGE.'.retake'
+                    TABLE_STUDENT_TEST_PASSAGE.'.retake',
+                    DB::raw('count('.TABLE_TEST_QUESTION.'.id) as base_count_q')
                 )
                 ->leftJoin(TABLE_STUDENT_TEST_PASSAGE, function($join){
                     $join->on(TABLE_STUDENT_TEST_PASSAGE.'.test_id', '=', TABLE_STUDENT_TEST.'.id')
                         ->where(TABLE_STUDENT_TEST_PASSAGE.'.user_id', '=', User::user()->getUID());
                 })
+                ->leftJoin(TABLE_TEST_QUESTION, TABLE_TEST_QUESTION.'.test_id', '=', TABLE_STUDENT_TEST.'.test_id')
                 ->where(TABLE_STUDENT_TEST.'.group_id', '=', User::user()->getGroupId())
                 ->where(TABLE_STUDENT_TEST.'.subject_id', '=', $subject['id'])
                 ->orderBy(TABLE_STUDENT_TEST.'.title')
+                ->groupBy(TABLE_STUDENT_TEST.'.id')
                 ->get();
         }
 

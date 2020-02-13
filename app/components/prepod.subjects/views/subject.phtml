@@ -44,8 +44,8 @@ if ($this->hasErrors()) {
                     <td class="column-min"><?=$v['id']?></td>
                     <td><?=$v['title']?></td>
                     <td class="last-column">
-                        <?=Form::btnEdit(Site::getModurl().'/edit/', $v['id'])?>
-                        <?=Form::btnDelete(Site::getModurl().'/delete/', $v['id'])?>
+                        <?=Form::btnEdit(Site::getModurl().'/edit/' . $v['id'])?>
+                        <?=Form::btnDelete(Site::getModurl().'/delete/' . $v['id'])?>
                     </td>
                 </tr>
             <?endforeach?>

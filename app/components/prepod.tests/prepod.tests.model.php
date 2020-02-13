@@ -54,7 +54,14 @@ class PrepodTestsModel extends \UTest\Kernel\Component\Model
             ->where('alias', '=', $subjectCode)
             ->where('user_id', '=', User::user()->getUID())
             ->first();
-        $res = $this->test->getBySubject($parent['id']);
+
+        $res = DB::table(TABLE_TEST)
+            ->where([
+                'subject_id' => $parent['id'],
+                'user_id' => User::user()->getUID()
+            ])
+            ->orderBy('title')
+            ->get();
 
         if (!$parent) {
             $this->setErrors('Предмет не найден', ERROR_ELEMENT_NOT_FOUND);
@@ -261,15 +268,18 @@ class PrepodTestsModel extends \UTest\Kernel\Component\Model
         $res = DB::table(TABLE_STUDENT_TEST)
             ->select(
                 TABLE_STUDENT_TEST.'.*',
-                TABLE_TEST.'.title as base_title'
+                TABLE_TEST.'.title as base_title',
+                DB::raw('count('.TABLE_TEST_QUESTION.'.id) as base_count_q')
             )
             ->leftJoin(TABLE_TEST, TABLE_TEST.'.id', '=', TABLE_STUDENT_TEST.'.test_id')
+            ->leftJoin(TABLE_TEST_QUESTION, TABLE_TEST_QUESTION.'.test_id', '=', TABLE_STUDENT_TEST.'.test_id')
             ->where([
                 TABLE_STUDENT_TEST.'.group_id' => $group['id'],
                 TABLE_STUDENT_TEST.'.subject_id' => $subject['id'],
                 TABLE_STUDENT_TEST.'.user_id' => User::user()->getUID(),
             ])
             ->orderBy(TABLE_STUDENT_TEST.'.date')
+            ->groupBy(TABLE_STUDENT_TEST.'.id')
             ->get();
 
         if (!$subject) {

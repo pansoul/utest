@@ -46,8 +46,8 @@ if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) {
                     <td><?=$v['title']?></td>
                     <td><?=$v['code']?></td>
                     <td class="last-column">
-                        <?=Form::btnEdit(Site::getUrl().'/editspeciality/', $v['id'])?>
-                        <?=Form::btnDelete(Site::getModurl().'/delete/', 'speciality/'.$v['id'])?>
+                        <?=Form::btnEdit(Site::getUrl().'/editspeciality/' . $v['id'])?>
+                        <?=Form::btnDelete(Site::getModurl().'/delete/speciality/' . $v['id'])?>
                     </td>
                 </tr>
             <?endforeach?>

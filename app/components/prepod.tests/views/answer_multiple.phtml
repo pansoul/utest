@@ -47,7 +47,7 @@ if($get['new'] == 'Y') :
                     <td><label for="a-<?=$k?>"><?=Form::checkbox("right[{$k}]", 1, 'answer-checkbox', "a-{$k}", $r[$k])?> отметить</label></td>
                     <td class="last-column">
                         <?=Form::input('hidden', "variant[{$k}][id]", $item['id'])?>
-                        <?=Form::btnDelete('#', false, ['data-id' => $item['id']])?>
+                        <?=Form::btnDelete('#', ['data-id' => $item['id']])?>
                     </td>
                 </tr>
 

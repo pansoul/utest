@@ -38,10 +38,9 @@ class AdminPrepodsModel extends \UTest\Kernel\Component\Model
             }
         }
 
-        // @todo
         $res = DB::table(TABLE_USER)
             ->whereNull('group_id')
-            ->where('role', '!=', User::ADMIN_ROLE)
+            ->where('role', Prepod::ROLE)
             ->orderBy('last_name')
             ->get();
 
@@ -77,7 +76,7 @@ class AdminPrepodsModel extends \UTest\Kernel\Component\Model
     public function editAction($id)
     {
         $v = User::getById($id);
-        if ($v['role'] !== Prepod::ROLE) {
+        if ($v['role'] != Prepod::ROLE) {
             $this->setErrors('Пользователь не найден', ERROR_ELEMENT_NOT_FOUND);
         }
         return $this->newPrepodAction($v);

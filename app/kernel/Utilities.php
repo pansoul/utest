@@ -110,10 +110,9 @@ class Utilities
         return $string;
     }
 
-    // @todo нужна ли ссылка?
-    public static function checkUniq(&$alias, $table)
+    public static function setUniqueAlias(&$alias, $table)
     {
-        while ($res = DB::table($table)->where('alias', '=', $alias)->first()) {
+        while (DB::table($table)->where('alias', '=', $alias)->exists()) {
             $alias .= '-1';
         }
     }

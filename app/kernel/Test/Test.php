@@ -601,12 +601,6 @@ class Test
         return $rows;
     }
 
-    // @todo
-    public function getBySubject($sid = 0)
-    {
-        return DB::table(TABLE_TEST)->where(['subject_id' => $sid, 'user_id' => $this->uid])->orderBy('title')->get();
-    }
-
     /**
      * Проверяет на наличие необходимых загруженных данных
      * @param null $types
@@ -680,13 +674,15 @@ class Test
         foreach ($types as $key => $stop) {
             switch ($key) {
                 case self::TYPE_ANSWER:
-                    // @todo
+                    $this->aid = 0;
+                    $this->answerData = [];
                     break;
 
                 case self::TYPE_QUESTION:
                     $this->qTypeEntity = null;
                     $this->qid = 0;
                     $this->questionData = [];
+                    $this->answersList = [];
                     break;
 
                 case self::TYPE_TEST:

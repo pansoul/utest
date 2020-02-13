@@ -46,7 +46,7 @@ class PrepodSubjectsModel extends \UTest\Kernel\Component\Model
                     'user_id' => User::user()->getUID()
                 ];
 
-                Utilities::checkUniq($dataRow['alias'], TABLE_PREPOD_SUBJECT);
+                Utilities::setUniqueAlias($dataRow['alias'], TABLE_PREPOD_SUBJECT);
 
                 if (DB::table(TABLE_PREPOD_SUBJECT)->updateOrInsert(['id' => $v['id']], $dataRow)) {
                     Site::redirect(Site::getModurl());

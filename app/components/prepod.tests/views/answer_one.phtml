@@ -47,7 +47,7 @@ if($get['new'] == 'Y') :
                     <td><label><?=Form::radio("right", $k, 'answer-radio', false, $k == $r)?> отметить</label></td>
                     <td class="last-column">
                         <?=Form::input('hidden', "variant[{$k}][id]", $item['id'])?>
-                        <?=Form::btnDelete('#', false, ['data-id' => $item['id']])?>
+                        <?=Form::btnDelete('#', ['data-id' => $item['id']])?>
                     </td>
                 </tr>
             

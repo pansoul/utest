@@ -97,7 +97,7 @@ class AdminStudentsModel extends \UTest\Kernel\Component\Model
                     'alias' => Utilities::translit($v['title'])
                 ];
 
-                Utilities::checkUniq($dataRow['alias'], TABLE_UNIVER_GROUP);
+                Utilities::setUniqueAlias($dataRow['alias'], TABLE_UNIVER_GROUP);
 
                 if ($r = DB::table(TABLE_UNIVER_GROUP)->updateOrInsert(['id' => $v['id']], $dataRow)) {
                     Site::redirect(Site::getModurl());

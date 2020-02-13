@@ -3,7 +3,7 @@
 namespace UTest\Kernel;
 
 use UTest\Kernel\User\User;
-use Utest\Kernel\Errors\AppException;
+use UTest\Kernel\Errors\AppException;
 use UTest\Kernel\Component\Controller;
 
 class AppRouter
@@ -24,22 +24,18 @@ class AppRouter
         $layout = $this->getLayoutPage(Site::getUrl());
 
         // Синхронизируемся с картой url-алиасов из настроек
-        // @todo проверить позже
         if ($argsConfig = Base::getConfig('url_aliases > ' . Site::getUrl())) {
             if (is_array($argsConfig)) {
-                if ($argsConfig[1] !== false) {
-                    if (!User::isAuth()) {
-                        $builder->build(false, LAYOUT_404);
-                    }
-                } elseif ($argsConfig[0] === false) {
-                    $builder->build(false, $layout);
-                } else {
-                    $builder->build(Controller::loadComponent($argsConfig[0], true), $layout);
+                // $argsConfig[0] - имя компонента или false, если нужо закрепить url за алиасом
+                // $argsConfig[1] - флаг, определяющий общий доступ к странице (true) или же только по авторизации (false)
+                $content = $argsConfig[0] ? Controller::loadComponent($argsConfig[0], true) : false;
+                if ($argsConfig[1] !== true && !User::isAuth()) {
+                    $layout = LAYOUT_404;
                 }
+                $builder->build($content, $layout);
             }
         }
         // Если текущего алиаса в карте не найдено, значит загружем контент исходя из авторизации и типа пользователя
-        // @todo произвести рефактор условия
         elseif (Site::getGroup() && (!User::isAuth() || Site::getGroup() != User::user()->getRole())) {
             $builder->build(false, LAYOUT_404);
         } else {
@@ -60,7 +56,6 @@ class AppRouter
         }
     }
 
-    // @todo продумать над связкой функций [fillSiteData, setModData]
     private function fillSiteData()
     {
         // Сформируем корректный и унифицированный url для дальнейшей работы
@@ -82,7 +77,6 @@ class AppRouter
         }
     }
 
-    // @todo продумать над связкой функций [fillSiteData, setModData]
     public static function setModData($url = '')
     {
         // Найдём имя компонента и акшн-параметры из url

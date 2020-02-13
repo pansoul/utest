@@ -222,103 +222,90 @@ class Form
      * Создаёт служебную кнопку "Новая запись"
      *
      * @param string $text - название ссылки
-     * @param string $url - часть url, включающая название контроллера
-     * @param string $params - параметры, передаваемые контроллеру
+     * @param string $url - url-адрес
      * @param array $attr - другие атрибуты у элемента, передаются через массив в виде пар "<имя_атрибута>"=>"<значение_атрибута>"
      *
      * @return string
      */
-    public static function btnNew($text = '', $url = '#', $params = '', $attr = array())
+    public static function btnNew($text = '', $url = '#', $attr = array())
     {
-        $fullUrl = $url . '/' . $params;
-        $fullUrl = str_replace('//', '/', $fullUrl);
+        $url = str_replace('//', '/', $url);
 
-        return "<a class='btn btn-add btn-lg' href='{$fullUrl}' " . self::buildAttr($attr, true) . "><span class='glyphicon glyphicon-plus'></span>{$text}</a>";
+        return "<a class='btn btn-add btn-lg' href='{$url}' " . self::buildAttr($attr, true) . "><span class='glyphicon glyphicon-plus'></span>{$text}</a>";
     }
 
     /**
      * Создаёт служебную кнопку "Редактировать"
      *
-     * @param string $url - часть url, включающая название контроллера
-     * @param string $params - параметры, передаваемые контроллеру
+     * @param string $url - url-адрес
      * @param array $attr - другие атрибуты у элемента, передаются через массив в виде пар "<имя_атрибута>"=>"<значение_атрибута>"
      *
      * @return string
      */
-    public static function btnEdit($url = '#', $params = '', $attr = array())
+    public static function btnEdit($url = '#', $attr = array())
     {
-        $fullUrl = $url . '/' . $params;
-        $fullUrl = str_replace('//', '/', $fullUrl);
+        $url = str_replace('//', '/', $url);
 
-        return "<a title='Изменить' class='btn-mini btn-edit' href='{$fullUrl}' " . self::buildAttr($attr, true) . "></a>";
+        return "<a title='Изменить' class='btn-mini btn-edit' href='{$url}' " . self::buildAttr($attr, true) . "></a>";
     }
 
     /**
      * Создаёт служебную кнопку "Удалить"
      *
-     * @param string $url - часть url, включающая название контроллера
-     * @param string $params - параметры, передаваемые контроллеру
+     * @param string $url - url-адрес
      * @param array $attr - другие атрибуты у элемента, передаются через массив в виде пар "<имя_атрибута>"=>"<значение_атрибута>"
      *
      * @return string
      */
-    public static function btnDelete($url = '#', $params = '', $attr = array())
+    public static function btnDelete($url = '#', $attr = array())
     {
-        $fullUrl = $url . '/' . $params;
-        $fullUrl = str_replace('//', '/', $fullUrl);
+        $url = str_replace('//', '/', $url);
 
-        return "<a title='Удалить' class='btn-mini btn-delete' href='{$fullUrl}' " . self::buildAttr($attr, true) . "></a>";
+        return "<a title='Удалить' class='btn-mini btn-delete' href='{$url}' " . self::buildAttr($attr, true) . "></a>";
     }
 
     /**
      * Создаёт служебную кнопку "Начать/продолжить тестирование"
      *
-     * @param string $url - часть url, включающая название контроллера
-     * @param string $params - параметры, передаваемые контроллеру
+     * @param string $url - url-адрес
      * @param array $attr - другие атрибуты у элемента, передаются через массив в виде пар "<имя_атрибута>"=>"<значение_атрибута>"
      * @return string
      */
-    public static function btnTest($url = '#', $params = '', $attr = array())
+    public static function btnTest($url = '#', $attr = array())
     {
-        $fullUrl = $url . '/' . $params;
-        $fullUrl = str_replace('//', '/', $fullUrl);
+        $url = str_replace('//', '/', $url);
 
-        return "<a class='btn-mini btn-test' href='{$fullUrl}' " . self::buildAttr($attr, true) . "></a>";
+        return "<a class='btn-mini btn-test' href='{$url}' " . self::buildAttr($attr, true) . "></a>";
     }
 
     /**
      * Создаёт служебную кнопку "Просмотреть результаты тестирования"
      *
-     * @param string $url - часть url, включающая название контроллера
-     * @param string $params - параметры, передаваемые контроллеру
+     * @param string $url - url-адрес
      * @param array $attr - другие атрибуты у элемента, передаются через массив в виде пар "<имя_атрибута>"=>"<значение_атрибута>"
      *
      * @return string
      */
-    // @todo Убрать безобразие $params и во всех подобных функциях
-    public static function btnResult($url = '#', $params = '', $attr = array())
+    public static function btnResult($url = '#', $attr = array())
     {
-        $fullUrl = $url . '/' . $params;
-        $fullUrl = str_replace('//', '/', $fullUrl);
+        $url = str_replace('//', '/', $url);
 
-        return "<a title='Просмотреть результаты' class='btn-mini btn-result' href='{$fullUrl}' " . self::buildAttr($attr, true) . "></a>";
+        return "<a title='Просмотреть результаты' class='btn-mini btn-result' href='{$url}' " . self::buildAttr($attr, true) . "></a>";
     }
 
     /**
      * Создаёт служебную кнопку "Назначить пересдачу"
      *
-     * @param string $url - часть url, включающая название контроллера
-     * @param string $params - параметры, передаваемые контроллеру
+     * @param string $url - url-адрес
      * @param array $attr - другие атрибуты у элемента, передаются через массив в виде пар "<имя_атрибута>"=>"<значение_атрибута>"
      *
      * @return string
      */
-    public static function btnRetake($url = '#', $params = '', $attr = array())
+    public static function btnRetake($url = '#', $attr = array())
     {
-        $fullUrl = $url . '/' . $params;
-        $fullUrl = str_replace('//', '/', $fullUrl);
+        $url = str_replace('//', '/', $url);
 
-        return "<a class='btn-mini btn-retake' href='{$fullUrl}' " . self::buildAttr($attr, true) . "></a>";
+        return "<a class='btn-mini btn-retake' href='{$url}' " . self::buildAttr($attr, true) . "></a>";
     }
 
     /**

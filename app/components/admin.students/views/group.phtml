@@ -51,8 +51,8 @@ if (count($items) == 0) {
                     </td>
                     <td><?=$v['speciality_name']?></td>
                     <td class="last-column">
-                        <?=Form::btnEdit(Site::getModurl().'/editgroup/', $v['id'])?>
-                        <?=Form::btnDelete(Site::getModurl().'/delete/', 'group/'.$v['id'])?>
+                        <?=Form::btnEdit(Site::getModurl().'/editgroup/' . $v['id'])?>
+                        <?=Form::btnDelete(Site::getModurl().'/delete/group/' . $v['id'])?>
                     </td>
                 </tr>
             <?endforeach?>

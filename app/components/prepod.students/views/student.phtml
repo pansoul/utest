@@ -52,7 +52,7 @@ if ($this->hasErrors()) {
                     <td><?=$v['login']?></td>
                     <td><?=$v['phone'] ? $v['phone'] : '&mdash;'?></td>
                     <td><?=$v['email'] ? $v['email'] : '&mdash;'?></td>
-                    <td class="last-column"><?=Form::btnEdit(Site::getUrl().'/editstudent/', $v['id'])?></td>
+                    <td class="last-column"><?=Form::btnEdit(Site::getUrl().'/editstudent/' . $v['id'])?></td>
                 </tr>
             <?endforeach?>
         </tbody>

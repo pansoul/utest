@@ -56,7 +56,7 @@ $arStatusLabelClasses = [
                 <td><?=intval($v['retake_value'])?></td>
                 <td class="last-column">
                     <?if($v['test_status'] != Passage::STATUS_WAITED_FOR_START):?>
-                        <?=Form::btnRetake(Site::getUrl() . '/sretake/' . $v['id'], false, ['title'=>'Назначить пересдачу данному студенту'])?>
+                        <?=Form::btnRetake(Site::getUrl() . '/sretake/' . $v['id'], ['title'=>'Назначить пересдачу данному студенту'])?>
                     <?endif;?>
                     <?=Form::btnResult(Site::getUrl() . '/result/' . $v['id'])?>
                 </td>

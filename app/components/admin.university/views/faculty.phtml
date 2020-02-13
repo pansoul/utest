@@ -44,8 +44,8 @@ if (count($data) == 0) {
                     <td class="column-min"><?=$v['id']?></td>
                     <td><a href="<?=Site::getModurl()?>/<?=$v['alias']?>"><?=$v['title']?></a></td>
                     <td class="last-column">
-                        <?=Form::btnEdit(Site::getModurl().'/editfaculty/', $v['id'])?>
-                        <?=Form::btnDelete(Site::getModurl().'/delete/', 'faculty/'.$v['id'])?>
+                        <?=Form::btnEdit(Site::getModurl().'/editfaculty/' . $v['id'])?>
+                        <?=Form::btnDelete(Site::getModurl().'/delete/faculty/' . $v['id'])?>
                     </td>
                 </tr>
             <?endforeach?>

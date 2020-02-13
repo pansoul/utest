@@ -78,12 +78,6 @@ class Admin extends \UTest\Kernel\User\User
                 FieldsValidateTraitHelper::_REQUIRED => function ($v, $group) {
                     return $v['role'] == Student::ROLE;
                 },
-                // @todo
-                FieldsValidateTraitHelper::_VALIDATE => [
-                    'type' => 'integer',
-                    'limit' => 11,
-                    'link' => [TABLE_UNIVER_GROUP, 'id']
-                ]
             ],
             'post' => [
                 FieldsValidateTraitHelper::_NAME => 'Должность',

@@ -37,7 +37,7 @@ class AdminUniversityModel extends \UTest\Kernel\Component\Model
                     'alias' => Utilities::translit($v['title'])
                 ];
 
-                Utilities::checkUniq($dataRow['alias'], TABLE_UNIVER_FACULTY);
+                Utilities::setUniqueAlias($dataRow['alias'], TABLE_UNIVER_FACULTY);
 
                 if (DB::table(TABLE_UNIVER_FACULTY)->updateOrInsert(['id' => $v['id']], $dataRow)) {
                     Site::redirect(Site::getModurl());
