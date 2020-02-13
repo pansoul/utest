@@ -50,10 +50,11 @@ $arStatusLabelClasses = [
                         <?=Passage::getTestStatuses(intval($v['status']))?>
                     </span>
                 </td>
-                <td><?=$v['count_q']?></td>
+                <td><?=$v['count_q'] // @todo Выводить текущее количество, если было указано 0?></td>
                 <td><?=intval($v['retake'])?></td>
                 <td class="last-column">
                     <?
+                    // @todo Разобраться с ключами
                     switch(intval($v['status'])) {
                         case 0:
                             $btn = Form::btnTest(Site::getUrl() . '/test-' . $v['id'], false, ['title'=>'Начать тестирование']);

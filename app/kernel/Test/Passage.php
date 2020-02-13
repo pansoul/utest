@@ -570,6 +570,10 @@ class Passage
             return false;
         }
 
+        if (!$this->getNumberQuestions()) {
+            $this->setErrors('Вопросы к тексту не заданы');
+        }
+
         $passageFields = [
             'user_id' => $this->uid,
             'test_id' => $this->atid,
@@ -883,7 +887,7 @@ class Passage
                     break;
 
                 case self::CHECK_RETAKE:
-                    $check = $this->retake > 0 && $this->retake <= $this->getRealRetake();
+                    $check = $this->retake >= 0 && $this->retake <= $this->getRealRetake();
                     break;
 
                 default:

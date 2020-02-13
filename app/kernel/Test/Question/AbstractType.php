@@ -70,7 +70,7 @@ abstract class AbstractType implements TypeInterface
         }, $v);
 
         return array_filter($v, function($item){
-            return !empty($item['title']);
+            return strlen($item['title']) > 0;
         });
     }
 

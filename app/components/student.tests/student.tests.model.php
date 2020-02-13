@@ -124,7 +124,7 @@ class StudentTestsModel extends \UTest\Kernel\Component\Model
         $passage = new Passage(User::user()->getUID(), $id);
         $passage->start();
 
-        if ($q = $passage->loadQuestion(1)) {
+        if (!$passage->hasErrors() && $q = $passage->loadQuestion(1)) {
             $result['status'] = 'OK';
             $result['question'] = $this->buildQuestionDataForAjax($q);
         } else {

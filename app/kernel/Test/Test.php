@@ -127,10 +127,7 @@ class Test
                     FieldsValidateTraitHelper::_ADD,
                     FieldsValidateTraitHelper::_EDIT
                 ]
-            ],
-            'parent_id' => [
-                FieldsValidateTraitHelper::_NAME => '???' // @todo
-            ],
+            ]
         ];
     }
 

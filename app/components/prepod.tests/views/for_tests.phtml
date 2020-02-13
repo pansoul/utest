@@ -18,8 +18,6 @@ if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) {
     echo Form::error($this->getErrors(ERROR_ELEMENT_NOT_FOUND));
     return;
 }
-
-$items = $data['form'];
 ?>
 
 <div class="setting-panel">
@@ -53,7 +51,7 @@ if (count($data) == 0) {
                     <td><?=date("d.m.Y",strtotime($v['date']))?></td>
                     <td><?=$v['title']?></td>
                     <td><?=$v['base_title']?></td>
-                    <td><?=$v['count_q']?></td>
+                    <td><?=$v['count_q'] // @todo Выводить текущее количество, если было указано 0?></td>
                     <td class="column-activity-<?=$v['is_mixing']?>"><?=$v['is_mixing']?></td>
                     <td class="column-activity-<?=$v['is_show_true']?>"><?=$v['is_show_true']?></td>
                     <td class="last-column">

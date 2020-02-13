@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * Текущая версия приложения
+ */
+define('VERSION', '2.0.0-rc.1');
+
+/**
  * Определим переменную корня нашего приложения
  */
 define('ROOT', realpath('.'));
@@ -40,7 +45,6 @@ require_once APP_PATH . '/composer/vendor/autoload.php';
 
 // Таблицы
 define('TABLE_USER', 'u_user');
-define('TABLE_USER_ROLES', 'u_user_roles');
 define('TABLE_UNIVER_DATA', 'u_univer_data');
 define('TABLE_UNIVER_FACULTY', 'u_univer_faculty');
 define('TABLE_UNIVER_GROUP', 'u_univer_group');
