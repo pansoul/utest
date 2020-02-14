@@ -30,9 +30,9 @@ class TemplateResult
         $this->vars = $vars;
         $this->debugInfo =& $debugInfo;
         $this->request = new HttpRequest();
-        $this->_GET = $this->request->getValue(HttpRequest::GET);
-        $this->_POST = $this->request->getValue(HttpRequest::POST);
-        $this->_REQUEST = $this->request->getValue(HttpRequest::REQUEST);
+        $this->_GET = $this->request->getValue(null, null, HttpRequest::GET);
+        $this->_POST = $this->request->getValue(null, null, HttpRequest::POST);
+        $this->_REQUEST = $this->request->getValue(null, null, HttpRequest::REQUEST);
     }
 
     final public function includeTemplate($templateName, $data = null, $errors = null, $vars = null)

@@ -98,13 +98,13 @@ class HttpRequest
     /**
      * Возвращает значение запроса или массив целевого запроса
      *
-     * @param string $source
      * @param null $key
      * @param null $default
+     * @param string $source
      *
      * @return mixed
      */
-    public function getValue($source = self::REQUEST, $key = null, $default = null)
+    public function getValue($key = null, $default = null, $source = self::REQUEST)
     {
         if (null === $key) {
             return $this->{$source};
