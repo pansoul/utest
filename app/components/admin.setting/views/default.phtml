@@ -29,19 +29,7 @@ if ($_SESSION['update'] == 'Y') {
     <div class="form-group">
         <label class="col-lg-2 control-label">Телефон(ы):</label>
         <div class="col-lg-10">
-            <?=Form::textarea('phone', $data['phone'], 'form-control ckeditor')?>
-        </div>
-    </div> 
-    <div class="form-group">
-        <label class="col-lg-2 control-label">Контакты:</label>
-        <div class="col-lg-10">
-            <?=Form::textarea('contacts', $data['contacts'], 'form-control')?>            
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-lg-2 control-label">Информация:</label>
-        <div class="col-lg-10">
-            <?=Form::textarea('info', $data['info'], 'form-control ckeditor')?>
+            <?=Form::textarea('phone', $data['phone'], 'form-control')?>
         </div>
     </div>
     <div class="form-group">

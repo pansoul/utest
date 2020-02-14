@@ -20,9 +20,7 @@ class AdminSettingModel extends \UTest\Kernel\Component\Model
                 'name' => $v['univer_name'],
                 'fullname' => $v['univer_fullname'],
                 'address' => $v['address'],
-                'phone' => HttpRequest::convert2safe($v['~phone'], true),
-                //'contacts' => $v['contacts'],
-                //'info' => $v['~info']
+                'phone' => $v['phone'],
             ];
 
             if (DB::table(TABLE_UNIVER_DATA)->where('id', '=', self::ID)->update($dataRow)) {
