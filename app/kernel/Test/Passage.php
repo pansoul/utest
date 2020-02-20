@@ -570,7 +570,7 @@ class Passage
             return false;
         }
 
-        if (!$this->getNumberQuestions()) {
+        if (!$this->getRealNumberQuestions()) {
             $this->setErrors('Вопросы к тексту не заданы');
         }
 
@@ -700,7 +700,7 @@ class Passage
 
         $q = [
             'question' => $this->baseTest->getQuestionData(),
-            'answer_list' => $this->baseTest->getAnswersList(Test::ANSWERS_MODE_VARIANTS),
+            'answer_list' => Utilities::shuffleAssoc($this->baseTest->getAnswersList(Test::ANSWERS_MODE_VARIANTS)),
             'cur_num' => $number,
             'user_answer' => null
         ];

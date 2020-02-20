@@ -110,6 +110,22 @@ class Utilities
         return $string;
     }
 
+    public static function shuffleAssoc($list)
+    {
+        if (!is_array($list)) {
+            return $list;
+        }
+
+        $keys = array_keys($list);
+        shuffle($keys);
+        $random = array();
+        foreach ($keys as $key) {
+            $random[$key] = $list[$key];
+        }
+
+        return $random;
+    }
+
     public static function setUniqueAlias(&$alias, $table)
     {
         while (DB::table($table)->where('alias', '=', $alias)->exists()) {

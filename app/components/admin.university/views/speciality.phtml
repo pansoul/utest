@@ -17,7 +17,7 @@ if ($this->hasErrors(ERROR_ELEMENT_NOT_FOUND)) {
 ?>
 
 <div class="setting-panel">
-    <?=Form::btnNew('Создать новую специальность', Site::getUrl(), 'newspeciality')?>
+    <?=Form::btnNew('Создать новую специальность', Site::getUrl() . '/newspeciality')?>
 </div>
 
 <? if (count($data) == 0) {

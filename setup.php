@@ -435,7 +435,7 @@ elseif ($step == 'import')
 			file_put_contents($config_file, $f);
 			rename('_index.php', 'index.php');
 			@unlink(__FILE__);
-			@unlink($_SERVER['DOCUMENT_ROOT'] . SQL_FILE);
+			//@unlink($_SERVER['DOCUMENT_ROOT'] . SQL_FILE); @todo Нужно ли удалять дамп?
 			header('Location: /');
 			exit;
 		}
